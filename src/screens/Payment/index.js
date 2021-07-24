@@ -1,8 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import ChaiPay from 'chaipay';
-import ChaiPayScreen from 'chaipay/ChaiPayScreen';
+// import ChaiPay from 'chaipay';
+// import ChaiPayScreen from 'chaipay/ChaiPayScreen';
+import Checkout from 'chaipay-sdk';
 //const client = require('chaipay')
+import axios from 'axios';
+
+// TODO
+  // 1. Add env variable which can have 3 values "dev","staging","prod" using this we should use the respective domain for API requests
+  // "https://dev-api.chaipay.io" for dev
+  // "https://staging-api.chaipay.io" for staging
+  // "https://api.chaipay.io" for prod
+  // default domain to be used is prod if env variable is not provided
+  // 2. Add an option for the merchant to provide - text, color and style for the checkout button
+  // 3. Add an option for the merchant to provide - text, color and style for the Close button in webview
+
 
 const styles = StyleSheet.create({
   container: {
@@ -12,11 +24,14 @@ const styles = StyleSheet.create({
   },
 });
 
+const deepLinkURL = "chaipay://checkout";
+
 const Payment = ({ route }) => {
   const { price, method, channel } = route.params;
+  console.log('route params : ',route.params);
   const [url, setUrl] = useState("");
-
-  var data = {
+  
+  var payload = {
     "key": "lzrYFPfyMLROallZ",
     //navigation "navigation":navigation,
     "pmt_channel": channel,
@@ -24,6 +39,7 @@ const Payment = ({ route }) => {
     "merchant_order_id": "MERCHANT" + new Date().getTime(),
     "amount": price,
     "currency": "VND",
+    "signature_hash":"123",
     "billing_details": {
       "billing_name": "Test mark",
       "billing_email": "markweins@gmail.com",
@@ -64,29 +80,108 @@ const Payment = ({ route }) => {
     "failure_url": "chaipay://",
   };
 
-  useEffect(() => {
-    const chaipay = new ChaiPay({
-      secretKey: '86GV9W7wZRFhfSdgAicoDH',
-      privatKey: 'privat',
-      env: 'SANDBOX', // 'SANDBOX'  // optional
-      debugMode: true, // optional
-    });
-    chaipay.paymentService.payment(data,
-      function (error) { // onFailure hook
-        // Handle payment initiation failure
-        console.error(error);
-      }, function (response) { // onBeforeRedirect hook
-        console.log('logging response');
-        console.log(response.data.redirect_url);
-        const redirectUrl = response.data.redirect_url;
-        console.log("logging url", redirectUrl);
-        setUrl(redirectUrl);
-      })
-  }, [price,method,channel]);
+  
+  // useEffect(() => {
+  //   const chaipay = new ChaiPay({
+  //     secretKey: '86GV9W7wZRFhfSdgAicoDH',
+  //     privatKey: 'privat',
+  //     env: 'SANDBOX', // 'SANDBOX'  // optional
+  //     debugMode: true, // optional
+  //   });
+  //   chaipay.paymentService.payment(payload,
+  //     function (error) { // onFailure hook
+  //       // Handle payment initiation failure
+  //       console.error(error);
+  //     }, function (response) { // onBeforeRedirect hook
+  //       console.log('logging response');
+  //       console.log(response.data.redirect_url);
+  //       const redirectUrl = response.data.redirect_url;
+  //       console.log("logging url", redirectUrl);
+  //       setUrl(redirectUrl);
+  //     })
+  // }, [price,method,channel]);
 
+const [ pageLoading, setPageLoading ] = useState(false);
+    const [ orderDetails, setOrderDetails ] = useState(undefined);
+    const [ domain, setDomain ] = useState("https://fbb816fa8011.ngrok.io")
+    const [ data, setData ] = useState(payload);
 
+    
+    const _fetchHash = () => {
+        setPageLoading(true);
+        let url = domain+"/getHash";
+        let body = data;
+        body["pmt_channel"] = channel;
+        body["pmt_method"] = method;
+
+        body["success_url"] = deepLinkURL
+        body["failure_url"] = deepLinkURL
+        
+        let requestConfig = {
+            timeout:30000, 
+            headers:{
+                "Accept":"*/*",
+                "Content-Type":"application/json"
+            }
+        }
+        axios.post(url, body, requestConfig)
+        .then((response)=>{
+            let output = response.data;
+            if(output){
+                let oldData = {...data};
+                oldData["merchant_order_id"] = output["merchantOrderId"];
+                oldData["signature_hash"] = output["hash"]
+                setData(oldData);
+            }
+            setPageLoading(false);
+        })
+        .catch((error)=>{
+            // console.warn("Error occurred in getHash Server : ", error);
+            setPageLoading(false)
+        });
+        setOrderDetails(undefined);
+    }
+
+    const _afterCheckout = ( transactionDetails ) => {
+        // console.warn("Error without persist ",nativeEvent);
+        if(transactionDetails){
+            if((typeof transactionDetails)=="object"){
+                setOrderDetails(transactionDetails);
+            }
+            else if(transactionDetails == "Modal closed"){
+                setOrderDetails(transactionDetails);
+            }else{
+                setOrderDetails(JSON.parse(transactionDetails))
+            }
+        }
+    }
+  
   return (
-    <ChaiPayScreen paymentChannel={channel} url={url} amount={price} />
+    <View>
+      <Text>{JSON.stringify(orderDetails)}</Text>
+      <Button onPress={_fetchHash}
+        title="Fetch Hash"
+      />
+      <Checkout 
+        chaipayKey={data["key"]}
+        merchantOrderId={data["merchant_order_id"]}
+        amount={data["amount"]}
+        currency={data["currency"]}
+        signatureHash={data["signature_hash"]}
+        shippingAddress={data["shipping_details"]}
+        billingAddress={data["billing_details"]}
+        orderDetails={data["order_details"]}
+
+        paymentChannel={channel}
+        paymentMethod={method}
+        callbackFunction={_afterCheckout}
+        failureUrl = {deepLinkURL}
+        successUrl = {deepLinkURL}
+        redirectUrl = {deepLinkURL}
+        testing={true}
+      />
+    </View>
+    // <ChaiPayScreen paymentChannel={channel} url={url} amount={price} />
   );
 };
 

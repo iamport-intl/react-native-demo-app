@@ -51,7 +51,7 @@ class Checkout extends React.Component {
             onPress={() => this.props.navigation.navigate('Payment',{
                 price: this.props.route.params.price,
                 //navigation: this.props.navigation,
-                method:'ZALOPAY_TESTWALLET',
+                method:'ZALOPAY_WALLET',
                 channel:'ZALOPAY'
               })}
              />
@@ -63,7 +63,7 @@ class Checkout extends React.Component {
             onPress={() => this.props.navigation.navigate('Payment',{
                 price: this.props.route.params.price,
                 //navigation: this.props.navigation,
-                method:'CREDITCARD',
+                method:'VNPAY_ALL',
                 channel:'VNPAY'
               })}
              />
@@ -75,7 +75,7 @@ class Checkout extends React.Component {
             onPress={() => this.props.navigation.navigate('Payment',{
                 price: this.props.route.params.price,
                 //navigation:this.props.navigation,
-                method:'MOMOPAY_TESTWALLET',
+                method:'MOMOPAY_WALLET',
                 channel:'MOMOPAY'
               })}
              />

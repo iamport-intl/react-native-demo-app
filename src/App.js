@@ -14,7 +14,7 @@ import ShopScreen from './screens/Shop';
 import PaymentScreen from './screens/Payment';
 //import ChaiPayView from './screens/ChaiPayView';
 import CheckoutScreen from './screens/Checkout';
-import ChaiPayScreen from 'chaipay/ChaiPayScreen';
+// import ChaiPayScreen from 'chaipay/ChaiPayScreen';
 
 const Tab = createMaterialBottomTabNavigator();
 
