@@ -103,7 +103,7 @@ const Payment = ({ route }) => {
 
 const [ pageLoading, setPageLoading ] = useState(false);
     const [ orderDetails, setOrderDetails ] = useState(undefined);
-    const [ domain, setDomain ] = useState("https://fbb816fa8011.ngrok.io")
+    const [ domain, setDomain ] = useState("http://192.168.0.108:3000")
     const [ data, setData ] = useState(payload);
 
     
