@@ -106,41 +106,6 @@ const [ pageLoading, setPageLoading ] = useState(false);
     const [ domain, setDomain ] = useState("http://192.168.0.108:3000")
     const [ data, setData ] = useState(payload);
 
-    
-    const _fetchHash = () => {
-        setPageLoading(true);
-        let url = domain+"/getHash";
-        let body = data;
-        body["pmt_channel"] = channel;
-        body["pmt_method"] = method;
-
-        body["success_url"] = deepLinkURL
-        body["failure_url"] = deepLinkURL
-        
-        let requestConfig = {
-            timeout:30000, 
-            headers:{
-                "Accept":"*/*",
-                "Content-Type":"application/json"
-            }
-        }
-        axios.post(url, body, requestConfig)
-        .then((response)=>{
-            let output = response.data;
-            if(output){
-                let oldData = {...data};
-                oldData["merchant_order_id"] = output["merchantOrderId"];
-                oldData["signature_hash"] = output["hash"]
-                setData(oldData);
-            }
-            setPageLoading(false);
-        })
-        .catch((error)=>{
-            // console.warn("Error occurred in getHash Server : ", error);
-            setPageLoading(false)
-        });
-        setOrderDetails(undefined);
-    }
 
     const _afterCheckout = ( transactionDetails ) => {
         // console.warn("Error without persist ",nativeEvent);
@@ -159,15 +124,16 @@ const [ pageLoading, setPageLoading ] = useState(false);
   return (
     <View>
       <Text>{JSON.stringify(orderDetails)}</Text>
-      <Button onPress={_fetchHash}
+      {/* <Button onPress={_fetchHash}
         title="Fetch Hash"
-      />
+      /> */}
       <Checkout 
         chaipayKey={data["key"]}
         merchantOrderId={data["merchant_order_id"]}
         amount={data["amount"]}
         currency={data["currency"]}
-        signatureHash={data["signature_hash"]}
+        // fetchHashUrl={domain+"/getHash"}
+        secretKey="0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242"
         shippingAddress={data["shipping_details"]}
         billingAddress={data["billing_details"]}
         orderDetails={data["order_details"]}

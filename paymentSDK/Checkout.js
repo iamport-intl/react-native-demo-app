@@ -5,6 +5,9 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { bodyParams, requiredParams, initiateURL, api } from './constants';
 
+import hmacSHA256 from 'crypto-js/hmac-sha256';
+import Base64 from 'crypto-js/enc-base64';
+
 class Checkout extends React.Component {
 
     constructor(props){
@@ -16,6 +19,7 @@ class Checkout extends React.Component {
             showPaymentModal:false,
             pageLoading:false,
             messageFromWebView:"",
+            secretHash: "",
         }
     }
 
@@ -25,22 +29,91 @@ class Checkout extends React.Component {
         })
     }
 
-    _prepareRequestBody = () => {
+    _createHash = (data, secretKey)=>{
+          let message = "";
+          message = "amount="+encodeURIComponent(data["amount"])+"&currency="+encodeURIComponent(data["currency"])+"&failure_url="+encodeURIComponent(data["failure_url"])+"&merchant_order_id="+encodeURIComponent(data["merchant_order_id"])+"&pmt_channel="+encodeURIComponent(data["pmt_channel"])+"&pmt_method="+encodeURIComponent(data["pmt_method"])+"&success_url="+encodeURIComponent(data["success_url"])
+        
+          let hash = hmacSHA256(message, secretKey);
+          let signatureHash = Base64.stringify(hash);
+          return signatureHash
+    }
+
+    _fetchHash = async ( props ) => {
+        
+        this.setPageLoading(true);
+        let secretHash = "";
+        const { paymentChannel, paymentMethod, failureUrl, successUrl, chaipayKey, amount, currency, 
+            fetchHashUrl, merchantOrderId, secretKey, callbackFunction} = props;
+        let data = {
+            "key": chaipayKey,
+            "pmt_channel": paymentChannel,
+            "pmt_method": paymentMethod,
+            "merchant_order_id": merchantOrderId,
+            "amount": amount,
+            "currency": currency,
+            "success_url": successUrl,
+            "failure_url": failureUrl,
+        };
+        if(!Boolean(fetchHashUrl) && !Boolean(secretKey)){
+            return secretHash;
+        }
+        else if(fetchHashUrl==undefined){
+            secretHash = this._createHash(data, secretKey);
+        }else{
+            let url = fetchHashUrl;
+            let body = data;
+            
+            let requestConfig = {
+                timeout:30000, 
+                headers:{
+                    "Accept":"*/*",
+                    "Content-Type":"application/json"
+                }
+            }
+            try{
+                let response = await axios.post(url, body, requestConfig)
+                secretHash = response.data["hash"];
+            }catch(err){
+                callbackFunction({
+                    "status": "failure",
+                    "message": err
+                })
+            }
+        }
+        this.setPageLoading(false);
+        return secretHash;
+    }
+
+    _prepareRequestBody = async () => {
         let body = {}
         let props = {...this.props};
-        let missingParams = requiredParams.filter((item)=>(Object.keys(props).includes(item)==false));
+        props["signatureHash"] = await this._fetchHash({...this.props});
+        console.warn("Signature hash value : ", props["signatureHash"])
+        let missingParams = requiredParams.filter((item)=>{
+            let output = false;
+            if(item.includes("/")){
+                let keyMissing = item.split("/").filter((key)=>((Object.keys(props).includes(key)==false) || !(Boolean(props[key]))))
+                output = (keyMissing.length==(item.split("/").length));
+            }else{
+                output = ((Object.keys(props).includes(item)==false) || !(Boolean(props[item])))
+            }
+            return output;
+        });
+
         if(missingParams.length==0){
             requiredParams.forEach((param)=>{
                 body[bodyParams[param]] = props[param];
             });
+            body[bodyParams["signatureHash"]] = props["signatureHash"]
         }
         return { body, missingParams };
     }
 
-    initiatePayment =  () => {
-        let { body, missingParams } = this._prepareRequestBody();
-        let { testing } = this.props;
-        console.log("body:",body);
+
+    initiatePayment = async() => {
+        let { body, missingParams } = await this._prepareRequestBody();
+        let { testing, callbackFunction } = this.props;
+        console.log("body : ",body);
         if(missingParams.length==0){
             const { chaipayKey } = this.props;
             return(
@@ -81,7 +154,11 @@ class Checkout extends React.Component {
             )
         }else{
             let errorMessage = missingParams.join(", ")+" are required.";
-            alert(errorMessage);
+            // alert(errorMessage);
+            callbackFunction({
+                "status": "failure",
+                "message": errorMessage
+            })
             return;
         }
     }
@@ -163,7 +240,6 @@ class Checkout extends React.Component {
                 console.warn("Response after callback : "+JSON.stringify(response))
                 resolve(response.data);
             }).catch((error)=>{
-                // console.warn("Error from handleShopperRedirect : ", error )
                 if(error.response){
                     reject(error.response.data);
                 }else{
@@ -172,6 +248,7 @@ class Checkout extends React.Component {
             })
         }))
     }
+
     componentDidMount() {
         const { redirectUrl, callbackFunction } = this.props;
         Linking.removeAllListeners('url');
@@ -289,16 +366,18 @@ Checkout.propTypes = {
     successUrl: PropTypes.string.isRequired,
     failureUrl: PropTypes.string.isRequired,
     redirectUrl: PropTypes.string.isRequired,
-    callbackUrl: PropTypes.string.isRequired,
-    signatureHash: PropTypes.string.isRequired,
+    callbackUrl: PropTypes.string,
+    signatureHash: PropTypes.string,
     chaipayKey: PropTypes.string.isRequired,
     callbackFunction: PropTypes.func.isRequired,
     testing: PropTypes.bool.isRequired,
     shippingAddress: PropTypes.object.isRequired,
     billingAddress: PropTypes.object.isRequired,
     orderDetails: PropTypes.array.isRequired,
-    checkoutButtonColor:PropTypes.string,
-    checkoutButtonTitle:PropTypes.string
+    checkoutButtonColor: PropTypes.string,
+    checkoutButtonTitle: PropTypes.string,
+    fetchHashUrl: PropTypes.string,
+    secretKey: PropTypes.string
 }
 
 Checkout.defaultProp = {

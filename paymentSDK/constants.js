@@ -32,11 +32,12 @@ export const requiredParams = [
     "merchantOrderId",
     "amount",
     "currency",
-    "signatureHash",
+    // "signatureHash",
     "orderDetails",
     "billingAddress",
     "shippingAddress",
     "redirectUrl",
     "failureUrl",
-    "successUrl"
+    "successUrl",
+    "secretKey/fetchHashUrl"
 ]
