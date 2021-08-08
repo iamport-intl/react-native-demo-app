@@ -52,7 +52,8 @@ class Checkout extends React.Component {
                 price: this.props.route.params.price,
                 //navigation: this.props.navigation,
                 method:'ZALOPAY_WALLET',
-                channel:'ZALOPAY'
+                channel:'ZALOPAY',
+                orderId: "MERCHANT" + new Date().getTime()
               })}
              />
              <Text> {'\n'} </Text>
@@ -64,7 +65,8 @@ class Checkout extends React.Component {
                 price: this.props.route.params.price,
                 //navigation: this.props.navigation,
                 method:'VNPAY_ALL',
-                channel:'VNPAY'
+                channel:'VNPAY',
+                orderId: "MERCHANT" + new Date().getTime()
               })}
              />
              <Text> {'\n'} </Text>
@@ -76,7 +78,8 @@ class Checkout extends React.Component {
                 price: this.props.route.params.price,
                 //navigation:this.props.navigation,
                 method:'MOMOPAY_WALLET',
-                channel:'MOMOPAY'
+                channel:'MOMOPAY',
+                orderId: "MERCHANT" + new Date().getTime()
               })}
              />
           </Card>

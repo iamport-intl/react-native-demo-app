@@ -17,16 +17,21 @@ class Checkout extends React.Component {
             paymentURL: "",
             loadPaymentPage: false,
             showPaymentModal:false,
-            pageLoading:false,
+            pageLoading:true,
             messageFromWebView:"",
             secretHash: "",
+            originList: ["momo://", "zalopay://"]
         }
     }
 
-    setPageLoading = (val) => {
+    setPageLoading = (val, callback=undefined) => {
         this.setState({
             pageLoading:val
-        })
+        },()=>{
+            if(callback){
+                callback()
+            }
+        });
     }
 
     _createHash = (data, secretKey)=>{
@@ -112,13 +117,14 @@ class Checkout extends React.Component {
 
     initiatePayment = async() => {
         let { body, missingParams } = await this._prepareRequestBody();
-        let { testing, callbackFunction } = this.props;
-        console.log("body : ",body);
+        let { callbackFunction, env } = this.props;
+        env = env || "dev";
+
         if(missingParams.length==0){
             const { chaipayKey } = this.props;
             return(
                 new Promise((resolve, reject) => {
-                    let url = initiateURL[testing?"test":"prod"]+api["initiatePayment"];
+                    let url = initiateURL[env]+api["initiatePayment"];
                     body = JSON.stringify(body);
                     let requestConfig = {
                         timeout:30000, 
@@ -137,18 +143,22 @@ class Checkout extends React.Component {
                         if(data["redirect_url"]){
                             this.setState({
                                 paymentURL:data["redirect_url"],
-                                showPaymentModal:true
+                                showPaymentModal:true,
+                                initiatingPayment:false
                             },()=>{
                                 resolve(true)
                             });
                         }
                     }).catch((error)=>{
-                        console.log("Error : ", error);
-                        if(error.response){
-                            reject(error.response.data);
-                        }else{
-                            reject({"message":"Something went wrong, please contact administrator", "is_success":false});
-                        }
+                        this.setState({
+                            initiatingPayment:false
+                        },()=>{
+                            if(error.response){
+                                reject(error.response.data);
+                            }else{
+                                reject({"message":"Something went wrong, please contact administrator", "is_success":false});
+                            }
+                        });
                     });
                 })
             )
@@ -165,18 +175,23 @@ class Checkout extends React.Component {
 
     _handleInvalidUrl = ( event ) =>{
         const { redirectUrl } = this.props;
+        const { originList } = this.state;
         let url = event.url;
-        if(url.startsWith(redirectUrl)==false){
-            return true;
-        }else{
-            Linking.openURL(url);
-            return false;
+        let externalUrlFor = originList.filter((origin)=>url.startsWith(origin));
+        let openUrlInternally = ((url.startsWith(redirectUrl)==false) && (externalUrlFor.length==0))
+        if(!openUrlInternally){
+            Linking.openURL(url).
+            catch(
+                (error)=>{
+                    this._handleError(error)
+                }
+            );
         }
+        return openUrlInternally;
     }
 
     _handleError = (error) => {
-        const {nativeEvent} = error;
-        console.warn("Error from webview ", JSON.stringify(nativeEvent));
+        const { nativeEvent } = error;
         const { callbackFunction } = this.props;
         this.setState(
         {
@@ -184,7 +199,11 @@ class Checkout extends React.Component {
             showPaymentModal:false
         },
         () => {
-            callbackFunction(nativeEvent);
+            if(nativeEvent){
+                callbackFunction(nativeEvent);
+            }else{
+                callbackFunction({"status":"failed", "message":error});
+            }
         }
         );
     }
@@ -276,34 +295,43 @@ class Checkout extends React.Component {
         })
       }
 
+    componentWillUnmount(){
+        Linking.removeAllListeners('url');
+    }
+
     render(){
-        const { showPaymentModal, paymentURL } = this.state;
-        let { checkoutButtonTitle, checkoutButtonColor } = this.props;
-        const { webviewContainer,checkoutWebView, indicatorView } = styles;
-        checkoutButtonTitle = checkoutButtonTitle || "Checkout";
+        const { showPaymentModal, paymentURL, initiatingPayment, originList } = this.state;
+        let { checkoutButtonTitle, checkoutButtonColor, checkoutButton, closeButton } = this.props;
+        const { webviewContainer,checkoutWebView, indicatorView, closeButtonContainer } = styles;
+        checkoutButtonTitle = initiatingPayment?"Please wait...":(checkoutButtonTitle || "Checkout");
         checkoutButtonColor = checkoutButtonColor || "green"
         return (
             <View>
+            {       
+                checkoutButton?
+                checkoutButton:
                 <Button 
                     title={checkoutButtonTitle}
                     color={checkoutButtonColor}
+                    disabled={initiatingPayment}
                     onPress={()=>{
                         try{
-                            this.setPageLoading(true);
-                            this.initiatePayment()
-                            .then((response)=>{
-                                console.warn("Response from api :"+JSON.stringify(response));
-                                this.setPageLoading(false);
-                            }).catch((error)=>{
-                                console.warn("Error response from api :"+JSON.stringify(error));
-                                this.setPageLoading(false);
+                            this.setState({
+                                initiatingPayment:true
+                            },()=>{
+                                this.initiatePayment()
+                                .then((response)=>{
+                                    console.warn("Response from api :"+JSON.stringify(response));
+                                }).catch((error)=>{
+                                    console.warn("Error response from api :"+JSON.stringify(error));
+                                })
                             })
                         }catch(error){
                             console.warn("Error from checkout ", error);
                         }
                     }}
                 />
-
+            }
                 <Modal 
                     presentationStyle="fullScreen"
                     animationType="fade"
@@ -313,13 +341,22 @@ class Checkout extends React.Component {
                 >
 
                     <SafeAreaView style={webviewContainer}>
-                    <Text
-                        onPress={this._onClose}
+                    <View
+                        style={closeButtonContainer}
                     >
-                        Close
-                    </Text>
+                        {
+                            closeButton?
+                            closeButton:
+                            <Text
+                                onPress={this._onClose}
+                            >
+                                Close
+                            </Text>
+                        }
+                    </View>
                     {paymentURL?
                         <WebView
+                            originWhitelist={[...originList, "http://", "https://"]}
                             onShouldStartLoadWithRequest={this._handleInvalidUrl}
                             onLoadStart={()=>{
                                 this.setState({
@@ -370,7 +407,7 @@ Checkout.propTypes = {
     signatureHash: PropTypes.string,
     chaipayKey: PropTypes.string.isRequired,
     callbackFunction: PropTypes.func.isRequired,
-    testing: PropTypes.bool.isRequired,
+    env: PropTypes.string,
     shippingAddress: PropTypes.object.isRequired,
     billingAddress: PropTypes.object.isRequired,
     orderDetails: PropTypes.array.isRequired,
@@ -411,6 +448,10 @@ const styles = StyleSheet.create({
     checkoutWebView: {
         flex: 1,
         marginTop: 16,
+    },
+    closeButtonContainer: {
+        zIndex:1, 
+        alignSelf:"stretch"
     }
 })
 

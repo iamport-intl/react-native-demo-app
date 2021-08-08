@@ -21,6 +21,9 @@ const Tab = createMaterialBottomTabNavigator();
 const HomeTabs = () => {
   return (
     <Tab.Navigator 
+      screenOptions={{
+        unmountOnBlur:true
+      }}
       >
       <Tab.Screen 
         name="Home" 
@@ -42,7 +45,7 @@ const HomeTabs = () => {
         ),
       }}
       />
-    </Tab.Navigator >
+    </Tab.Navigator>
   );
 };
 

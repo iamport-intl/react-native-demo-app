@@ -1,7 +1,7 @@
 
 export const initiateURL = {
-    "test":"https://dev-api.chaipay.io/api/",
-    // "test":"https://593aac22f56b.ngrok.io/api/",
+    "dev":"https://dev-api.chaipay.io/api/",
+    "staging":"https://staging-api.chaipay.io/api/",
     "prod":"https://api.chaipay.io/api/"
 }
 

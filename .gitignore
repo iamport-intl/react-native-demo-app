@@ -47,7 +47,8 @@ build/
 local.properties
 *.iml
 *.hprof
-
+node_modules_*
+index.android.bundle
 # node.js
 #
 node_modules/

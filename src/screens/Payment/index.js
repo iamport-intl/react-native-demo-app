@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 // import ChaiPay from 'chaipay';
 // import ChaiPayScreen from 'chaipay/ChaiPayScreen';
 import Checkout from 'chaipay-sdk';
 //const client = require('chaipay')
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 
 // TODO
   // 1. Add env variable which can have 3 values "dev","staging","prod" using this we should use the respective domain for API requests
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 const deepLinkURL = "chaipay://checkout";
 
 const Payment = ({ route }) => {
-  const { price, method, channel } = route.params;
+  const { price, method, channel, orderId } = route.params;
   console.log('route params : ',route.params);
   const [url, setUrl] = useState("");
   
@@ -36,7 +37,7 @@ const Payment = ({ route }) => {
     //navigation "navigation":navigation,
     "pmt_channel": channel,
     "pmt_method": method,
-    "merchant_order_id": "MERCHANT" + new Date().getTime(),
+    "merchant_order_id": orderId,
     "amount": price,
     "currency": "VND",
     "signature_hash":"123",
@@ -80,32 +81,23 @@ const Payment = ({ route }) => {
     "failure_url": "chaipay://",
   };
 
-  
-  // useEffect(() => {
-  //   const chaipay = new ChaiPay({
-  //     secretKey: '86GV9W7wZRFhfSdgAicoDH',
-  //     privatKey: 'privat',
-  //     env: 'SANDBOX', // 'SANDBOX'  // optional
-  //     debugMode: true, // optional
-  //   });
-  //   chaipay.paymentService.payment(payload,
-  //     function (error) { // onFailure hook
-  //       // Handle payment initiation failure
-  //       console.error(error);
-  //     }, function (response) { // onBeforeRedirect hook
-  //       console.log('logging response');
-  //       console.log(response.data.redirect_url);
-  //       const redirectUrl = response.data.redirect_url;
-  //       console.log("logging url", redirectUrl);
-  //       setUrl(redirectUrl);
-  //     })
-  // }, [price,method,channel]);
 
 const [ pageLoading, setPageLoading ] = useState(false);
     const [ orderDetails, setOrderDetails ] = useState(undefined);
     const [ domain, setDomain ] = useState("http://192.168.0.108:3000")
     const [ data, setData ] = useState(payload);
 
+    useFocusEffect(
+      React.useCallback(()=>{
+        let newPayload = {...payload};
+        newPayload["merchant_order_id"] = orderId;
+        newPayload["pmt_channel"] = channel;
+        newPayload["pmt_method"] = method;
+        newPayload["amount"] = price;
+        setData(newPayload)
+        setOrderDetails(undefined);
+      },[orderId])
+    );
 
     const _afterCheckout = ( transactionDetails ) => {
         // console.warn("Error without persist ",nativeEvent);
@@ -122,7 +114,9 @@ const [ pageLoading, setPageLoading ] = useState(false);
     }
   
   return (
-    <View>
+    <ScrollView
+      contentContainerStyle={{flex:1, marginBottom:100}}
+    >
       <Text>{JSON.stringify(orderDetails)}</Text>
       {/* <Button onPress={_fetchHash}
         title="Fetch Hash"
@@ -144,9 +138,8 @@ const [ pageLoading, setPageLoading ] = useState(false);
         failureUrl = {deepLinkURL}
         successUrl = {deepLinkURL}
         redirectUrl = {deepLinkURL}
-        testing={true}
       />
-    </View>
+    </ScrollView>
     // <ChaiPayScreen paymentChannel={channel} url={url} amount={price} />
   );
 };
