@@ -113,7 +113,7 @@ class Shop extends React.Component {
                                <Text style={styles.featuredText}>Featured</Text>
                                <View style={styles.headerButtonView}>
                                  <Text style={styles.numberOfItemsText}>{`${products.length} items listed`}</Text>
-                                 <View style={{flexDirection: 'row'}}>
+                                 <View style={{flexDirection: 'row', flex: 0.5}}>
                                  <TouchableOpacity style={{marginHorizontal: 15, flexDirection: 'row'}}>
                                  <MaterialCommunityIcons name="sort" color={BLACK} size={14} />
                                    <Text style={{color: BLACK, fontSize: 12}}> Sort</Text>

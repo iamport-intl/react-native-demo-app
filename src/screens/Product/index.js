@@ -23,7 +23,7 @@ class Product extends React.Component {
                             {this.props.data.item.name}
                         </Text>
                         <Text style={styles.price} h4>
-                            {currency} {this.props.data.item.price}
+                            {currency}{this.props.data.item.price}
                         </Text>
                     </View>
                     <Text style={styles.description} h2>
