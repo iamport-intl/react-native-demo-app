@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Button,ScrollView, FlatList, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { APP_THEME_COLOR, DARKGRAY, BOLD, LIGHTGRAY, WHITE_COLOR, BLACK } from '../../constants';
+import { APP_THEME_COLOR, DARKGRAY, BOLD, LIGHTGRAY, WHITE_COLOR, BLACK, descriptionText } from '../../constants';
 import Product from '../Product';
 import {isEmpty, omit} from 'lodash'
 const {width, height} = Dimensions.get('screen')
@@ -11,42 +11,42 @@ const products = [
     key:1,
     name: 'Bella Toes',
     description: 'Premium quality',
-    price: 25,
+    price: 250009,
     img: 'https://demo.chaipay.io/images/bella-toes.jpg'
   },
   {
     key:2,
     name: 'Chikku Loafers',
     description: 'Special design',
-    price: 15,
+    price: 150000,
     img: 'https://demo.chaipay.io/images/chikku-loafers.jpg'
   },
   {
     key:3,
     name: '(SRV) Sneakers',
     description: 'White sneakers',
-    price: 18,
+    price: 180000,
     img: 'https://demo.chaipay.io/images/banner2.jpg'
   },
   {
     key:4,
     name: 'Shuberry Heels',
     description: 'Comfortable heels',
-    price: 30,
+    price: 30000,
     img: 'https://demo.chaipay.io/images/ab.jpg'
   },
   {
     key:5,
     name: 'Red Bellies',
     description: 'Premium quality',
-    price: 25,
+    price: 25000,
     img: 'https://demo.chaipay.io/images/red-bellies.jpg'
   },
   {
     key:6,
     name: 'Catwalk Flats',
     description: 'Premium quality',
-    price: 15,
+    price: 15000,
     img: 'https://demo.chaipay.io/images/catwalk-flats.jpg'
   }
 ];
@@ -85,6 +85,10 @@ class Shop extends React.Component {
         }
       }
      }
+
+    //  componentWillUnmount() {
+    //    this.setState({selectedProducts: {}, allProducts: products})
+    //  }
 
     render() {
       const productList = products.map(product => <Product key={product.key} data={product} navigation={this.props.navigation} />)
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
   },
   featuredText: {textAlign: 'left',color: APP_THEME_COLOR, fontSize: 40, fontWeight: BOLD, marginTop: -20},
   headerButtonView: {flexDirection: 'row', flex: 1, justifyContent: 'space-between'},
- numberOfItemsText: {flex: 0.5, color: LIGHTGRAY}
+ numberOfItemsText: {flex: 0.5, color: descriptionText, paddingBottom: 10}
 });
 
 export default Shop;

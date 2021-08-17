@@ -4,7 +4,6 @@ import { APP_THEME_COLOR, TRANSPARENT } from '../constants';
 
 class CheckboxView extends Component {
 
-
     render(){
         return(
             <TouchableOpacity style={{flexDirection: 'row', marginHorizontal: 50,  marginVertical: 15}}  onPress ={() => this.props.didSelected(this.props.item)}>

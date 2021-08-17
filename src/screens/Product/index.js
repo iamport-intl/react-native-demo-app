@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Button , Dimensions, TouchableOpacity} from 'react-native';
 import { Image } from 'react-native-elements';
-import { APP_THEME_COLOR, BOLD, imageBackgroundColor, TRANSPARENT } from '../../constants';
+import { APP_THEME_COLOR, BOLD, currency, DARKBLACK, descriptionText, imageBackgroundColor, TRANSPARENT } from '../../constants';
 import Card from '../../elements/Card'
 
 const { width, height } = Dimensions.get('window');
@@ -13,14 +13,6 @@ class Product extends React.Component {
     render() {
         return (
             <TouchableOpacity style={[styles.product, this.props.data.didSelected ? {borderColor: APP_THEME_COLOR, borderRadius: 5, borderWidth: 1} : {borderColor: TRANSPARENT}]} onPress={() => this.props.onSelectProduct(this.props.data)}>
-                {/* <Card>
-                    <Image
-                        //source={{ uri: this.props.data.item.img}}
-                        
-                        source={require('../../../assets/leftArrow.png')}
-                        style={styles.image}
-                    />
-                </Card> */}
                 <Image
                         source={{ uri: this.props.data.item.img}}
                         style={styles.image}
@@ -31,7 +23,7 @@ class Product extends React.Component {
                             {this.props.data.item.name}
                         </Text>
                         <Text style={styles.price} h4>
-                            ${this.props.data.item.price}
+                            {currency} {this.props.data.item.price}
                         </Text>
                     </View>
                     <Text style={styles.description} h2>
@@ -60,21 +52,28 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     name: {
-        color: '#3D3D3D',
-        fontSize: 17,
+        color: DARKBLACK,
+        fontSize: 14,
         fontWeight: BOLD,
-        marginBottom: 5,
-
+        flex:1,
+        flexWrap: 'wrap',
+        marginRight: 5,
+        paddingVertical: 6
     },
 
     price: {
         fontWeight: BOLD,
-        marginBottom: 10
+        flex:1,
+        flexWrap: 'wrap',
+        marginLeft: 5,
+        color: APP_THEME_COLOR,
+        fontSize: 14,
     },
+
     description: {
         fontSize: 12,
-        fontWeight: '700',
-        color: 'lightgray'
+        fontWeight: '600',
+        color: descriptionText
     },
     product: {
         padding: 10,
@@ -92,7 +91,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     image:{
-  
         height:180,
         alignItems:'center',
         justifyContent: 'center',
