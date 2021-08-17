@@ -270,10 +270,27 @@ class Checkout extends React.Component {
         }))
     }
 
+    initateThePayment = () => {
+        try{
+            this.setState({
+                initiatingPayment:true
+            },()=>{
+                this.initiatePayment()
+                .then((response)=>{
+                    console.warn("Response from api :"+JSON.stringify(response));
+                }).catch((error)=>{
+                    console.warn("Error response from api :"+JSON.stringify(error));
+                })
+            })
+        }catch(error){
+            console.warn("Error from checkout ", error);
+        }
+    
+    }
     componentDidMount() {
         const { redirectUrl, callbackFunction } = this.props;
         Linking.removeAllListeners('url');
-
+            this.initateThePayment()
         Linking.addEventListener('url', async (event)=>{
             this.setPageLoading(true);
             try{
@@ -310,7 +327,7 @@ class Checkout extends React.Component {
         
         return (
             <View>
-            {       
+            {/* {       
                 checkoutButton?
                 checkoutButton:
                 <TouchableOpacity style={checkOutViewStyle} onPress={()=>{
@@ -331,7 +348,7 @@ class Checkout extends React.Component {
                 }}>
                 <Text style={checkoutButtonTitleStyle}>CHECKOUT</Text>
                 </TouchableOpacity>
-            }
+            } */}
                 <Modal 
                     presentationStyle="fullScreen"
                     animationType="fade"
