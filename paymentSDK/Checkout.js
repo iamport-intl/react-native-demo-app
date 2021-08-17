@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Linking, Modal, ActivityIndicator, StyleSheet, SafeAreaView, Text, Button } from 'react-native';
+import { View, Dimensions, Linking, Modal, ActivityIndicator, StyleSheet, SafeAreaView, Text, Button, TouchableOpacity ,Image} from 'react-native';
 import WebView from 'react-native-webview';
 import PropTypes from 'prop-types';
 import axios from 'axios';
@@ -9,7 +9,7 @@ import hmacSHA256 from 'crypto-js/hmac-sha256';
 import Base64 from 'crypto-js/enc-base64';
 
 class Checkout extends React.Component {
-
+    
     constructor(props){
         super(props);
         this.state = {
@@ -179,6 +179,7 @@ class Checkout extends React.Component {
         let url = event.url;
         let externalUrlFor = originList.filter((origin)=>url.startsWith(origin));
         let openUrlInternally = ((url.startsWith(redirectUrl)==false) && (externalUrlFor.length==0))
+        console.log('openUrl', url)
         if(!openUrlInternally){
             Linking.openURL(url).
             catch(
@@ -301,36 +302,34 @@ class Checkout extends React.Component {
 
     render(){
         const { showPaymentModal, paymentURL, initiatingPayment, originList } = this.state;
-        let { checkoutButtonTitle, checkoutButtonColor, checkoutButton, closeButton } = this.props;
-        const { webviewContainer,checkoutWebView, indicatorView, closeButtonContainer } = styles;
+        let { checkoutButtonTitle, checkoutButtonColor, checkoutButton, closeButton} = this.props;
+        const { webviewContainer,checkoutWebView, indicatorView, checkOutViewStyle, checkoutButtonTitleStyle } = styles;
         checkoutButtonTitle = initiatingPayment?"Please wait...":(checkoutButtonTitle || "Checkout");
         checkoutButtonColor = checkoutButtonColor || "green"
+        
         return (
             <View>
             {       
                 checkoutButton?
                 checkoutButton:
-                <Button 
-                    title={checkoutButtonTitle}
-                    color={checkoutButtonColor}
-                    disabled={initiatingPayment}
-                    onPress={()=>{
-                        try{
-                            this.setState({
-                                initiatingPayment:true
-                            },()=>{
-                                this.initiatePayment()
-                                .then((response)=>{
-                                    console.warn("Response from api :"+JSON.stringify(response));
-                                }).catch((error)=>{
-                                    console.warn("Error response from api :"+JSON.stringify(error));
-                                })
+                <TouchableOpacity style={checkOutViewStyle} onPress={()=>{
+                    try{
+                        this.setState({
+                            initiatingPayment:true
+                        },()=>{
+                            this.initiatePayment()
+                            .then((response)=>{
+                                console.warn("Response from api :"+JSON.stringify(response));
+                            }).catch((error)=>{
+                                console.warn("Error response from api :"+JSON.stringify(error));
                             })
-                        }catch(error){
-                            console.warn("Error from checkout ", error);
-                        }
-                    }}
-                />
+                        })
+                    }catch(error){
+                        console.warn("Error from checkout ", error);
+                    }
+                }}>
+                <Text style={checkoutButtonTitleStyle}>CHECKOUT</Text>
+                </TouchableOpacity>
             }
                 <Modal 
                     presentationStyle="fullScreen"
@@ -341,18 +340,18 @@ class Checkout extends React.Component {
                 >
 
                     <SafeAreaView style={webviewContainer}>
-                    <View
-                        style={closeButtonContainer}
+                    <View style={{flexDirection: 'row'}}>
+                    <TouchableOpacity 
+                        style={{marginLeft: 5,}} 
+                        activeOpacity={0.5} 
+                        onPress={this._onClose}
                     >
-                        {
-                            closeButton?
-                            closeButton:
-                            <Text
-                                onPress={this._onClose}
-                            >
-                                Close
-                            </Text>
-                        }
+                        <Image
+                        source={require('../assets/close.png')}
+                        style={{width: 30, height: 30, resizeMode: 'stretch', marginLeft: 10, marginTop: 0}}
+                        />
+                    </TouchableOpacity>
+                    <Text style={{ alignSelf: 'center',fontWeight: 'bold', fontSize: 18,marginLeft: (width/2 - 90)}}>CHECKOUT</Text>
                     </View>
                     {paymentURL?
                         <WebView
@@ -388,6 +387,19 @@ class Checkout extends React.Component {
                         </View>
                     ) : null}
                     </SafeAreaView>
+                    {/* <View
+                        style={closeButtonContainer}
+                    >
+                        {
+                            closeButton?
+                            closeButton:
+                            <Text style={closeTextStyle}
+                                onPress={this._onClose}
+                            >
+                                Close
+                            </Text>
+                        }
+                    </View> */}
                 </Modal>
             </View>
         )
@@ -431,7 +443,8 @@ Checkout.defaultProp = {
     checkoutButtonColor:"green",
     checkoutButtonTitle:"Checkout"
 }
-
+let width = Dimensions.get('screen').width;
+let height = Dimensions.get('screen').height;
 const styles = StyleSheet.create({
     indicatorView: {
         position: "absolute",
@@ -450,8 +463,37 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     closeButtonContainer: {
-        zIndex:1, 
-        alignSelf:"stretch"
+        backgroundColor: '#3D3D3D',
+        borderRadius: 5,
+        marginHorizontal: 20,
+        alignContent: 'center',
+        justifyContent: 'center', 
+        height: 40,
+        alignSelf: 'center',
+        marginBottom: 60,
+        width: width - 30,
+        marginTop: 20,
+    },
+    closeTextStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16, textAlign: 'center'
+    },
+    checkOutViewStyle: {
+        backgroundColor: '#3D3D3D',
+        borderRadius: 5,
+        marginHorizontal: 20,
+        alignContent: 'center',
+        justifyContent: 'center', 
+        height: 40,
+        alignSelf: 'center',
+        width: width - 30,
+        marginTop: (height/2 - 20 - 88)
+    },
+    checkoutButtonTitleStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center'
     }
 })
 

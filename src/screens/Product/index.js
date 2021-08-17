@@ -24,10 +24,11 @@ class Product extends React.Component {
                         type="clear"
                         title='Buy now'
                         color="#3D3D3D"
-                        onPress={() => this.props.navigation.navigate('Checkout', {
+                        onPress={() => {
+                            this.props.navigation.navigate('Checkout', {
                             price: this.props.data.price,
                             //navigation:this.props.navigation
-                        })}
+                        })}}
                     />
                 </Card>
             </View>

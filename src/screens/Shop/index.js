@@ -9,37 +9,37 @@ const products = [
     key:1,
     name: 'Bella Toes',
     price: 4499999,
-    img: 'https://demo.chaipay.io/images/s1.jpg'
+    img: 'https://demo.chaipay.io/images/bella-toes.jpg'
   },
   {
     key:2,
     name: 'Chikku Loafers',
     price: 387999,
-    img: 'https://demo.chaipay.io/images/s2.jpg'
+    img: 'https://demo.chaipay.io/images/chikku-loafers.jpg'
   },
   {
     key:3,
     name: '(SRV) Sneakers',
     price: 249999,
-    img: 'https://demo.chaipay.io/images/s3.jpg'
+    img: 'https://demo.chaipay.io/images/banner2.jpg'
   },
   {
     key:4,
     name: 'Shuberry Heels',
     price: 1865999,
-    img: 'https://demo.chaipay.io/images/s4.jpg'
+    img: 'https://demo.chaipay.io/images/ab.jpg'
   },
   {
     key:5,
     name: 'Red Bellies',
     price: 2459999,
-    img: 'https://demo.chaipay.io/images/s5.jpg'
+    img: 'https://demo.chaipay.io/images/red-bellies.jpg'
   },
   {
     key:6,
     name: 'Catwalk Flats',
     price: 3867999,
-    img: 'https://demo.chaipay.io/images/s6.jpg'
+    img: 'https://demo.chaipay.io/images/catwalk-flats.jpg'
   }
 ];
 

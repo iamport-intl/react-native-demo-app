@@ -23,6 +23,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  containerView: {marginHorizontal: 20, marginTop:20, marginTop: 35},
+  stackView: {
+    flexDirection:'row', marginVertical: 5, justifyContent: 'space-around'
+  },
+  leftStackText: {fontSize: 13, flex: 0.4},
+  rightStackText: {fontWeight: 'bold', fontSize: 14, marginLeft: 5,flex: 0.6, textAlign: 'left'},
+  successStyle: {alignSelf: 'center', fontWeight: 'bold', fontSize: 20, marginTop: 25},
+  modalDismissText: {fontSize: 15, alignSelf: 'center',}
+
 });
 
 const deepLinkURL = "chaipay://checkout";
@@ -87,6 +96,7 @@ const [ pageLoading, setPageLoading ] = useState(false);
     const [ domain, setDomain ] = useState("http://192.168.0.108:3000")
     const [ data, setData ] = useState(payload);
 
+    const {containerView, stackView, leftStackText, rightStackText, successStyle, modalDismissText} = styles
     useFocusEffect(
       React.useCallback(()=>{
         let newPayload = {...payload};
@@ -112,12 +122,41 @@ const [ pageLoading, setPageLoading ] = useState(false);
             }
         }
     }
-  
   return (
     <ScrollView
       contentContainerStyle={{flex:1, marginBottom:100}}
     >
-      <Text>{JSON.stringify(orderDetails)}</Text>
+      {orderDetails?.status_reason === 'SUCCESS' 
+      ? 
+      <>
+      <Text style>Yay! Payment Success</Text>
+      <View style={containerView}> 
+          <View style={stackView}>
+          <Text style={leftStackText}>Merchant Order Ref: </Text>
+          <Text style={rightStackText}>{orderDetails.merchant_order_ref}</Text>
+          </View>
+          <View style={stackView}>
+          <Text style={leftStackText}>Channel Order Ref: </Text>
+          <Text style={rightStackText}>{orderDetails.channel_order_ref}</Text>
+          </View>
+          <View style={stackView}>
+          <Text style={leftStackText}>Status: </Text>
+          <Text style={rightStackText}>{orderDetails.status}</Text>
+          </View>
+      </View>
+      </>
+      : 
+      orderDetails?.message ==="Modal closed" 
+      ?
+      <>
+      <Text style={successStyle}>Payment Not Done</Text>
+      <View style={containerView}> 
+      <Text style={modalDismissText}>Please try again</Text>
+      </View>
+      </>
+      :
+      <Text>{JSON.stringify(orderDetails)}</Text>}
+      
       {/* <Button onPress={_fetchHash}
         title="Fetch Hash"
       /> */}

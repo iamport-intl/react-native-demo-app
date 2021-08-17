@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Button, View } from 'react-native';
+import { Button, View, TouchableOpacity, Image } from 'react-native';
 import { NavigationContainer, DrawerActions, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -89,17 +89,29 @@ const App = () => {
             headerTitleStyle: {
               fontWeight: 'bold',
               alignSelf: 'center',
-              paddingRight: 40
+              flex: 1,
+              marginTop: 10,
+              //paddingRight: 45
             },
             headerLeft: () => (
-              <Button
-                onPress={() =>
-                  navigation.dispatch(DrawerActions.toggleDrawer())
-                }
-                title="Menu"
-                color="#FF2A2A"
-
-              />
+              // <Button
+              //   onPress={() =>
+              //     navigation.dispatch(DrawerActions.toggleDrawer())
+              //   }
+              //   title="Menu"
+              //   color="#FF2A2A"></Button>
+              <>
+              <TouchableOpacity 
+                  style={{marginLeft: 5, alignItems: 'center', }} 
+                  activeOpacity={0.5} 
+                  onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())
+                  }>
+                <Image
+                source={require('../assets/sideMenu.png')}
+                style={{alignSelf: 'center', width: 25, height: 25, resizeMode: 'stretch', marginTop: 0, marginLeft: 10}}
+                />
+              </TouchableOpacity>
+             </>
             ),
           })}
         />
