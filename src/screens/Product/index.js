@@ -1,26 +1,35 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button , Dimensions, TouchableOpacity} from 'react-native';
 import { Image } from 'react-native-elements';
+import { APP_THEME_COLOR, BOLD, currency, DARKBLACK, descriptionText, imageBackgroundColor, TRANSPARENT } from '../../constants';
 import Card from '../../elements/Card'
+
+const { width, height } = Dimensions.get('window');
+const gutter = 15;
+
 class Product extends React.Component {
+
+    
     render() {
         return (
-            <View style={styles.product}>
-                <Card>
-                    <Image
-                        source={{ uri: this.props.data.img }}
+            <TouchableOpacity style={[styles.product, this.props.data.didSelected ? {borderColor: APP_THEME_COLOR, borderRadius: 5, borderWidth: 1} : {borderColor: TRANSPARENT}]} onPress={() => this.props.onSelectProduct(this.props.data)}>
+                <Image
+                        source={{ uri: this.props.data.item.img}}
                         style={styles.image}
                     />
-                    {console.log(this.props.data.img)}
-                    <View style={styles.productName}>
+                <View style={{backgroundColor: TRANSPARENT}}>
+                <View style={styles.productName}>
                         <Text style={styles.name} h2>
-                            {this.props.data.name}
+                            {this.props.data.item.name}
                         </Text>
                         <Text style={styles.price} h4>
-                            ₫ {this.props.data.price}
+                            {currency} {this.props.data.item.price}
                         </Text>
                     </View>
-                    <Button
+                    <Text style={styles.description} h2>
+                    {this.props.data.item.description}
+                        </Text>
+                    {/* <Button
                         type="clear"
                         title='Buy now'
                         color="#3D3D3D"
@@ -29,9 +38,9 @@ class Product extends React.Component {
                             price: this.props.data.price,
                             //navigation:this.props.navigation
                         })}}
-                    />
-                </Card>
-            </View>
+                    /> */}
+                </View>
+            </TouchableOpacity>
         );
     }
 }
@@ -43,24 +52,38 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     name: {
-        color: '#3D3D3D',
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 10
+        color: DARKBLACK,
+        fontSize: 14,
+        fontWeight: BOLD,
+        flex:1,
+        flexWrap: 'wrap',
+        marginRight: 5,
+        paddingVertical: 6
     },
+
     price: {
-        fontWeight: 'bold',
-        marginBottom: 10
+        fontWeight: BOLD,
+        flex:1,
+        flexWrap: 'wrap',
+        marginLeft: 5,
+        color: APP_THEME_COLOR,
+        fontSize: 14,
     },
+
     description: {
-        fontSize: 10,
-        color: '#3D3D3D'
+        fontSize: 12,
+        fontWeight: '600',
+        color: descriptionText
     },
     product: {
         padding: 10,
         marginLeft: 5,
         marginRight: 5,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        width: (width - gutter * 3)/2,
+        marginBottom: gutter,
+        alignSelf: 'flex-start',
+        
     },
     productName: {
         flexDirection: 'row',
@@ -68,10 +91,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     image:{
-  
         height:180,
         alignItems:'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        resizeMode: 'contain',
+        backgroundColor: TRANSPARENT
     }
 });
 

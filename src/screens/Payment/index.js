@@ -126,10 +126,10 @@ const [ pageLoading, setPageLoading ] = useState(false);
     <ScrollView
       contentContainerStyle={{flex:1, marginBottom:100}}
     >
-      {orderDetails?.status_reason === 'SUCCESS' 
+      {orderDetails?.status_reason === 'SUCCESS'  || orderDetails?.status === "Success"
       ? 
       <>
-      <Text style>Yay! Payment Success</Text>
+      <Text style={successStyle}>Yay! Your order has been successfully placed</Text>
       <View style={containerView}> 
           <View style={stackView}>
           <Text style={leftStackText}>Merchant Order Ref: </Text>
