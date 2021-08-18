@@ -8,6 +8,7 @@ import { bodyParams, requiredParams, initiateURL, api } from './constants';
 import hmacSHA256 from 'crypto-js/hmac-sha256';
 import Base64 from 'crypto-js/enc-base64';
 
+
 class Checkout extends React.Component {
     
     constructor(props){
@@ -87,6 +88,67 @@ class Checkout extends React.Component {
         }
         this.setPageLoading(false);
         return secretHash;
+    }
+
+    static _getOTP = (event) => {
+       
+        var number = this.props["billingAddress"].billing_phone;
+        let config = {
+             headers:{
+                "Content-Type": "application/json",
+              }
+        }
+        var res = this._callPostMethod( number, initiateURL[env]+'verification/generateOTP/' + number, {}, config)
+        console.log("OTP res: ", res)
+    }
+
+    static _callPostMethod = async (url, bodyPart, config) => {
+         return(
+                new Promise((resolve, reject) => {
+                    
+                    let body = JSON.stringify(bodyPart);
+                    let requestConfig = config
+                    console.warn(`url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(requestConfig)}`);
+                    axios.post(url, body, requestConfig)
+                    .then((response)=>{
+                        console.warn("Response : "+JSON.stringify(response))
+                        let data = response.data;
+                        
+                        console.log("Resposne 116", data)
+                        resolve(data)
+                    }).catch((error)=>{
+                        console.warn("ERROR 119 : "+ JSON.stringify(error))
+                        reject(error)
+                    });
+                })
+            )
+    }
+
+     static getToken = async(cardDetails) => {
+    
+        let url = "https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a";
+                    let body = 
+                      {
+                        "card": {
+                            "card_number": 5111111111111118, 
+                            "card_type": "Mastercard", 
+                            "cardholder_name": "NGUYEN VAN A", 
+                            "service_code": 100, 
+                            "expiration_month": 5,
+                            "expiration_year": 21
+                        }
+                      }
+                    ;
+                    let requestConfig = {
+                        headers:{
+                            "Content-Type": "application/json",
+                        }
+                    }
+             console.warn(`url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(requestConfig)}`);
+            let response = await this._callPostMethod(url, body, requestConfig)
+            console.log("Token Response", response)
+            return response
+
     }
 
     _prepareRequestBody = async () => {
@@ -326,28 +388,6 @@ class Checkout extends React.Component {
         
         return (
             <View>
-            {/* {       
-                checkoutButton?
-                checkoutButton:
-                <TouchableOpacity style={checkOutViewStyle} onPress={()=>{
-                    try{
-                        this.setState({
-                            initiatingPayment:true
-                        },()=>{
-                            this.initiatePayment()
-                            .then((response)=>{
-                                console.warn("Response from api :"+JSON.stringify(response));
-                            }).catch((error)=>{
-                                console.warn("Error response from api :"+JSON.stringify(error));
-                            })
-                        })
-                    }catch(error){
-                        console.warn("Error from checkout ", error);
-                    }
-                }}>
-                <Text style={checkoutButtonTitleStyle}>CHECKOUT</Text>
-                </TouchableOpacity>
-            } */}
                 <Modal 
                     presentationStyle="fullScreen"
                     animationType="fade"
@@ -404,19 +444,6 @@ class Checkout extends React.Component {
                         </View>
                     ) : null}
                     </SafeAreaView>
-                    {/* <View
-                        style={closeButtonContainer}
-                    >
-                        {
-                            closeButton?
-                            closeButton:
-                            <Text style={closeTextStyle}
-                                onPress={this._onClose}
-                            >
-                                Close
-                            </Text>
-                        }
-                    </View> */}
                 </Modal>
             </View>
         )
@@ -514,4 +541,5 @@ const styles = StyleSheet.create({
     }
 })
 
+export const helpers = {}
 export default Checkout
