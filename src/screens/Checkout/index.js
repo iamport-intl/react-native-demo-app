@@ -652,7 +652,6 @@ class Checkout1 extends React.Component {
   };
 
   saveCardDetails = (data) => {
-    console.log("card data", data);
     this.setState({ newCardData: data });
   };
 
@@ -1080,8 +1079,8 @@ class Checkout1 extends React.Component {
                     }}
                     style={{
                       alignSelf: "center",
-                      width: 30,
-                      height: 30,
+                      width: 45,
+                      height: 45,
                       resizeMode: "contain",
                       marginTop: 0,
                       marginHorizontal: 8,
@@ -1120,6 +1119,7 @@ class Checkout1 extends React.Component {
                     image={{
                       uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
                     }}
+                    styles={{ width: 45, height: 45 }}
                     isSelected={val === "Pay with VNPay"}
                     didSelected={this.onClickPaymentSelected}
                   />
@@ -1287,7 +1287,7 @@ class Checkout1 extends React.Component {
                 name: cardData.name,
                 serviceCode: cardData.cvv,
                 month: cardData.expiration.slice(0, -3),
-                year: cardData.expiration.slice(3, 5),
+                year: cardData.expiration.slice(3, 7),
               });
             } else if (this.state.callingfromSavedCards) {
               this.confirmCardPayment(this.state.selectedItem.item, true);

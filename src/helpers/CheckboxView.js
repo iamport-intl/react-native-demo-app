@@ -62,8 +62,8 @@ class CheckboxView extends Component {
           source={this.props.image}
           style={{
             alignSelf: "center",
-            width: 35,
-            height: 35,
+            width: this.props.styles?.width || 35,
+            height: this.props.styles?.height || 35,
             resizeMode: "contain",
             marginRight: 30,
           }}
