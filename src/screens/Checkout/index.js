@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
     color: WHITE_COLOR,
-    flex: 1,
     fontWeight: BOLD,
     fontSize: 16,
   },
@@ -211,7 +210,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
     color: WHITE_COLOR,
-    flex: 1,
     fontWeight: BOLD,
     fontSize: 16,
   },
@@ -558,7 +556,6 @@ class Checkout1 extends React.Component {
                   this.state.formattedText,
                   this.state.OTP
                 );
-                console.log("Fetcched Cards", JSON.stringify(val, null, 4));
                 if (val?.status === 200 || val?.status === 201) {
                   //To-Do change the payload
                   AsyncStorage.setItem(
@@ -1078,7 +1075,9 @@ class Checkout1 extends React.Component {
                 </View>
                 <View style={{ flexDirection: "row" }}>
                   <Image
-                    source={require("../../../assets/9Pay.png")}
+                    source={{
+                      uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
+                    }}
                     style={{
                       alignSelf: "center",
                       width: 30,
@@ -1118,7 +1117,9 @@ class Checkout1 extends React.Component {
                   <CheckboxView
                     fromSavedCards={false}
                     item={{ name: "Pay with VNPay" }}
-                    image={require("../../../assets/9Pay.png")}
+                    image={{
+                      uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
+                    }}
                     isSelected={val === "Pay with VNPay"}
                     didSelected={this.onClickPaymentSelected}
                   />
