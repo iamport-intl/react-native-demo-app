@@ -13,7 +13,6 @@
     "bundle-ios-dev": "react-native bundle --platform ios --assets-dest ./ --dev true --entry-file index.js --bundle-output ios/main.jsbundle"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.15.6",
     "@react-native-community/async-storage": "^1.12.1",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/bottom-tabs": "^5.11.9",
