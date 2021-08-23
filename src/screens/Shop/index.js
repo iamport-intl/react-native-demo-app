@@ -18,6 +18,7 @@ import {
   WHITE_COLOR,
   BLACK,
   descriptionText,
+  TRANSPARENT,
 } from "../../constants";
 import Product from "../Product";
 import { isEmpty, omit } from "lodash";
@@ -195,11 +196,19 @@ class Shop extends React.Component {
             );
           }}
           stickyHeaderIndices={[0]}
+          ListFooterComponent={() => {
+            return <View style={styles.footerView} />;
+          }}
         />
 
         <View style={styles.buyNowContainerView}>
           <TouchableOpacity
-            style={styles.buyNowView}
+            style={[
+              styles.buyNowView,
+              isEmpty(this.state.selectedProducts)
+                ? { backgroundColor: descriptionText }
+                : { backgroundColor: APP_THEME_COLOR },
+            ]}
             disabled={isEmpty(this.state.selectedProducts)}
             onPress={() => {
               this.props.navigation.navigate("Checkout", {
@@ -250,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE_COLOR,
   },
   headerView: {
-    marginTop: 20,
+    marginTop: 0,
     marginHorizontal: 20,
     backgroundColor: WHITE_COLOR,
   },
@@ -259,7 +268,6 @@ const styles = StyleSheet.create({
     color: APP_THEME_COLOR,
     fontSize: 40,
     fontWeight: BOLD,
-    marginTop: -10,
   },
   headerButtonView: {
     flexDirection: "row",
@@ -267,6 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   numberOfItemsText: { flex: 0.5, color: descriptionText, paddingBottom: 10 },
+  footerView: { height: 15, backgroundColor: TRANSPARENT },
 });
 
 export default Shop;

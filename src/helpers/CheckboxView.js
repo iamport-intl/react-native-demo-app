@@ -8,7 +8,6 @@ class CheckboxView extends Component {
       <TouchableOpacity
         style={{
           flexDirection: "row",
-          marginHorizontal: 50,
           marginVertical: 15,
           justifyContent: "space-between",
           alignItems: "center",
@@ -17,7 +16,14 @@ class CheckboxView extends Component {
           this.props.didSelected(this.props.item, this.props.fromSavedCards)
         }
       >
-        <>
+        <View
+          style={{
+            marginLeft: 10,
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
           <View
             style={{
               borderRadius: 11,
@@ -26,6 +32,7 @@ class CheckboxView extends Component {
               borderWidth: 1,
               borderColor: APP_THEME_COLOR,
               padding: 2,
+              marginHorizontal: 15,
             }}
           >
             <View
@@ -41,18 +48,16 @@ class CheckboxView extends Component {
             />
           </View>
           <View>
-            <Text style={{ marginLeft: -50, fontSize: 15, fontWeight: "400" }}>
+            <Text style={{ fontSize: 15, fontWeight: "400" }}>
               {this.props.item.name}
             </Text>
             {this.props.item.description ? (
-              <Text
-                style={{ marginLeft: -50, fontSize: 15, fontWeight: "400" }}
-              >
+              <Text style={{ fontSize: 10, fontWeight: "100" }}>
                 {this.props.item.description}
               </Text>
             ) : null}
           </View>
-        </>
+        </View>
         <Image
           source={this.props.image}
           style={{
@@ -60,6 +65,7 @@ class CheckboxView extends Component {
             width: 35,
             height: 35,
             resizeMode: "contain",
+            marginRight: 30,
           }}
         />
       </TouchableOpacity>

@@ -11,6 +11,7 @@ import {
   Animated,
   Easing,
 } from "react-native";
+import ThemedDialog from "react-native-elements/dist/dialog/Dialog";
 import {
   APP_THEME_COLOR,
   BOLD,
@@ -26,10 +27,10 @@ class CreditCardForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: "NGUYEN VAN A",
-      cardNumber: "5111111111111118",
-      expiration: "05/21",
-      cvv: "100",
+      name: "",
+      cardNumber: "",
+      expiration: "",
+      cvv: "",
       isFocused: false,
     };
     this.inputRef = React.createRef();
@@ -45,6 +46,8 @@ class CreditCardForm extends Component {
     label,
     onChangeText,
     containerStyles,
+    onFocus,
+    onBlur,
   }) => {
     let color = descriptionText;
 
@@ -70,6 +73,7 @@ class CreditCardForm extends Component {
           selectTextOnFocus={true}
           onBlur={(event) => {
             this.setState({ isFocused: false });
+            onBlur(value);
           }}
           onFocus={(event) => {
             this.setState({ isFocused: true });
@@ -87,14 +91,34 @@ class CreditCardForm extends Component {
           label="Cardholder Name"
           value={this.state.name}
           defaultPlaceholder={"Name"}
-          onChangeText={(text) => this.setState({ name: text })}
+          onChangeText={(text) => {
+            this.setState({ name: text });
+            this.props.newCardData({
+              name: text,
+              cardNumber: this.state.cardNumber,
+              expiration: this.state.expiration,
+              cvv: this.state.cvv,
+            });
+          }}
+          onBlur={(text) => {
+            console.log(" text", text);
+          }}
         />
         <this.TextField
           style={styles.textField}
           label="Card Number"
           defaultPlaceholder={"1234 1234 1234 1234"}
           value={this.state.cardNumber}
-          onChangeText={(text) => this.setState({ cardNumber: text })}
+          onChangeText={(text) => {
+            this.setState({ cardNumber: text });
+            this.props.newCardData({
+              name: this.state.name,
+              cardNumber: text,
+              expiration: this.state.expiration,
+              cvv: this.state.cvv,
+            });
+          }}
+          onBlur={(text) => {}}
         />
         <View style={styles.row}>
           <this.TextField
@@ -102,17 +126,37 @@ class CreditCardForm extends Component {
             label="Expiration Date"
             defaultPlaceholder={"MM/YY"}
             value={this.state.expiration}
-            onChangeText={(text) => this.setState({ expiration: text })}
+            onChangeText={(text) => {
+              this.setState({ expiration: text });
+              console.log("text", text);
+              this.props.newCardData({
+                name: this.state.name,
+                cardNumber: this.state.cardNumber,
+                expiration: text,
+                cvv: this.state.cvv,
+              });
+            }}
+            onBlur={(text) => {}}
           />
           <this.TextField
             containerStyles={{ marginHorizontal: 30, width: (width - 40) / 2 }}
             label="Security Code"
             value={this.state.cvv}
             defaultPlaceholder={"X X X"}
-            onChangeText={(text) => this.setState({ cvv: text })}
+            onChangeText={(text) => {
+              this.setState({ cvv: text });
+              console.log("text", text);
+              this.props.newCardData({
+                name: this.state.name,
+                cardNumber: this.state.cardNumber,
+                expiration: this.state.expiration,
+                cvv: text,
+              });
+            }}
+            onBlur={(text) => {}}
           />
         </View>
-        <View style={styles.verifyContainerView}>
+        {/* <View style={styles.verifyContainerView}>
           <TouchableOpacity
             style={styles.verifyButtonView}
             onPress={async () => {
@@ -129,7 +173,7 @@ class CreditCardForm extends Component {
           >
             <Text style={styles.verifyTextView}>Confirm payment</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     );
   }

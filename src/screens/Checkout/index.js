@@ -40,7 +40,6 @@ import {
   AccordionList,
 } from "accordion-collapse-react-native";
 import CreditCardForm from "../../helpers/CreditcardForm";
-import { LiteCreditCardInput } from "react-native-credit-card-input";
 
 const { width, height } = Dimensions.get("screen");
 
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     width: width - 30,
     backgroundColor: WHITE_COLOR,
-    marginBottom: 50,
+    marginBottom: 35,
     justifyContent: "space-between",
     flexDirection: "row",
     shadowRadius: 1,
@@ -133,8 +132,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   headerView: {
-    marginTop: 20,
-    paddingBottom: 20,
+    marginTop: 15,
+    paddingBottom: 10,
     backgroundColor: WHITE_COLOR,
     shadowRadius: 1,
     shadowOffset: {
@@ -157,6 +156,7 @@ const styles = StyleSheet.create({
   paymentView: {
     marginHorizontal: 15,
     paddingVertical: 20,
+    paddingTop: 5,
     flex: 1,
     width: width - 30,
     shadowRadius: 1,
@@ -265,7 +265,8 @@ class Checkout1 extends React.Component {
       mobileNumberVerificationDone: false,
       savedCards: [],
       userData: {},
-      fromSavedcards: true,
+      callingfromSavedCards: false,
+      newCardData: {},
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
@@ -281,7 +282,6 @@ class Checkout1 extends React.Component {
       });
     });
     AsyncStorage.getItem("SAVED_CARDS").then((data) => {
-      console.log("saved cards", data);
       this.setState({ savedCards: JSON.parse(data) });
     });
     AsyncStorage.getItem("USER_DATA").then((data) => {
@@ -326,9 +326,9 @@ class Checkout1 extends React.Component {
   };
 
   onClickPaymentSelected = (item, fromSavedCards) => {
+    this.setState({ newCardData: {} });
+    this.setState({ callingfromSavedCards: fromSavedCards });
     this.setState({ selectedItem: item });
-    this.setState({ fromSavedCards: fromSavedCards });
-    console.log("Item selected", item);
   };
 
   afterCheckout = (transactionDetails) => {
@@ -360,55 +360,98 @@ class Checkout1 extends React.Component {
                 style={{ alignSelf: "center", justifyContent: "center" }}
                 source={require("../../../assets/Success.png")}
               />
-              <Text style={styles.successStyle}>
-                Yay! Your order has been successfully placed
-              </Text>
-              <View style={styles.containerView}>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Merchant Order Ref: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.merchant_order_ref}
-                  </Text>
-                </View>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Channel Order Ref: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.channel_order_ref}
-                  </Text>
-                </View>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Status: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.status || "SUCCESS"}
-                  </Text>
+              <View
+                style={{
+                  marginTop: 15,
+                  marginHorizontal: 20,
+                  paddingBottom: 15,
+                  shadowColor: "#000000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowRadius: 2,
+                  shadowOpacity: 0.3,
+                  backgroundColor: WHITE_COLOR,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={styles.successStyle}>
+                  Yay! Your order has been successfully placed
+                </Text>
+                <View style={styles.containerView}>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>
+                      Merchant Order Ref:{" "}
+                    </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.merchant_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>
+                      Channel Order Ref:{" "}
+                    </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.channel_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>Status: </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.status || "SUCCESS"}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </>
-          ) : orderDetails?.status_reason === "INVALID_TRANSACTION_ERROR" ? (
+          ) : orderDetails?.status_reason === "INVALID_TRANSACTION_ERROR" ||
+            orderDetails.is_success === "false" ? (
             <>
               <Image
                 style={{ alignSelf: "center", justifyContent: "center" }}
                 source={require("../../../assets/failure.png")}
               />
-              <Text style={styles.successStyle}>Transaction Failed</Text>
-              <View style={styles.containerView}>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Merchant Order Ref: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.merchant_order_ref}
-                  </Text>
-                </View>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Channel Order Ref: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.channel_order_ref}
-                  </Text>
-                </View>
-                <View style={styles.stackView}>
-                  <Text style={styles.leftStackText}>Status: </Text>
-                  <Text style={styles.rightStackText}>
-                    {orderDetails.status}
-                  </Text>
+              <View
+                style={{
+                  marginTop: 15,
+                  marginHorizontal: 20,
+                  paddingBottom: 15,
+                  shadowColor: "#000000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowRadius: 2,
+                  shadowOpacity: 0.3,
+                  backgroundColor: WHITE_COLOR,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={styles.successStyle}>Transaction Failed</Text>
+                <View style={styles.containerView}>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>
+                      Merchant Order Ref:{" "}
+                    </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.merchant_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>
+                      Channel Order Ref:{" "}
+                    </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.channel_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>Status: </Text>
+                    <Text style={styles.rightStackText}>
+                      {orderDetails.status || "FAILED"}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </>
@@ -418,7 +461,7 @@ class Checkout1 extends React.Component {
                 style={{ alignSelf: "center", justifyContent: "center" }}
                 source={require("../../../assets/failure.png")}
               />
-              ;<Text style={styles.successStyle}>Payment Not Done</Text>
+              <Text style={styles.successStyle}>Payment Not Done</Text>
               <View style={styles.containerView}>
                 <Text style={styles.modalDismissText}>Please try again</Text>
               </View>
@@ -441,10 +484,17 @@ class Checkout1 extends React.Component {
             ]}
             disabled={false}
             onPress={() => {
-              this.props.navigation.goBack();
+              if (
+                orderDetails?.status_reason === "SUCCESS" ||
+                orderDetails.is_success === "true"
+              ) {
+                this.props.navigation.goBack();
+              } else {
+                this.setState({ orderDetails: undefined });
+              }
             }}
           >
-            <Text style={styles.payNowTextView}>Continue Shopping</Text>
+            <Text style={styles.payNowTextView}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -599,9 +649,16 @@ class Checkout1 extends React.Component {
       />
     );
   };
+
   _onChange = (form) => {
     console.log(form);
   };
+
+  saveCardDetails = (data) => {
+    console.log("card data", data);
+    this.setState({ newCardData: data });
+  };
+
   confirmCardPayment = async (savedCard, fromSavedcards = false) => {
     let totalAmount = sumBy(
       values(this.props.route.params?.selectedProducts),
@@ -629,7 +686,7 @@ class Checkout1 extends React.Component {
   PaymentOptionsView = () => {
     let val = this.state.selectedItem?.name;
     let selectedChannel =
-      val === "Pay with ZOLO Pay"
+      val === "Pay with Zalo Pay"
         ? "ZALOPAY"
         : val === "Pay with MOMO Pay"
         ? "MOMOPAY"
@@ -646,54 +703,186 @@ class Checkout1 extends React.Component {
       : require("../../../assets/expand.png");
 
     return (
-      <KeyboardAvoidingView>
-        <View style={styles.paymentView}>
-          <Text style={styles.paymentText}>Payment Options</Text>
+      <View style={styles.paymentView}>
+        <Text style={styles.paymentText}>Payment Options</Text>
 
-          <View>
-            <Collapse>
-              <CollapseHeader>
-                <View
-                  style={[
-                    styles.paymentHeaderView,
-                    {
-                      borderColor: descriptionText,
-                      borderWidth: 1,
-                      alignContent: "center",
-                      alignItems: "center",
-                      paddingVertical: 18,
-                    },
-                  ]}
-                >
-                  <View style={{ flexDirection: "row" }}>
-                    <Image
-                      source={require("../../../assets/card.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginLeft: 15,
-                      }}
-                    />
-
-                    <Text
-                      style={[
-                        styles.primaryHeadertext,
-                        {
-                          fontSize: 13,
-                          alignSelf: "center",
-                          marginLeft: 15,
-                        },
-                      ]}
-                    >
-                      SAVED PAYMENT METHODS
-                    </Text>
-                  </View>
-
+        <View>
+          <Collapse>
+            <CollapseHeader>
+              <View
+                style={[
+                  styles.paymentHeaderView,
+                  {
+                    borderColor: descriptionText,
+                    borderWidth: 1,
+                    alignContent: "center",
+                    alignItems: "center",
+                    paddingVertical: 18,
+                  },
+                ]}
+              >
+                <View style={{ flexDirection: "row" }}>
                   <Image
-                    source={require("../../../assets/colapse.png")}
+                    source={require("../../../assets/card.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginLeft: 15,
+                    }}
+                  />
+
+                  <Text
+                    style={[
+                      styles.primaryHeadertext,
+                      {
+                        fontSize: 13,
+                        alignSelf: "center",
+                        marginLeft: 15,
+                      },
+                    ]}
+                  >
+                    SAVED PAYMENT METHODS
+                  </Text>
+                </View>
+
+                <Image
+                  source={require("../../../assets/colapse.png")}
+                  style={{
+                    alignSelf: "center",
+                    width: 20,
+                    height: 20,
+                    resizeMode: "contain",
+                    marginTop: 0,
+                  }}
+                />
+              </View>
+            </CollapseHeader>
+            <CollapseBody>
+              <View
+                style={{
+                  borderRadius: 10,
+                  shadowColor: "#000000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowRadius: 2,
+                  shadowOpacity: 0.2,
+                  backgroundColor: WHITE_COLOR,
+                  marginVertical: 10,
+                }}
+              >
+                <FlatList
+                  renderItem={(product) => {
+                    let image =
+                      product.item.type === "visa"
+                        ? require("../../../assets/visa.png")
+                        : product.item.type === "mastercard"
+                        ? require("../../../assets/mastercard.png")
+                        : require("../../../assets/jcb.png");
+
+                    let isSelected =
+                      this.state.selectedItem?.item?.partial_card_number ===
+                        product.item.partial_card_number &&
+                      this.state.selectedItem?.item?.expiry_month ===
+                        product.item.expiry_month &&
+                      this.state.selectedItem?.item?.expiry_year ===
+                        product.item.expiry_year;
+
+                    console.log(
+                      JSON.stringify(this.state.selectedItem, null, 4)
+                    );
+                    return (
+                      <CheckboxView
+                        fromSavedCards={true}
+                        item={{
+                          name: product.item.partial_card_number,
+                          description: `Expires: ${product.item.expiry_month} / ${product.item.expiry_year} `,
+                          data: this.state.userData,
+                          ...product,
+                        }}
+                        isSelected={isSelected}
+                        didSelected={this.onClickPaymentSelected}
+                        image={image}
+                      />
+                    );
+                  }}
+                  data={this.state.savedCards}
+                  keyExtractor={(item, index) => `${index}1`}
+                />
+              </View>
+            </CollapseBody>
+          </Collapse>
+
+          <Collapse>
+            <CollapseHeader>
+              <View
+                style={[
+                  styles.paymentHeaderView,
+                  {
+                    borderColor: descriptionText,
+                    borderWidth: 1,
+                  },
+                ]}
+                onPress={() =>
+                  this.setState({
+                    walletCollpse: !this.state.walletCollpse,
+                  })
+                }
+              >
+                <View style={{ flexDirection: "row", paddingVertical: 12 }}>
+                  <Image
+                    source={require("../../../assets/wallet.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+
+                      marginLeft: 15,
+                    }}
+                  />
+
+                  <Text
+                    style={[
+                      styles.primaryHeadertext,
+                      {
+                        fontSize: 13,
+                        textAlign: "center",
+                        alignSelf: "center",
+                      },
+                    ]}
+                  >
+                    WALLETS
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row" }}>
+                  <Image
+                    source={require("../../../assets/momo.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 40,
+                      height: 40,
+                      resizeMode: "contain",
+                      marginHorizontal: 8,
+                    }}
+                  />
+                  <Image
+                    source={require("../../../assets/ZaloPay.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 30,
+                      height: 30,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginHorizontal: 8,
+                    }}
+                  />
+                  <Image
+                    source={colapsableImage}
                     style={{
                       alignSelf: "center",
                       width: 20,
@@ -703,8 +892,129 @@ class Checkout1 extends React.Component {
                     }}
                   />
                 </View>
-              </CollapseHeader>
-              <CollapseBody>
+              </View>
+            </CollapseHeader>
+            <CollapseBody>
+              <View
+                style={{
+                  borderRadius: 10,
+                  shadowColor: "#000000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowRadius: 2,
+                  shadowOpacity: 0.2,
+                  backgroundColor: WHITE_COLOR,
+                  marginVertical: 10,
+                }}
+              >
+                <CheckboxView
+                  fromSavedCards={false}
+                  item={{ name: "Pay with MOMO Pay" }}
+                  image={require("../../../assets/momo.png")}
+                  isSelected={val === "Pay with MOMO Pay"}
+                  didSelected={this.onClickPaymentSelected}
+                />
+                <CheckboxView
+                  fromSavedCards={false}
+                  item={{ name: "Pay with Zalo Pay" }}
+                  image={require("../../../assets/ZaloPay.png")}
+                  isSelected={val === "Pay with Zalo Pay"}
+                  didSelected={this.onClickPaymentSelected}
+                />
+              </View>
+            </CollapseBody>
+          </Collapse>
+
+          <Collapse>
+            <CollapseHeader>
+              <TouchableOpacity
+                activeOpacity={0}
+                style={[
+                  styles.paymentHeaderView,
+                  {
+                    borderColor: descriptionText,
+                    borderWidth: 1,
+                    paddingVertical: 12,
+                  },
+                ]}
+                onPress={() =>
+                  this.setState({
+                    creditCardClicked: !this.state.creditCardClicked,
+                  })
+                }
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <Image
+                    source={require("../../../assets/card.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginLeft: 15,
+                    }}
+                  />
+
+                  <Text
+                    style={[
+                      styles.primaryHeadertext,
+                      { fontSize: 13, alignSelf: "center" },
+                    ]}
+                  >
+                    CREDIT CARD
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row" }}>
+                  <Image
+                    source={require("../../../assets/mastercard.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 30,
+                      height: 30,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginHorizontal: 5,
+                    }}
+                  />
+                  <Image
+                    source={require("../../../assets/visa.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 30,
+                      height: 30,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginHorizontal: 5,
+                    }}
+                  />
+                  <Image
+                    source={require("../../../assets/jcb.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 30,
+                      height: 30,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginHorizontal: 5,
+                    }}
+                  />
+                  <Image
+                    source={creditCardImage}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                    }}
+                  />
+                </View>
+              </TouchableOpacity>
+              {this.state.creditCardClicked ? (
                 <View
                   style={{
                     borderRadius: 10,
@@ -719,120 +1029,78 @@ class Checkout1 extends React.Component {
                     marginVertical: 10,
                   }}
                 >
-                  <FlatList
-                    renderItem={(product) => {
-                      let image =
-                        product.type === "visa"
-                          ? require("../../../assets/visa.png")
-                          : product.type === "mastercard"
-                          ? require("../../../assets/mastercard.png")
-                          : require("../../../assets/visa.png");
-
-                      let isSelected =
-                        this.state.selectedItem?.description ===
-                          product.item.partial_card_number &&
-                        this.state.fromSavedcards;
-
-                      return (
-                        <CheckboxView
-                          fromSavedCards={true}
-                          item={{
-                            name: product.item.type,
-                            description: product.item.partial_card_number,
-                            data: this.state.userData,
-                            ...product,
-                          }}
-                          isSelected={isSelected}
-                          didSelected={this.onClickPaymentSelected}
-                          image={image}
-                        />
-                      );
+                  <CreditCardForm newCardData={this.saveCardDetails} />
+                </View>
+              ) : null}
+            </CollapseHeader>
+          </Collapse>
+          <Collapse>
+            <CollapseHeader>
+              <TouchableOpacity
+                style={[
+                  styles.paymentHeaderView,
+                  {
+                    borderColor: descriptionText,
+                    borderWidth: 1,
+                  },
+                ]}
+                onPress={() =>
+                  this.setState({
+                    otherPayments: !this.state.otherPayments,
+                  })
+                }
+              >
+                <View style={{ flexDirection: "row", paddingVertical: 15 }}>
+                  <Image
+                    source={require("../../../assets/wallet.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginLeft: 12,
                     }}
-                    data={this.state.savedCards}
-                    keyExtractor={(item, index) => `${index}1`}
+                  />
+
+                  <Text
+                    style={[
+                      styles.primaryHeadertext,
+                      {
+                        fontSize: 13,
+                        textAlign: "center",
+                        alignSelf: "center",
+                      },
+                    ]}
+                  >
+                    OTHER PAYMENTS
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row" }}>
+                  <Image
+                    source={require("../../../assets/9Pay.png")}
+                    style={{
+                      alignSelf: "center",
+                      width: 30,
+                      height: 30,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                      marginHorizontal: 8,
+                    }}
+                  />
+                  <Image
+                    source={otherPaymentImage}
+                    style={{
+                      alignSelf: "center",
+                      width: 20,
+                      height: 20,
+                      resizeMode: "contain",
+                      marginTop: 0,
+                    }}
                   />
                 </View>
-              </CollapseBody>
-            </Collapse>
-
-            <Collapse>
-              <CollapseHeader>
-                <View
-                  style={[
-                    styles.paymentHeaderView,
-                    {
-                      borderColor: descriptionText,
-                      borderWidth: 1,
-                    },
-                  ]}
-                  onPress={() =>
-                    this.setState({
-                      walletCollpse: !this.state.walletCollpse,
-                    })
-                  }
-                >
-                  <View style={{ flexDirection: "row", paddingVertical: 12 }}>
-                    <Image
-                      source={require("../../../assets/wallet.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-
-                        marginLeft: 15,
-                      }}
-                    />
-
-                    <Text
-                      style={[
-                        styles.primaryHeadertext,
-                        {
-                          fontSize: 13,
-                          textAlign: "center",
-                          alignSelf: "center",
-                        },
-                      ]}
-                    >
-                      WALLETS
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: "row" }}>
-                    <Image
-                      source={require("../../../assets/momo.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 40,
-                        height: 40,
-                        resizeMode: "contain",
-                        marginHorizontal: 8,
-                      }}
-                    />
-                    <Image
-                      source={require("../../../assets/ZaloPay.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 30,
-                        height: 30,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginHorizontal: 8,
-                      }}
-                    />
-                    <Image
-                      source={colapsableImage}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                      }}
-                    />
-                  </View>
-                </View>
-              </CollapseHeader>
-              <CollapseBody>
+              </TouchableOpacity>
+              {this.state.otherPayments ? (
                 <View
                   style={{
                     borderRadius: 10,
@@ -849,230 +1117,20 @@ class Checkout1 extends React.Component {
                 >
                   <CheckboxView
                     fromSavedCards={false}
-                    item={{ name: "Pay with MOMO Pay" }}
-                    image={require("../../../assets/momo.png")}
-                    isSelected={val === "Pay with MOMO Pay"}
-                    didSelected={this.onClickPaymentSelected}
-                  />
-                  <CheckboxView
-                    fromSavedCards={false}
-                    item={{ name: "Pay with Zalo Pay" }}
-                    image={require("../../../assets/ZaloPay.png")}
-                    isSelected={val === "Pay with ZaLO Pay"}
+                    item={{ name: "Pay with VNPay" }}
+                    image={require("../../../assets/9Pay.png")}
+                    isSelected={val === "Pay with VNPay"}
                     didSelected={this.onClickPaymentSelected}
                   />
                 </View>
-              </CollapseBody>
-            </Collapse>
-
-            <Collapse>
-              <CollapseHeader>
-                <TouchableOpacity
-                  activeOpacity={0}
-                  style={[
-                    styles.paymentHeaderView,
-                    {
-                      borderColor: descriptionText,
-                      borderWidth: 1,
-                      paddingVertical: 12,
-                    },
-                  ]}
-                  onPress={() =>
-                    this.setState({
-                      creditCardClicked: !this.state.creditCardClicked,
-                    })
-                  }
-                >
-                  <View style={{ flexDirection: "row" }}>
-                    <Image
-                      source={require("../../../assets/card.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginLeft: 15,
-                      }}
-                    />
-
-                    <Text
-                      style={[
-                        styles.primaryHeadertext,
-                        { fontSize: 13, alignSelf: "center" },
-                      ]}
-                    >
-                      CREDIT CARD
-                    </Text>
-                  </View>
-
-                  <View style={{ flexDirection: "row" }}>
-                    <Image
-                      source={require("../../../assets/mastercard.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 30,
-                        height: 30,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginHorizontal: 5,
-                      }}
-                    />
-                    <Image
-                      source={require("../../../assets/visa.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 30,
-                        height: 30,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginHorizontal: 5,
-                      }}
-                    />
-                    <Image
-                      source={require("../../../assets/jcb.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 30,
-                        height: 30,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginHorizontal: 5,
-                      }}
-                    />
-                    <Image
-                      source={creditCardImage}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                      }}
-                    />
-                  </View>
-                </TouchableOpacity>
-                {this.state.creditCardClicked ? (
-                  <View
-                    style={{
-                      borderRadius: 10,
-                      shadowColor: "#000000",
-                      shadowOffset: {
-                        width: 0,
-                        height: 3,
-                      },
-                      shadowRadius: 2,
-                      shadowOpacity: 0.2,
-                      backgroundColor: WHITE_COLOR,
-                      marginVertical: 10,
-                    }}
-                  >
-                    <CreditCardForm
-                      confirmCardPayment={(data) =>
-                        this.confirmCardPayment(data)
-                      }
-                    />
-                  </View>
-                ) : null}
-              </CollapseHeader>
-            </Collapse>
-            <Collapse>
-              <CollapseHeader>
-                <TouchableOpacity
-                  style={[
-                    styles.paymentHeaderView,
-                    {
-                      borderColor: descriptionText,
-                      borderWidth: 1,
-                    },
-                  ]}
-                  onPress={() =>
-                    this.setState({
-                      otherPayments: !this.state.otherPayments,
-                    })
-                  }
-                >
-                  <View style={{ flexDirection: "row", paddingVertical: 15 }}>
-                    <Image
-                      source={require("../../../assets/wallet.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginLeft: 12,
-                      }}
-                    />
-
-                    <Text
-                      style={[
-                        styles.primaryHeadertext,
-                        {
-                          fontSize: 13,
-                          textAlign: "center",
-                          alignSelf: "center",
-                        },
-                      ]}
-                    >
-                      OTHER PAYMENTS
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: "row" }}>
-                    <Image
-                      source={require("../../../assets/9Pay.png")}
-                      style={{
-                        alignSelf: "center",
-                        width: 30,
-                        height: 30,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                        marginHorizontal: 8,
-                      }}
-                    />
-                    <Image
-                      source={otherPaymentImage}
-                      style={{
-                        alignSelf: "center",
-                        width: 20,
-                        height: 20,
-                        resizeMode: "contain",
-                        marginTop: 0,
-                      }}
-                    />
-                  </View>
-                </TouchableOpacity>
-                {this.state.otherPayments ? (
-                  <View
-                    style={{
-                      borderRadius: 10,
-                      shadowColor: "#000000",
-                      shadowOffset: {
-                        width: 0,
-                        height: 3,
-                      },
-                      shadowRadius: 2,
-                      shadowOpacity: 0.2,
-                      backgroundColor: WHITE_COLOR,
-                      marginVertical: 10,
-                    }}
-                  >
-                    <CheckboxView
-                      fromSavedCards={false}
-                      item={{ name: "Pay with VNPay" }}
-                      image={require("../../../assets/9Pay.png")}
-                      isSelected={val === "Pay with VNPay"}
-                      didSelected={this.onClickPaymentSelected}
-                    />
-                  </View>
-                ) : null}
-              </CollapseHeader>
-            </Collapse>
-          </View>
+              ) : null}
+            </CollapseHeader>
+          </Collapse>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     );
   };
+
   SafeAndsecureView = () => {
     return (
       <View
@@ -1102,7 +1160,7 @@ class Checkout1 extends React.Component {
     let data = this.state.data;
     let val = this.state.selectedItem?.name;
     let selectedChannel =
-      val === "Pay with ZOLO Pay"
+      val === "Pay with Zalo Pay"
         ? "ZALOPAY"
         : val === "Pay with MOMO Pay"
         ? "MOMOPAY"
@@ -1214,12 +1272,24 @@ class Checkout1 extends React.Component {
           style={[styles.payNowView, { flex: 0.5 }]}
           disabled={!this.state.mobileNumberVerificationDone}
           onPress={() => {
-            console.log("this.state.fromSavedcards", this.state.fromSavedcards);
-            if (this.state.fromSavedcards) {
-              this.confirmCardPayment(
-                this.state.selectedItem.data?.token_params,
-                true
-              );
+            console.log("this.state.newCardData", this.state.newCardData);
+            if (
+              isEmpty(this.state.newCardData) &&
+              isEmpty(this.state.selectedItem)
+            ) {
+              alert("Hey Please selext one of the payment Type");
+            } else if (!isEmpty(this.state.newCardData)) {
+              let cardData = this.state.newCardData;
+              console.log("cardData ", cardData);
+              this.confirmCardPayment({
+                cardNumber: cardData.cardNumber,
+                name: cardData.name,
+                serviceCode: cardData.cvv,
+                month: cardData.expiration.slice(0, -3),
+                year: cardData.expiration.slice(3, 5),
+              });
+            } else if (this.state.callingfromSavedCards) {
+              this.confirmCardPayment(this.state.selectedItem.item, true);
             } else {
               this.setState({
                 channelData: {
@@ -1257,6 +1327,7 @@ class Checkout1 extends React.Component {
                   : "VNPAY_ALL";
               newPayload["amount"] = totalAmount;
               this.setState({ data: newPayload });
+              console.log("Entred correct case", newPayload);
               this.setState({ callThePayment: false }, () => {
                 this.setState({ callThePayment: true });
               });
@@ -1335,18 +1406,19 @@ class Checkout1 extends React.Component {
                 </Text>
               </>
             )}
+            <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+              <ScrollView
+                contentContainerStyle={styles.contentContainerStyle}
+                style={styles.container}
+                removeClippedSubviews={false}
+              >
+                <this.ListOfItemsView />
 
-            <ScrollView
-              contentContainerStyle={styles.contentContainerStyle}
-              style={styles.container}
-              removeClippedSubviews={false}
-            >
-              <this.ListOfItemsView />
-
-              {this.state.mobileNumberVerificationDone ? (
-                <this.PaymentOptionsView />
-              ) : null}
-            </ScrollView>
+                {this.state.mobileNumberVerificationDone ? (
+                  <this.PaymentOptionsView />
+                ) : null}
+              </ScrollView>
+            </KeyboardAvoidingView>
             <View>
               {this.state.shouldShowOrderDetails ? (
                 <this.OrderDetailsView
