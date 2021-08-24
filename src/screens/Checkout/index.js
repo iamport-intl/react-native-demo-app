@@ -29,7 +29,6 @@ import CheckboxView from "../../helpers/CheckboxView";
 import HorizontalTextStackView from "../../helpers/HorizontalTextStackView";
 import ScheduledProductCell from "../../screens/SelectedProductCell";
 import Checkout from "../../../paymentSDK";
-import Functions from "../../../paymentSDK";
 import OTPTextInput from "react-native-otp-textinput";
 import AsyncStorage from "@react-native-community/async-storage";
 import PhoneInput from "react-native-phone-number-input";
@@ -271,14 +270,6 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
-    AsyncStorage.getItem("MOBILE_NUMBER").then((data) => {
-      this.setState({
-        mobileNumberVerificationDone: data === null ? false : true,
-      });
-      this.setState({
-        formattedText: data === null ? "" : data,
-      });
-    });
     AsyncStorage.getItem("SAVED_CARDS").then((data) => {
       this.setState({ savedCards: JSON.parse(data) });
     });
@@ -550,22 +541,17 @@ class Checkout1 extends React.Component {
             style={styles.nextButtonView}
             onPress={async () => {
               if (this.state.shouldShowOTP) {
-                let val = await Functions.fetchSavedCards(
+                let val = await Checkout.fetchSavedCards(
                   this.state.formattedText,
                   this.state.OTP
                 );
                 if (val?.status === 200 || val?.status === 201) {
-                  //To-Do change the payload
-                  AsyncStorage.setItem(
-                    "MOBILE_NUMBER",
-                    this.state.formattedText
-                  );
                   AsyncStorage.setItem("SAVED_CARDS", JSON.stringify(val.data));
                   this.setState({ savedCards: val.data });
                   this.setState({ mobileNumberVerificationDone: true });
                 }
               } else {
-                let val = await Functions._getOTP(this.state.formattedText);
+                let val = await Checkout._getOTP(this.state.formattedText);
                 if (val.status === 200 || val.status === 201) {
                   this.setState({ shouldShowOTP: true });
                 }
@@ -656,7 +642,7 @@ class Checkout1 extends React.Component {
       values(this.props.route.params?.selectedProducts),
       "price"
     );
-    let response = await Functions.startPayment(
+    let response = await Checkout.startPayment(
       fromSavedcards,
       savedCard,
       totalAmount,
@@ -1276,7 +1262,7 @@ class Checkout1 extends React.Component {
                 cardNumber: cardData.cardNumber,
                 name: cardData.name,
                 serviceCode: cardData.cvv,
-                month: cardData.expiration.slice(0, -3),
+                month: cardData.expiration.slice(0, -5),
                 year: cardData.expiration.slice(3, 7),
               });
             } else if (this.state.callingfromSavedCards) {
