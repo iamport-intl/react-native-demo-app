@@ -171,7 +171,7 @@ class Checkout extends React.Component {
     return signatureHash;
   };
 
-  static _getOTP = async (mobileNumber) => {
+  static getOTP = async (mobileNumber) => {
     // var number = this.props["billingAddress"]?.billing_phone;
     let config = {
       headers: {
@@ -230,16 +230,18 @@ class Checkout extends React.Component {
   static getToken = async (cardDetails) => {
     let url =
       "https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a";
+
     let body = {
       card: {
-        card_number: cardDetails.cardNumber,
-        card_type: cardDetails.cardType,
-        cardholder_name: cardDetails.name,
-        service_code: cardDetails.serviceCode,
-        expiration_month: cardDetails.month,
-        expiration_year: cardDetails.year,
+        card_number: cardDetails.card_number,
+        cardholder_name: cardDetails.card_holder_name,
+        service_code: cardDetails.cvv,
+        expiration_month: cardDetails.expiry_month,
+        expiration_year: cardDetails.expiry_year,
       },
     };
+    console.log("Token Response", body);
+
     let requestConfig = {
       headers: {
         "Content-Type": "application/json",
@@ -251,19 +253,21 @@ class Checkout extends React.Component {
     return response;
   };
 
-  static startPayment = async (
-    isSavedCards,
-    savedTokenRes,
-    totalAmount,
-    mobileNumber
-  ) => {
+  static startPaymentWithNewCard = async (savedTokenRes, data) => {
+    return await this.startPayment(false, savedTokenRes, data);
+  };
+
+  static startPaymentWithSavedCard = async (savedTokenRes, data) => {
+    return await this.startPayment(true, savedTokenRes, data);
+  };
+
+  static startPayment = async (isSavedCards, savedTokenRes, data) => {
     var token = "";
     var partial_card_number = "";
     var expiry_year = "";
     var expiry_month = "";
     var cardType = "";
 
-    console.log("Inside payme tFlow", savedTokenRes);
     if (isSavedCards) {
       token = savedTokenRes.token;
       partial_card_number = savedTokenRes.partial_card_number;
@@ -278,24 +282,10 @@ class Checkout extends React.Component {
       expiry_month = attributes?.expiration_month;
       expiry_year = attributes?.expiration_year;
       cardType = attributes?.card_type;
-      console.log("Attributes", JSON.stringify(attributes, null, 4));
     }
 
-    console.log("Attributes", cardType);
-
     data = {
-      key: "lzrYFPfyMLROallZ",
-      pmt_channel: "MASTERCARD",
-      pmt_method: `MASTERCARD_CARD`,
-      merchant_order_id: "MERCHANT" + new Date().getTime(),
-      amount: totalAmount,
-      currency: "INR",
-      success_url: "https://demo.chaipay.io",
-      failure_url: "https://demo.chaipay.io",
-      signature_hash: "123",
-      billing_details: {
-        billing_phone: mobileNumber,
-      },
+      ...data,
       token_params: {
         token: token,
         partial_card_number: partial_card_number,
@@ -317,7 +307,6 @@ class Checkout extends React.Component {
       secretKey:
         "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242",
     });
-    console.log("Attributes", JSON.stringify(data, null, 4));
 
     let requestConfig = {
       headers: {

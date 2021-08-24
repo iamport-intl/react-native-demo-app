@@ -551,7 +551,7 @@ class Checkout1 extends React.Component {
                   this.setState({ mobileNumberVerificationDone: true });
                 }
               } else {
-                let val = await Checkout._getOTP(this.state.formattedText);
+                let val = await Checkout.getOTP(this.state.formattedText);
                 if (val.status === 200 || val.status === 201) {
                   this.setState({ shouldShowOTP: true });
                 }
@@ -642,12 +642,27 @@ class Checkout1 extends React.Component {
       values(this.props.route.params?.selectedProducts),
       "price"
     );
-    let response = await Checkout.startPayment(
-      fromSavedcards,
-      savedCard,
-      totalAmount,
-      this.state.formattedText
-    );
+    let data = {
+      key: "lzrYFPfyMLROallZ",
+      pmt_channel: "MASTERCARD",
+      pmt_method: `MASTERCARD_CARD`,
+      merchant_order_id: "MERCHANT" + new Date().getTime(),
+      amount: totalAmount,
+      currency: "INR",
+      success_url: "https://demo.chaipay.io",
+      failure_url: "https://demo.chaipay.io",
+      signature_hash: "123",
+      billing_details: {
+        billing_phone: this.state.formattedText,
+      },
+    };
+
+    let response;
+    if (fromSavedcards) {
+      response = await Checkout.startPaymentWithSavedCard(savedCard, data);
+    } else {
+      response = await Checkout.startPaymentWithNewCard(savedCard, data);
+    }
 
     if (response.val.status === 200 || response.val.status === 201) {
       this.setState({ orderDetails: response.val.data });
@@ -765,9 +780,6 @@ class Checkout1 extends React.Component {
                       this.state.selectedItem?.item?.expiry_year ===
                         product.item.expiry_year;
 
-                    console.log(
-                      JSON.stringify(this.state.selectedItem, null, 4)
-                    );
                     return (
                       <CheckboxView
                         fromSavedCards={true}
@@ -1257,13 +1269,12 @@ class Checkout1 extends React.Component {
               alert("Hey Please selext one of the payment Type");
             } else if (!isEmpty(this.state.newCardData)) {
               let cardData = this.state.newCardData;
-              console.log("cardData ", cardData);
               this.confirmCardPayment({
-                cardNumber: cardData.cardNumber,
-                name: cardData.name,
-                serviceCode: cardData.cvv,
-                month: cardData.expiration.slice(0, -5),
-                year: cardData.expiration.slice(3, 7),
+                card_number: cardData.cardNumber,
+                card_holder_name: cardData.name,
+                cvv: cardData.cvv,
+                expiry_month: cardData.expiration.slice(0, -5),
+                expiry_year: cardData.expiration.slice(3, 7),
               });
             } else if (this.state.callingfromSavedCards) {
               this.confirmCardPayment(this.state.selectedItem.item, true);
