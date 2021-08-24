@@ -319,7 +319,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chaipay.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.chaipay;
 				PRODUCT_NAME = myReactNativeProject;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "myReactNativeProject/myReactNativeProject-Bridging-Header.h";
@@ -352,7 +352,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chaipay.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.chaipay;
 				PRODUCT_NAME = myReactNativeProject;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "myReactNativeProject/myReactNativeProject-Bridging-Header.h";
