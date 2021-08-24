@@ -319,7 +319,6 @@ class Checkout1 extends React.Component {
   }
 
   clearText = () => {
-    console.log("entered", this.otpInput.current);
     this.otpInput.current.clear();
   };
 
@@ -330,7 +329,6 @@ class Checkout1 extends React.Component {
   };
 
   afterCheckout = (transactionDetails) => {
-    console.log("transction", transactionDetails);
     if (transactionDetails) {
       if (typeof transactionDetails == "object") {
         this.setState({ orderDetails: transactionDetails });
@@ -567,9 +565,7 @@ class Checkout1 extends React.Component {
                   this.setState({ mobileNumberVerificationDone: true });
                 }
               } else {
-                console.log("country code", this.state.formattedText);
                 let val = await Functions._getOTP(this.state.formattedText);
-                console.log("OTP val", JSON.stringify(val, null, 4));
                 if (val.status === 200 || val.status === 201) {
                   this.setState({ shouldShowOTP: true });
                 }
@@ -659,11 +655,6 @@ class Checkout1 extends React.Component {
     let totalAmount = sumBy(
       values(this.props.route.params?.selectedProducts),
       "price"
-    );
-
-    console.log(
-      "SavedCard Payment entered",
-      JSON.stringify(savedCard, null, 4)
     );
     let response = await Functions.startPayment(
       fromSavedcards,
@@ -1273,7 +1264,6 @@ class Checkout1 extends React.Component {
           style={[styles.payNowView, { flex: 0.5 }]}
           disabled={!this.state.mobileNumberVerificationDone}
           onPress={() => {
-            console.log("this.state.newCardData", this.state.newCardData);
             if (
               isEmpty(this.state.newCardData) &&
               isEmpty(this.state.selectedItem)
@@ -1328,7 +1318,6 @@ class Checkout1 extends React.Component {
                   : "VNPAY_ALL";
               newPayload["amount"] = totalAmount;
               this.setState({ data: newPayload });
-              console.log("Entred correct case", newPayload);
               this.setState({ callThePayment: false }, () => {
                 this.setState({ callThePayment: true });
               });

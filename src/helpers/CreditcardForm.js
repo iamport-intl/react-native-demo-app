@@ -153,9 +153,7 @@ class CreditCardForm extends Component {
               cvv: this.state.cvv,
             });
           }}
-          onBlur={(text) => {
-            console.log(" text", text);
-          }}
+          onBlur={(text) => {}}
           ref={this.cardNameRef}
         />
         <this.TextField
@@ -180,7 +178,6 @@ class CreditCardForm extends Component {
             keyboardType="numeric"
             onChangeText={(text) => {
               this.handlingCardExpiry(text);
-              console.log("text", text);
             }}
             onBlur={this.onExpiryBlur}
             ref={this.expiryRef}
@@ -194,7 +191,6 @@ class CreditCardForm extends Component {
             keyboardType="numeric"
             onChangeText={(text) => {
               this.setState({ cvv: text });
-              console.log("text", text);
               this.props.newCardData({
                 name: this.state.name,
                 cardNumber: this.state.cardNumber,
