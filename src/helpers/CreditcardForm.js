@@ -20,6 +20,7 @@ import {
   TRANSPARENT,
   WHITE_COLOR,
 } from "../constants";
+var valid = require("card-validator");
 
 //import TextField from "../helpers/TextField";
 const { width, height } = Dimensions.get("screen");
@@ -32,12 +33,62 @@ class CreditCardForm extends Component {
       expiration: "",
       cvv: "",
       isFocused: false,
+      cardNumberError: false,
+      expiryError: false,
     };
-    this.inputRef = React.createRef();
+    this.carNumberRef = React.createRef();
+    this.cardNameRef = React.createRef();
+    this.expiryRef = React.createRef();
+    this.cvvRef = React.createRef();
     this.focusAnim = React.createRef(new Animated.Value(0)).current;
   }
   onSubmit() {
     console.log("form submitted");
+  }
+
+  handlingCardExpiry(text) {
+    if (text.indexOf(".") >= 0 || text.length > 7) {
+      return;
+    }
+    if (text.length === 2 && this.state.expiration.length === 1) {
+      text += "/";
+    }
+    this.setState({
+      expiration: text,
+    });
+    this.props.newCardData({
+      name: this.state.name,
+      cardNumber: this.state.cardNumber,
+      expiration: text,
+      cvv: this.state.cvv,
+    });
+    var numberValidation = valid.expirationDate(text);
+    this.setState({ expiryError: !numberValidation.isValid });
+  }
+
+  handleCardNumber(text) {
+    if (text.indexOf(".") >= 0) {
+      return;
+    }
+
+    var numberValidation = valid.number(text);
+    if (text.length > 13) {
+      this.setState({ cardNumberError: !numberValidation.isValid });
+    } else {
+      this.setState({ cardNumberError: false });
+    }
+
+    let formattedText = text
+      .replace(/\s?/g, "")
+      .replace(/(\d{4})/g, "$1 ")
+      .trim();
+    this.setState({ cardNumber: formattedText });
+    this.props.newCardData({
+      name: this.state.name,
+      cardNumber: text,
+      expiration: this.state.expiration,
+      cvv: this.state.cvv,
+    });
   }
 
   TextField = ({
@@ -48,6 +99,10 @@ class CreditCardForm extends Component {
     containerStyles,
     onFocus,
     onBlur,
+    keyboardType = "default",
+    ref,
+    cardNumberError,
+    expiryError,
   }) => {
     let color = descriptionText;
 
@@ -68,18 +123,16 @@ class CreditCardForm extends Component {
           style={[styles.input]}
           placeholder={defaultPlaceholder}
           placeholderTextColor={"#B9C4CA"}
-          ref={this.inputRef}
+          ref={ref}
           value={value}
           selectTextOnFocus={true}
-          onBlur={(event) => {
-            this.setState({ isFocused: false });
-            onBlur(value);
-          }}
-          onFocus={(event) => {
-            this.setState({ isFocused: true });
-          }}
+          onFocus={(event) => {}}
           onChangeText={onChangeText}
+          keyboardType={keyboardType}
         />
+        {cardNumberError ? (
+          <Text style={{ color: APP_THEME_COLOR }}>Wrong card details</Text>
+        ) : null}
       </View>
     );
   };
@@ -100,52 +153,44 @@ class CreditCardForm extends Component {
               cvv: this.state.cvv,
             });
           }}
-          onBlur={(text) => {
-            console.log(" text", text);
-          }}
+          onBlur={(text) => {}}
+          ref={this.cardNameRef}
         />
         <this.TextField
           style={styles.textField}
           label="Card Number"
           defaultPlaceholder={"1234 1234 1234 1234"}
           value={this.state.cardNumber}
+          keyboardType="numeric"
           onChangeText={(text) => {
-            this.setState({ cardNumber: text });
-            this.props.newCardData({
-              name: this.state.name,
-              cardNumber: text,
-              expiration: this.state.expiration,
-              cvv: this.state.cvv,
-            });
+            this.handleCardNumber(text);
           }}
-          onBlur={(text) => {}}
+          onBlur={this.onCardNumberBlur}
+          ref={this.carNumberRef}
+          cardNumberError={this.state.cardNumberError}
         />
         <View style={styles.row}>
           <this.TextField
             containerStyles={{ width: (width - 120) / 2 }}
             label="Expiration Date"
-            defaultPlaceholder={"MM/YY"}
+            defaultPlaceholder={"MM/YYYY"}
             value={this.state.expiration}
+            keyboardType="numeric"
             onChangeText={(text) => {
-              this.setState({ expiration: text });
-              console.log("text", text);
-              this.props.newCardData({
-                name: this.state.name,
-                cardNumber: this.state.cardNumber,
-                expiration: text,
-                cvv: this.state.cvv,
-              });
+              this.handlingCardExpiry(text);
             }}
-            onBlur={(text) => {}}
+            onBlur={this.onExpiryBlur}
+            ref={this.expiryRef}
+            expiryError={this.state.expiryError}
           />
           <this.TextField
             containerStyles={{ marginHorizontal: 30, width: (width - 40) / 2 }}
             label="Security Code"
             value={this.state.cvv}
             defaultPlaceholder={"X X X"}
+            keyboardType="numeric"
             onChangeText={(text) => {
               this.setState({ cvv: text });
-              console.log("text", text);
               this.props.newCardData({
                 name: this.state.name,
                 cardNumber: this.state.cardNumber,
@@ -154,26 +199,9 @@ class CreditCardForm extends Component {
               });
             }}
             onBlur={(text) => {}}
+            ref={this.cvvRef}
           />
         </View>
-        {/* <View style={styles.verifyContainerView}>
-          <TouchableOpacity
-            style={styles.verifyButtonView}
-            onPress={async () => {
-              //TODO: Call the Payment with necessary Data changes
-              this.props.confirmCardPayment({
-                cardNumber: this.state.cardNumber,
-                cardType: "VISA",
-                name: this.state.name,
-                serviceCode: this.state.cvv,
-                month: this.state.expiration.slice(0, -3),
-                year: this.state.expiration.slice(3, 5),
-              });
-            }}
-          >
-            <Text style={styles.verifyTextView}>Confirm payment</Text>
-          </TouchableOpacity>
-        </View> */}
       </View>
     );
   }

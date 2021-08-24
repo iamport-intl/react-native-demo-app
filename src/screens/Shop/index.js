@@ -250,10 +250,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
     color: WHITE_COLOR,
-    flex: 1,
     fontWeight: BOLD,
     fontSize: 16,
   },
+
   headerContainerView: {
     marginTop: -20,
     backgroundColor: WHITE_COLOR,

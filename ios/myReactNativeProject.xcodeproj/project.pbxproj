@@ -319,7 +319,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chaipay.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.chaipay;
 				PRODUCT_NAME = myReactNativeProject;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "myReactNativeProject/myReactNativeProject-Bridging-Header.h";
@@ -341,6 +341,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 100005;
 				DEVELOPMENT_TEAM = 24H3Q69HGF;
+				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = myReactNativeProject/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -351,7 +352,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chaipay.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.chaipay;
 				PRODUCT_NAME = myReactNativeProject;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "myReactNativeProject/myReactNativeProject-Bridging-Header.h";

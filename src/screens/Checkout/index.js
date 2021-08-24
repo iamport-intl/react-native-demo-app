@@ -29,7 +29,6 @@ import CheckboxView from "../../helpers/CheckboxView";
 import HorizontalTextStackView from "../../helpers/HorizontalTextStackView";
 import ScheduledProductCell from "../../screens/SelectedProductCell";
 import Checkout from "../../../paymentSDK";
-import Functions from "../../../paymentSDK";
 import OTPTextInput from "react-native-otp-textinput";
 import AsyncStorage from "@react-native-community/async-storage";
 import PhoneInput from "react-native-phone-number-input";
@@ -127,7 +126,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
     color: WHITE_COLOR,
-    flex: 1,
     fontWeight: BOLD,
     fontSize: 16,
   },
@@ -211,7 +209,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
     color: WHITE_COLOR,
-    flex: 1,
     fontWeight: BOLD,
     fontSize: 16,
   },
@@ -273,14 +270,6 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
-    AsyncStorage.getItem("MOBILE_NUMBER").then((data) => {
-      this.setState({
-        mobileNumberVerificationDone: data === null ? false : true,
-      });
-      this.setState({
-        formattedText: data === null ? "" : data,
-      });
-    });
     AsyncStorage.getItem("SAVED_CARDS").then((data) => {
       this.setState({ savedCards: JSON.parse(data) });
     });
@@ -321,7 +310,6 @@ class Checkout1 extends React.Component {
   }
 
   clearText = () => {
-    console.log("entered", this.otpInput.current);
     this.otpInput.current.clear();
   };
 
@@ -332,7 +320,6 @@ class Checkout1 extends React.Component {
   };
 
   afterCheckout = (transactionDetails) => {
-    console.log("transction", transactionDetails);
     if (transactionDetails) {
       if (typeof transactionDetails == "object") {
         this.setState({ orderDetails: transactionDetails });
@@ -554,25 +541,17 @@ class Checkout1 extends React.Component {
             style={styles.nextButtonView}
             onPress={async () => {
               if (this.state.shouldShowOTP) {
-                let val = await Functions.fetchSavedCards(
+                let val = await Checkout.fetchSavedCards(
                   this.state.formattedText,
                   this.state.OTP
                 );
-                console.log("Fetcched Cards", JSON.stringify(val, null, 4));
                 if (val?.status === 200 || val?.status === 201) {
-                  //To-Do change the payload
-                  AsyncStorage.setItem(
-                    "MOBILE_NUMBER",
-                    this.state.formattedText
-                  );
                   AsyncStorage.setItem("SAVED_CARDS", JSON.stringify(val.data));
                   this.setState({ savedCards: val.data });
                   this.setState({ mobileNumberVerificationDone: true });
                 }
               } else {
-                console.log("country code", this.state.formattedText);
-                let val = await Functions._getOTP(this.state.formattedText);
-                console.log("OTP val", JSON.stringify(val, null, 4));
+                let val = await Checkout._getOTP(this.state.formattedText);
                 if (val.status === 200 || val.status === 201) {
                   this.setState({ shouldShowOTP: true });
                 }
@@ -655,7 +634,6 @@ class Checkout1 extends React.Component {
   };
 
   saveCardDetails = (data) => {
-    console.log("card data", data);
     this.setState({ newCardData: data });
   };
 
@@ -664,12 +642,7 @@ class Checkout1 extends React.Component {
       values(this.props.route.params?.selectedProducts),
       "price"
     );
-
-    console.log(
-      "SavedCard Payment entered",
-      JSON.stringify(savedCard, null, 4)
-    );
-    let response = await Functions.startPayment(
+    let response = await Checkout.startPayment(
       fromSavedcards,
       savedCard,
       totalAmount,
@@ -1078,11 +1051,13 @@ class Checkout1 extends React.Component {
                 </View>
                 <View style={{ flexDirection: "row" }}>
                   <Image
-                    source={require("../../../assets/9Pay.png")}
+                    source={{
+                      uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
+                    }}
                     style={{
                       alignSelf: "center",
-                      width: 30,
-                      height: 30,
+                      width: 45,
+                      height: 45,
                       resizeMode: "contain",
                       marginTop: 0,
                       marginHorizontal: 8,
@@ -1118,7 +1093,10 @@ class Checkout1 extends React.Component {
                   <CheckboxView
                     fromSavedCards={false}
                     item={{ name: "Pay with VNPay" }}
-                    image={require("../../../assets/9Pay.png")}
+                    image={{
+                      uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
+                    }}
+                    styles={{ width: 45, height: 45 }}
                     isSelected={val === "Pay with VNPay"}
                     didSelected={this.onClickPaymentSelected}
                   />
@@ -1272,7 +1250,6 @@ class Checkout1 extends React.Component {
           style={[styles.payNowView, { flex: 0.5 }]}
           disabled={!this.state.mobileNumberVerificationDone}
           onPress={() => {
-            console.log("this.state.newCardData", this.state.newCardData);
             if (
               isEmpty(this.state.newCardData) &&
               isEmpty(this.state.selectedItem)
@@ -1285,8 +1262,8 @@ class Checkout1 extends React.Component {
                 cardNumber: cardData.cardNumber,
                 name: cardData.name,
                 serviceCode: cardData.cvv,
-                month: cardData.expiration.slice(0, -3),
-                year: cardData.expiration.slice(3, 5),
+                month: cardData.expiration.slice(0, -5),
+                year: cardData.expiration.slice(3, 7),
               });
             } else if (this.state.callingfromSavedCards) {
               this.confirmCardPayment(this.state.selectedItem.item, true);
@@ -1327,7 +1304,6 @@ class Checkout1 extends React.Component {
                   : "VNPAY_ALL";
               newPayload["amount"] = totalAmount;
               this.setState({ data: newPayload });
-              console.log("Entred correct case", newPayload);
               this.setState({ callThePayment: false }, () => {
                 this.setState({ callThePayment: true });
               });
