@@ -41,7 +41,7 @@ import {
 import CreditCardForm from "../../helpers/CreditcardForm";
 
 const { width, height } = Dimensions.get("screen");
-
+const deliveryAmount = 8500;
 const styles = StyleSheet.create({
   contentContainerStyle: {
     alignItems: "center",
@@ -337,6 +337,11 @@ class Checkout1 extends React.Component {
   };
 
   ResponseView = ({ orderDetails }) => {
+    let totalAmount = sumBy(
+      values(this.props.route.params?.selectedProducts),
+      "price"
+    );
+
     return (
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
@@ -381,6 +386,12 @@ class Checkout1 extends React.Component {
                     </Text>
                     <Text style={styles.rightStackText}>
                       {orderDetails.channel_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>Amount Paid: </Text>
+                    <Text style={styles.rightStackText}>
+                      {`${currency} ${totalAmount + deliveryAmount}`}
                     </Text>
                   </View>
                   <View style={styles.stackView}>
@@ -431,6 +442,12 @@ class Checkout1 extends React.Component {
                     </Text>
                     <Text style={styles.rightStackText}>
                       {orderDetails.channel_order_ref}
+                    </Text>
+                  </View>
+                  <View style={styles.stackView}>
+                    <Text style={styles.leftStackText}>Amount: </Text>
+                    <Text style={styles.rightStackText}>
+                      {`${currency} ${totalAmount + deliveryAmount}`}
                     </Text>
                   </View>
                   <View style={styles.stackView}>
@@ -566,7 +583,7 @@ class Checkout1 extends React.Component {
       </View>
     );
   };
-  OrderDetailsView = ({ totalAmount, deliveryAmount }) => {
+  OrderDetailsView = ({ totalAmount }) => {
     return (
       <View
         style={{
@@ -642,12 +659,13 @@ class Checkout1 extends React.Component {
       values(this.props.route.params?.selectedProducts),
       "price"
     );
+
     let data = {
       key: "lzrYFPfyMLROallZ",
       pmt_channel: "MASTERCARD",
       pmt_method: `MASTERCARD_CARD`,
       merchant_order_id: "MERCHANT" + new Date().getTime(),
-      amount: totalAmount,
+      amount: totalAmount + deliveryAmount,
       currency: "INR",
       success_url: "https://demo.chaipay.io",
       failure_url: "https://demo.chaipay.io",
@@ -1145,7 +1163,7 @@ class Checkout1 extends React.Component {
       </View>
     );
   };
-  PayNowView = ({ image, totalAmount, deliveryAmount }) => {
+  PayNowView = ({ image, totalAmount }) => {
     const deepLinkURL = "chaipay://checkout";
     let data = this.state.data;
     let val = this.state.selectedItem?.name;
@@ -1161,7 +1179,7 @@ class Checkout1 extends React.Component {
       pmt_channel: this.state.channelData?.channel || "ZALOPAY_WALLET",
       pmt_method: this.state.channelData?.method || "ZALOPAY",
       merchant_order_id: "MERCHANT" + new Date().getTime(),
-      amount: totalAmount,
+      amount: totalAmount + deliveryAmount,
       currency: "VND",
       signature_hash: "123",
       billing_details: {
@@ -1313,7 +1331,7 @@ class Checkout1 extends React.Component {
                   : selectedChannel === "MOMOPAY"
                   ? "MOMOPAY_WALLET"
                   : "VNPAY_ALL";
-              newPayload["amount"] = totalAmount;
+              newPayload["amount"] = totalAmount + deliveryAmount;
               this.setState({ data: newPayload });
               this.setState({ callThePayment: false }, () => {
                 this.setState({ callThePayment: true });
@@ -1358,7 +1376,6 @@ class Checkout1 extends React.Component {
       values(this.props.route.params?.selectedProducts),
       "price"
     );
-    let deliveryAmount = 7.2;
 
     const hasNumber = this.state.mobileNumberVerificationDone;
     const shouldShowOTP = this.state.shouldShowOTP;
@@ -1408,17 +1425,10 @@ class Checkout1 extends React.Component {
             </KeyboardAvoidingView>
             <View>
               {this.state.shouldShowOrderDetails ? (
-                <this.OrderDetailsView
-                  totalAmount={totalAmount}
-                  deliveryAmount={deliveryAmount}
-                />
+                <this.OrderDetailsView totalAmount={totalAmount} />
               ) : null}
               <this.SafeAndsecureView />
-              <this.PayNowView
-                image={image}
-                totalAmount={totalAmount}
-                deliveryAmount={deliveryAmount}
-              />
+              <this.PayNowView image={image} totalAmount={totalAmount} />
             </View>
           </>
         )}
