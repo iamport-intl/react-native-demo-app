@@ -15,7 +15,13 @@ import {
 import WebView from "react-native-webview";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { bodyParams, requiredParams, initiateURL, api } from "./constants";
+import {
+  bodyParams,
+  requiredParams,
+  initiateURL,
+  api,
+  fetchMerchantsURL,
+} from "./constants";
 
 import hmacSHA256 from "crypto-js/hmac-sha256";
 import Base64 from "crypto-js/enc-base64";
@@ -32,7 +38,7 @@ class Checkout extends React.Component {
       messageFromWebView: "",
       secretHash: "",
       originList: ["momo://", "zalopay://"],
-      env: "dev",
+      env: "prod",
       data: {},
     };
   }
@@ -136,7 +142,7 @@ class Checkout extends React.Component {
       },
     };
     return await this._callPostMethod(
-      initiateURL["dev"] + "verification/generateOTP/" + mobileNumber,
+      initiateURL[this.getEnv()] + "verification/generateOTP/" + mobileNumber,
       {},
       config
     );
@@ -144,9 +150,18 @@ class Checkout extends React.Component {
 
   fetchSavedCards = async (number, otp) => {
     var url =
-      "https://dev-api.chaipay.io/api/user/" + number + "/savedCard?otp=" + otp;
+      initiateURL[this.getEnv()] + "user/" + number + "/savedCard?otp=" + otp;
 
     return await this._callGetMethod(url);
+  };
+
+  fetchAvailablePaymentGateway = async () => {
+    let url =
+      fetchMerchantsURL[this.getEnv()] +
+      "merchants/SglffyyZgojEdXWL/paymethodsbyKey";
+
+    let val = await this._callGetMethod(url);
+    return val;
   };
 
   _callGetMethod = async (url) => {
@@ -227,7 +242,6 @@ class Checkout extends React.Component {
 
     let { body, missingParams } = await this._prepareRequestBody(data);
 
-    console.log("DTA", JSON.stringify(body, null, 4));
     if (isSavedCards) {
       token = savedTokenRes.token;
       partial_card_number = savedTokenRes.partial_card_number;
@@ -262,7 +276,7 @@ class Checkout extends React.Component {
     };
 
     let val = await this._callPostMethod(
-      "https://dev-api.chaipay.io/api/initiatePayment",
+      initiateURL[this.getEnv()] + "initiatePayment",
       data,
       requestConfig
     );
@@ -302,8 +316,8 @@ class Checkout extends React.Component {
 
   initiatePayment = async (data) => {
     let { body, missingParams } = await this._prepareRequestBody(data);
-    let { callbackFunction, env } = this.props;
-    env = env || "dev";
+    let { callbackFunction } = this.props;
+    let env = this.getEnv();
     if (missingParams.length == 0) {
       const { chaipayKey } = data;
       return new Promise((resolve, reject) => {
@@ -440,10 +454,15 @@ class Checkout extends React.Component {
     );
   };
 
+  getEnv = () => {
+    return this.props.env || "prod";
+  };
+
   _afterResponseFromGateway = (orderRef = "", queryString = "") => {
     const { paymentChannel } = this.state.data;
     let url =
-      "https://dev-api.chaipay.io/api/handleShopperRedirect/" +
+      initiateURL[this.getEnv()] +
+      "handleShopperRedirect/" +
       paymentChannel +
       "?chaiMobileSDK=true&" +
       queryString;

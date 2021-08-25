@@ -1,4 +1,4 @@
-import { isEmpty, sum, sumBy, values } from "lodash";
+import { filter, first, isEmpty, sum, sumBy, values } from "lodash";
 import React from "react";
 import { Dimensions } from "react-native";
 
@@ -264,6 +264,9 @@ class Checkout1 extends React.Component {
       userData: {},
       callingfromSavedCards: false,
       newCardData: {},
+      walletsList: [],
+      totalListOfPayments: [],
+      paymentCardType: {},
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
@@ -271,6 +274,26 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
+    this.checkout.current
+      .fetchAvailablePaymentGateway()
+      .then((data) => {
+        this.setState({ totalListOfPayments: data.data });
+        let filteredWalletList = filter(data.data["WALLET"], (item) => {
+          return item.is_enabled;
+        });
+        this.setState({ walletsList: filteredWalletList });
+        let filterCardList = filter(data.data["CARD"], (item) => {
+          return (
+            item.is_default &&
+            item.is_enabled &&
+            item.sub_type.includes("INT_CREDIT_CARD")
+          );
+        });
+        this.setState({ paymentCardType: first(filterCardList) });
+      })
+      .catch((error) => {
+        console.log("error", error);
+      });
     AsyncStorage.getItem("SAVED_CARDS").then((data) => {
       this.setState({ savedCards: JSON.parse(data) });
     });
@@ -665,8 +688,8 @@ class Checkout1 extends React.Component {
 
     return {
       chaipayKey: "lzrYFPfyMLROallZ",
-      paymentChannel: this.state.channelData?.channel || "ZALOPAY_WALLET",
-      paymentMethod: this.state.channelData?.method || "ZALOPAY",
+      paymentChannel: this.state.selectedItem.payment_channel_key,
+      paymentMethod: this.state.selectedItem.payment_method_key,
       merchantOrderId: "MERCHANT" + new Date().getTime(),
       amount: totalAmount + deliveryAmount,
       currency: "VND",
@@ -716,8 +739,8 @@ class Checkout1 extends React.Component {
   confirmCardPayment = async (savedCard, fromSavedcards = false) => {
     let data = this.getData();
 
-    data["paymentChannel"] = "MASTERCARD";
-    data["paymentMethod"] = "MASTERCARD_CARD";
+    data["paymentChannel"] = this.state.paymentCardType.payment_channel_key;
+    data["paymentMethod"] = this.state.paymentCardType.payment_method_key;
     data["merchantOrderId"] = "MERCHANT" + new Date().getTime();
     data["secretKey"] =
       "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242";
@@ -743,13 +766,14 @@ class Checkout1 extends React.Component {
   };
 
   PaymentOptionsView = () => {
-    let val = this.state.selectedItem?.name;
-    let selectedChannel =
-      val === "Pay with Zalo Pay"
-        ? "ZALOPAY"
-        : val === "Pay with MOMO Pay"
-        ? "MOMOPAY"
-        : "VNPAY";
+    let val = this.state.selectedItem?.payment_method_key;
+
+    let VNPAYData = filter(
+      values(this.state.totalListOfPayments?.WALLET),
+      (item) => {
+        return item.payment_channel_key === "VNPAY";
+      }
+    );
 
     const colapsableImage = !this.state.walletCollpse
       ? require("../../../assets/colapse.png")
@@ -937,6 +961,16 @@ class Checkout1 extends React.Component {
                       marginHorizontal: 8,
                     }}
                   />
+                  {this.state.walletsList.length > 2 ? (
+                    <Text
+                      style={{
+                        color: descriptionText,
+                        alignSelf: "center",
+                        textAlign: "center",
+                        fontSize: 12,
+                      }}
+                    >{`+${this.state.walletsList.length - 2} more`}</Text>
+                  ) : null}
                   <Image
                     source={colapsableImage}
                     style={{
@@ -965,19 +999,24 @@ class Checkout1 extends React.Component {
                   marginVertical: 10,
                 }}
               >
-                <CheckboxView
-                  fromSavedCards={false}
-                  item={{ name: "Pay with MOMO Pay" }}
-                  image={require("../../../assets/momo.png")}
-                  isSelected={val === "Pay with MOMO Pay"}
-                  didSelected={this.onClickPaymentSelected}
-                />
-                <CheckboxView
-                  fromSavedCards={false}
-                  item={{ name: "Pay with Zalo Pay" }}
-                  image={require("../../../assets/ZaloPay.png")}
-                  isSelected={val === "Pay with Zalo Pay"}
-                  didSelected={this.onClickPaymentSelected}
+                <FlatList
+                  data={this.state.walletsList}
+                  renderItem={(product) => {
+                    return (
+                      <CheckboxView
+                        fromSavedCards={false}
+                        item={{
+                          name: `Pay with ${product.item.payment_channel_key}`,
+                          description: product.item.payment_method_key,
+                          ...product.item,
+                        }}
+                        image={{ uri: product.item.logo }}
+                        isSelected={val === product.item.payment_method_key}
+                        didSelected={this.onClickPaymentSelected}
+                      />
+                    );
+                  }}
+                  keyExtractor={(item, index) => `${index}`}
                 />
               </View>
             </CollapseBody>
@@ -1173,15 +1212,24 @@ class Checkout1 extends React.Component {
                     marginVertical: 10,
                   }}
                 >
-                  <CheckboxView
-                    fromSavedCards={false}
-                    item={{ name: "Pay with VNPay" }}
-                    image={{
-                      uri: "https://chaipay-pg-icons.s3-ap-southeast-1.amazonaws.com/checkout_vnpay.jpeg",
+                  <FlatList
+                    data={VNPAYData}
+                    renderItem={(product) => {
+                      return (
+                        <CheckboxView
+                          fromSavedCards={false}
+                          item={{
+                            name: `Pay with ${product.item.payment_channel_key}`,
+                            description: product.item.payment_method_key,
+                            ...product.item,
+                          }}
+                          image={{ uri: product.item.logo }}
+                          isSelected={val === product.item.payment_method_key}
+                          didSelected={this.onClickPaymentSelected}
+                        />
+                      );
                     }}
-                    styles={{ width: 45, height: 45 }}
-                    isSelected={val === "Pay with VNPay"}
-                    didSelected={this.onClickPaymentSelected}
+                    keyExtractor={(item, index) => `${index}`}
                   />
                 </View>
               ) : null}
@@ -1219,14 +1267,6 @@ class Checkout1 extends React.Component {
 
   PayNowView = ({ image, totalAmount }) => {
     const deepLinkURL = "chaipay://checkout";
-    let data = this.state.data;
-    let val = this.state.selectedItem?.name;
-    let selectedChannel =
-      val === "Pay with Zalo Pay"
-        ? "ZALOPAY"
-        : val === "Pay with MOMO Pay"
-        ? "MOMOPAY"
-        : "VNPAY";
 
     var payload = this.getData();
 
@@ -1305,38 +1345,15 @@ class Checkout1 extends React.Component {
             } else if (this.state.callingfromSavedCards) {
               this.confirmCardPayment(this.state.selectedItem.item, true);
             } else {
-              this.setState({
-                channelData: {
-                  method:
-                    selectedChannel === "ZALOPAY"
-                      ? "ZALOPAY_WALLET"
-                      : selectedChannel === "MOMOPAY"
-                      ? "MOMOPAY_WALLET"
-                      : "VNPAY_ALL",
-                  channel:
-                    selectedChannel === "ZALOPAY"
-                      ? "ZALOPAY"
-                      : selectedChannel === "MOMOPAY"
-                      ? "MOMOPAY"
-                      : "VNPAY",
-                  orderId: "MERCHANT" + new Date().getTime(),
-                  price: totalAmount,
-                },
-              });
               let newPayload = { ...payload };
               newPayload["merchantOrderId"] = "MERCHANT" + new Date().getTime();
               newPayload["paymentChannel"] =
-                selectedChannel === "ZALOPAY"
-                  ? "ZALOPAY"
-                  : selectedChannel === "MOMOPAY"
-                  ? "MOMOPAY"
-                  : "VNPAY";
+                this.state.selectedItem.payment_channel_key;
               newPayload["paymentMethod"] =
-                selectedChannel === "ZALOPAY"
-                  ? "ZALOPAY_WALLET"
-                  : selectedChannel === "MOMOPAY"
-                  ? "MOMOPAY_WALLET"
-                  : "VNPAY_ALL";
+                this.state.selectedItem.payment_channel_key === "VNPAY"
+                  ? "VNPAY_ALL"
+                  : this.state.selectedItem.payment_method_key;
+
               newPayload["amount"] = totalAmount + deliveryAmount;
               newPayload["secretKey"] =
                 "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242";

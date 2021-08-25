@@ -1,3 +1,4 @@
+import omit from "lodash.omit";
 import React, { Component } from "react";
 import { View, TouchableOpacity, Text, Image } from "react-native";
 import { APP_THEME_COLOR, TRANSPARENT } from "../constants";
@@ -13,7 +14,10 @@ class CheckboxView extends Component {
           alignItems: "center",
         }}
         onPress={() =>
-          this.props.didSelected(this.props.item, this.props.fromSavedCards)
+          this.props.didSelected(
+            omit(this.props.item, ["name", "description"]),
+            this.props.fromSavedCards
+          )
         }
       >
         <View
@@ -52,7 +56,7 @@ class CheckboxView extends Component {
               {this.props.item.name}
             </Text>
             {this.props.item.description ? (
-              <Text style={{ fontSize: 10, fontWeight: "100" }}>
+              <Text style={{ fontSize: 10, fontWeight: "200", marginTop: 3 }}>
                 {this.props.item.description}
               </Text>
             ) : null}
