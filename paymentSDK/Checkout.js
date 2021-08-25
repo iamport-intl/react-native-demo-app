@@ -33,6 +33,7 @@ class Checkout extends React.Component {
       secretHash: "",
       originList: ["momo://", "zalopay://"],
       env: "dev",
+      data: {},
     };
   }
 
@@ -127,51 +128,7 @@ class Checkout extends React.Component {
     return secretHash;
   };
 
-  static fetchHash = async (props) => {
-    const {
-      paymentChannel,
-      paymentMethod,
-      failureUrl,
-      successUrl,
-      chaipayKey,
-      amount,
-      currency,
-      merchantOrderId,
-      secretKey,
-    } = props;
-    let data = {
-      key: chaipayKey,
-      pmt_channel: paymentChannel,
-      pmt_method: paymentMethod,
-      merchant_order_id: merchantOrderId,
-      amount: amount,
-      currency: currency,
-      success_url: successUrl,
-      failure_url: failureUrl,
-    };
-    let message = "";
-    message =
-      "amount=" +
-      encodeURIComponent(data["amount"]) +
-      "&currency=" +
-      encodeURIComponent(data["currency"]) +
-      "&failure_url=" +
-      encodeURIComponent(data["failure_url"]) +
-      "&merchant_order_id=" +
-      encodeURIComponent(data["merchant_order_id"]) +
-      "&pmt_channel=" +
-      encodeURIComponent(data["pmt_channel"]) +
-      "&pmt_method=" +
-      encodeURIComponent(data["pmt_method"]) +
-      "&success_url=" +
-      encodeURIComponent(data["success_url"]);
-
-    let hash = hmacSHA256(message, secretKey);
-    let signatureHash = Base64.stringify(hash);
-    return signatureHash;
-  };
-
-  static getOTP = async (mobileNumber) => {
+  getOTP = async (mobileNumber) => {
     // var number = this.props["billingAddress"]?.billing_phone;
     let config = {
       headers: {
@@ -185,14 +142,14 @@ class Checkout extends React.Component {
     );
   };
 
-  static fetchSavedCards = async (number, otp) => {
+  fetchSavedCards = async (number, otp) => {
     var url =
       "https://dev-api.chaipay.io/api/user/" + number + "/savedCard?otp=" + otp;
 
     return await this._callGetMethod(url);
   };
 
-  static _callGetMethod = async (url) => {
+  _callGetMethod = async (url) => {
     return new Promise((resolve, reject) => {
       console.warn(`url : ${url}`);
       axios
@@ -205,7 +162,7 @@ class Checkout extends React.Component {
         });
     });
   };
-  static _callPostMethod = async (url, bodyPart, config) => {
+  _callPostMethod = async (url, bodyPart, config) => {
     return new Promise((resolve, reject) => {
       let body = JSON.stringify(bodyPart);
       let requestConfig = config;
@@ -227,7 +184,7 @@ class Checkout extends React.Component {
     });
   };
 
-  static getToken = async (cardDetails) => {
+  getToken = async (cardDetails) => {
     let url =
       "https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a";
 
@@ -253,21 +210,24 @@ class Checkout extends React.Component {
     return response;
   };
 
-  static startPaymentWithNewCard = async (savedTokenRes, data) => {
+  startPaymentWithNewCard = async (savedTokenRes, data) => {
     return await this.startPayment(false, savedTokenRes, data);
   };
 
-  static startPaymentWithSavedCard = async (savedTokenRes, data) => {
+  startPaymentWithSavedCard = async (savedTokenRes, data) => {
     return await this.startPayment(true, savedTokenRes, data);
   };
 
-  static startPayment = async (isSavedCards, savedTokenRes, data) => {
+  startPayment = async (isSavedCards, savedTokenRes, data) => {
     var token = "";
     var partial_card_number = "";
     var expiry_year = "";
     var expiry_month = "";
     var cardType = "";
 
+    let { body, missingParams } = await this._prepareRequestBody(data);
+
+    console.log("DTA", JSON.stringify(body, null, 4));
     if (isSavedCards) {
       token = savedTokenRes.token;
       partial_card_number = savedTokenRes.partial_card_number;
@@ -285,7 +245,7 @@ class Checkout extends React.Component {
     }
 
     data = {
-      ...data,
+      ...body,
       token_params: {
         token: token,
         partial_card_number: partial_card_number,
@@ -294,19 +254,6 @@ class Checkout extends React.Component {
         type: cardType,
       },
     };
-
-    data["signature_hash"] = await this.fetchHash({
-      paymentChannel: data.pmt_channel,
-      paymentMethod: data.pmt_method,
-      failureUrl: data.failure_url,
-      successUrl: data.success_url,
-      chaipayKey: data.key,
-      amount: data.amount,
-      currency: data.currency,
-      merchantOrderId: data.merchant_order_id,
-      secretKey:
-        "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242",
-    });
 
     let requestConfig = {
       headers: {
@@ -322,10 +269,10 @@ class Checkout extends React.Component {
     return { val: val, data: data };
   };
 
-  _prepareRequestBody = async () => {
+  _prepareRequestBody = async (props) => {
     let body = {};
-    let props = { ...this.props };
-    props["signatureHash"] = await this._fetchHash({ ...this.props });
+    props = { ...props };
+    props["signatureHash"] = await this._fetchHash({ ...props });
     console.warn("Signature hash value : ", props["signatureHash"]);
     let missingParams = requiredParams.filter((item) => {
       let output = false;
@@ -353,13 +300,12 @@ class Checkout extends React.Component {
     return { body, missingParams };
   };
 
-  initiatePayment = async () => {
-    let { body, missingParams } = await this._prepareRequestBody();
+  initiatePayment = async (data) => {
+    let { body, missingParams } = await this._prepareRequestBody(data);
     let { callbackFunction, env } = this.props;
     env = env || "dev";
-
     if (missingParams.length == 0) {
-      const { chaipayKey } = this.props;
+      const { chaipayKey } = data;
       return new Promise((resolve, reject) => {
         let url = initiateURL[env] + api["initiatePayment"];
         body = JSON.stringify(body);
@@ -495,7 +441,7 @@ class Checkout extends React.Component {
   };
 
   _afterResponseFromGateway = (orderRef = "", queryString = "") => {
-    const { paymentChannel } = this.props;
+    const { paymentChannel } = this.state.data;
     let url =
       "https://dev-api.chaipay.io/api/handleShopperRedirect/" +
       paymentChannel +
@@ -531,14 +477,15 @@ class Checkout extends React.Component {
     });
   };
 
-  initateThePayment = () => {
+  startPaymentwithWallets = (data) => {
+    this.setState({ data: data });
     try {
       this.setState(
         {
           initiatingPayment: true,
         },
         () => {
-          this.initiatePayment()
+          this.initiatePayment(data)
             .then((response) => {
               console.warn("Response from api :" + JSON.stringify(response));
             })
@@ -551,10 +498,10 @@ class Checkout extends React.Component {
       console.warn("Error from checkout ", error);
     }
   };
+
   componentDidMount() {
     const { redirectUrl, callbackFunction } = this.props;
     Linking.removeAllListeners("url");
-    this.initateThePayment();
     Linking.addEventListener("url", async (event) => {
       this.setPageLoading(true);
       try {
@@ -685,22 +632,22 @@ class Checkout extends React.Component {
 }
 
 Checkout.propTypes = {
-  paymentChannel: PropTypes.string.isRequired,
-  paymentMethod: PropTypes.string.isRequired,
-  merchantOrderId: PropTypes.string.isRequired,
-  amount: PropTypes.number.isRequired,
-  currency: PropTypes.string.isRequired,
-  successUrl: PropTypes.string.isRequired,
-  failureUrl: PropTypes.string.isRequired,
+  paymentChannel: PropTypes.string,
+  paymentMethod: PropTypes.string,
+  merchantOrderId: PropTypes.string,
+  amount: PropTypes.number,
+  currency: PropTypes.string,
+  successUrl: PropTypes.string,
+  failureUrl: PropTypes.string,
   redirectUrl: PropTypes.string.isRequired,
   callbackUrl: PropTypes.string,
   signatureHash: PropTypes.string,
-  chaipayKey: PropTypes.string.isRequired,
+  chaipayKey: PropTypes.string,
   callbackFunction: PropTypes.func.isRequired,
   env: PropTypes.string,
-  shippingAddress: PropTypes.object.isRequired,
-  billingAddress: PropTypes.object.isRequired,
-  orderDetails: PropTypes.array.isRequired,
+  shippingAddress: PropTypes.object,
+  billingAddress: PropTypes.object,
+  orderDetails: PropTypes.array,
   checkoutButtonColor: PropTypes.string,
   checkoutButtonTitle: PropTypes.string,
   fetchHashUrl: PropTypes.string,
@@ -720,6 +667,7 @@ Checkout.defaultProp = {
   chaipayKey: "",
   checkoutButtonColor: "green",
   checkoutButtonTitle: "Checkout",
+  env: "prod",
 };
 let width = Dimensions.get("screen").width;
 let height = Dimensions.get("screen").height;
@@ -776,5 +724,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export const helpers = {};
 export default Checkout;

@@ -267,6 +267,7 @@ class Checkout1 extends React.Component {
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
+    this.checkout = React.createRef();
   }
 
   componentDidMount() {
@@ -558,7 +559,7 @@ class Checkout1 extends React.Component {
             style={styles.nextButtonView}
             onPress={async () => {
               if (this.state.shouldShowOTP) {
-                let val = await Checkout.fetchSavedCards(
+                let val = await this.checkout.current.fetchSavedCards(
                   this.state.formattedText,
                   this.state.OTP
                 );
@@ -568,7 +569,9 @@ class Checkout1 extends React.Component {
                   this.setState({ mobileNumberVerificationDone: true });
                 }
               } else {
-                let val = await Checkout.getOTP(this.state.formattedText);
+                let val = await this.checkout.current.getOTP(
+                  this.state.formattedText
+                );
                 if (val.status === 200 || val.status === 201) {
                   this.setState({ shouldShowOTP: true });
                 }
@@ -654,32 +657,82 @@ class Checkout1 extends React.Component {
     this.setState({ newCardData: data });
   };
 
-  confirmCardPayment = async (savedCard, fromSavedcards = false) => {
+  getData = () => {
     let totalAmount = sumBy(
       values(this.props.route.params?.selectedProducts),
       "price"
     );
 
-    let data = {
-      key: "lzrYFPfyMLROallZ",
-      pmt_channel: "MASTERCARD",
-      pmt_method: `MASTERCARD_CARD`,
-      merchant_order_id: "MERCHANT" + new Date().getTime(),
+    return {
+      chaipayKey: "lzrYFPfyMLROallZ",
+      paymentChannel: this.state.channelData?.channel || "ZALOPAY_WALLET",
+      paymentMethod: this.state.channelData?.method || "ZALOPAY",
+      merchantOrderId: "MERCHANT" + new Date().getTime(),
       amount: totalAmount + deliveryAmount,
-      currency: "INR",
-      success_url: "https://demo.chaipay.io",
-      failure_url: "https://demo.chaipay.io",
+      currency: "VND",
       signature_hash: "123",
-      billing_details: {
-        billing_phone: this.state.formattedText,
+      billingAddress: {
+        billing_name: "Test mark",
+        billing_email: "markweins@gmail.com",
+        billing_phone: this.state.formattedText || "9998878788",
+        billing_address: {
+          city: "VND",
+          country_code: "VN",
+          locale: "en",
+          line_1: "address",
+          line_2: "address_2",
+          postal_code: "400202",
+          state: "Mah",
+        },
       },
+      shippingAddress: {
+        shipping_name: "xyz",
+        shipping_email: "xyz@gmail.com",
+        shipping_phone: "1234567890",
+        shipping_address: {
+          city: "abc",
+          country_code: "VN",
+          locale: "en",
+          line_1: "address_1",
+          line_2: "address_2",
+          postal_code: "400202",
+          state: "Mah",
+        },
+      },
+      orderDetails: [
+        {
+          id: "knb",
+          name: "kim nguyen bao",
+          price: 1000,
+          quantity: 1,
+        },
+      ],
+      successUrl: "chaipay://",
+      failureUrl: "chaipay://",
+      redirectUrl: "chaipay://",
     };
+  };
+
+  confirmCardPayment = async (savedCard, fromSavedcards = false) => {
+    let data = this.getData();
+
+    data["paymentChannel"] = "MASTERCARD";
+    data["paymentMethod"] = "MASTERCARD_CARD";
+    data["merchantOrderId"] = "MERCHANT" + new Date().getTime();
+    data["secretKey"] =
+      "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242";
 
     let response;
     if (fromSavedcards) {
-      response = await Checkout.startPaymentWithSavedCard(savedCard, data);
+      response = await this.checkout.current.startPaymentWithSavedCard(
+        savedCard,
+        data
+      );
     } else {
-      response = await Checkout.startPaymentWithNewCard(savedCard, data);
+      response = await this.checkout.current.startPaymentWithNewCard(
+        savedCard,
+        data
+      );
     }
 
     if (response.val.status === 200 || response.val.status === 201) {
@@ -1163,6 +1216,7 @@ class Checkout1 extends React.Component {
       </View>
     );
   };
+
   PayNowView = ({ image, totalAmount }) => {
     const deepLinkURL = "chaipay://checkout";
     let data = this.state.data;
@@ -1173,54 +1227,8 @@ class Checkout1 extends React.Component {
         : val === "Pay with MOMO Pay"
         ? "MOMOPAY"
         : "VNPAY";
-    var payload = {
-      key: "lzrYFPfyMLROallZ",
-      //navigation "navigation":navigation,
-      pmt_channel: this.state.channelData?.channel || "ZALOPAY_WALLET",
-      pmt_method: this.state.channelData?.method || "ZALOPAY",
-      merchant_order_id: "MERCHANT" + new Date().getTime(),
-      amount: totalAmount + deliveryAmount,
-      currency: "VND",
-      signature_hash: "123",
-      billing_details: {
-        billing_name: "Test mark",
-        billing_email: "markweins@gmail.com",
-        billing_phone: this.state.formattedText || "9998878788",
-        billing_address: {
-          city: "VND",
-          country_code: "VN",
-          locale: "en",
-          line_1: "address",
-          line_2: "address_2",
-          postal_code: "400202",
-          state: "Mah",
-        },
-      },
-      shipping_details: {
-        shipping_name: "xyz",
-        shipping_email: "xyz@gmail.com",
-        shipping_phone: "1234567890",
-        shipping_address: {
-          city: "abc",
-          country_code: "VN",
-          locale: "en",
-          line_1: "address_1",
-          line_2: "address_2",
-          postal_code: "400202",
-          state: "Mah",
-        },
-      },
-      order_details: [
-        {
-          id: "knb",
-          name: "kim nguyen bao",
-          price: 1000,
-          quantity: 1,
-        },
-      ],
-      success_url: "chaipay://",
-      failure_url: "chaipay://",
-    };
+
+    var payload = this.getData();
 
     return (
       <View style={styles.payNowContainerView}>
@@ -1284,7 +1292,7 @@ class Checkout1 extends React.Component {
               isEmpty(this.state.newCardData) &&
               isEmpty(this.state.selectedItem)
             ) {
-              alert("Hey Please selext one of the payment Type");
+              alert("Please select any payment method to proceed further");
             } else if (!isEmpty(this.state.newCardData)) {
               let cardData = this.state.newCardData;
               this.confirmCardPayment({
@@ -1315,53 +1323,38 @@ class Checkout1 extends React.Component {
                   price: totalAmount,
                 },
               });
-
               let newPayload = { ...payload };
-              newPayload["merchant_order_id"] =
-                "MERCHANT" + new Date().getTime();
-              newPayload["pmt_channel"] =
+              newPayload["merchantOrderId"] = "MERCHANT" + new Date().getTime();
+              newPayload["paymentChannel"] =
                 selectedChannel === "ZALOPAY"
                   ? "ZALOPAY"
                   : selectedChannel === "MOMOPAY"
                   ? "MOMOPAY"
                   : "VNPAY";
-              newPayload["pmt_method"] =
+              newPayload["paymentMethod"] =
                 selectedChannel === "ZALOPAY"
                   ? "ZALOPAY_WALLET"
                   : selectedChannel === "MOMOPAY"
                   ? "MOMOPAY_WALLET"
                   : "VNPAY_ALL";
               newPayload["amount"] = totalAmount + deliveryAmount;
-              this.setState({ data: newPayload });
-              this.setState({ callThePayment: false }, () => {
-                this.setState({ callThePayment: true });
-              });
+              newPayload["secretKey"] =
+                "0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242";
+
+              var response =
+                this.checkout.current.startPaymentwithWallets(newPayload);
+              this.afterCheckout(response);
             }
           }}
         >
           <Text style={styles.payNowTextView}>Pay Now</Text>
         </TouchableOpacity>
-        {this.state.callThePayment ? (
-          <Checkout
-            chaipayKey={data["key"]}
-            merchantOrderId={data["merchant_order_id"]}
-            amount={data["amount"]}
-            currency={data["currency"]}
-            // fetchHashUrl={domain+"/getHash"}
-            secretKey="0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242"
-            shippingAddress={data["shipping_details"]}
-            billingAddress={data["billing_details"]}
-            orderDetails={data["order_details"]}
-            //hashKey={this.state.hashKey}
-            paymentChannel={this.state.channelData.channel}
-            paymentMethod={this.state.channelData.method}
-            callbackFunction={this.afterCheckout}
-            failureUrl={deepLinkURL}
-            successUrl={deepLinkURL}
-            redirectUrl={deepLinkURL}
-            env={"dev"}
-          />
-        ) : null}
+        <Checkout
+          ref={this.checkout}
+          env={"dev"}
+          callbackFunction={this.afterCheckout}
+          redirectUrl={"chaipay://"}
+        />
       </View>
     );
   };
