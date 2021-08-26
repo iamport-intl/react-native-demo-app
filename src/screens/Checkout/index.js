@@ -1007,7 +1007,6 @@ class Checkout1 extends React.Component {
                         fromSavedCards={false}
                         item={{
                           name: `Pay with ${product.item.payment_channel_key}`,
-                          description: product.item.payment_method_key,
                           ...product.item,
                         }}
                         image={{ uri: product.item.logo }}
@@ -1220,7 +1219,6 @@ class Checkout1 extends React.Component {
                           fromSavedCards={false}
                           item={{
                             name: `Pay with ${product.item.payment_channel_key}`,
-                            description: product.item.payment_method_key,
                             ...product.item,
                           }}
                           image={{ uri: product.item.logo }}
