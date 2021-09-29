@@ -1,30 +1,30 @@
-import React, { useContext } from "react";
+import React, {useContext} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Button,
   Dimensions,
+  Image,
   TouchableOpacity,
-} from "react-native";
-import { Image } from "react-native-elements";
+} from 'react-native';
 import {
   APP_THEME_COLOR,
   BOLD,
   BLACK,
   TRANSPARENT,
   LIGHTGRAY,
-} from "../../constants";
-import Card from "../../elements/Card";
+} from '../../constants';
+import Card from '../../elements/Card';
 
-const { width, height } = Dimensions.get("window");
+const {width, height} = Dimensions.get('window');
 const gutter = 15;
 
 class ScheduledProductCell extends React.Component {
   render() {
     return (
       <View style={styles.containerView}>
-        <View style={{ alignSelf: "center" }}>
+        <View style={{alignSelf: 'center'}}>
           <Text style={styles.name} h2>
             {this.props.product.name}
           </Text>
@@ -36,15 +36,12 @@ class ScheduledProductCell extends React.Component {
             <Text style={styles.price} h4>
               ${this.props.product.price}
             </Text>
-            <Text style={styles.inStock}>{" In stock"}</Text>
+            <Text style={styles.inStock}>{' In stock'}</Text>
           </View>
         </View>
 
         <Card>
-          <Image
-            source={{ uri: this.props.product.img }}
-            style={styles.image}
-          />
+          <Image source={{uri: this.props.product.img}} style={styles.image} />
         </Card>
       </View>
     );
@@ -55,8 +52,8 @@ const styles = StyleSheet.create({
   containerView: {
     marginVertical: 5,
     width: width - 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     flex: 1,
     paddingRight: 25,
     paddingLeft: 5,
@@ -64,7 +61,7 @@ const styles = StyleSheet.create({
   name: {
     color: BLACK,
     fontSize: 17,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 3,
   },
   price: {
@@ -74,19 +71,19 @@ const styles = StyleSheet.create({
   },
 
   priceView: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
   },
   inStock: {
-    fontWeight: "500",
+    fontWeight: '500',
     color: APP_THEME_COLOR,
     fontSize: 11,
-    textAlign: "center",
+    textAlign: 'center',
   },
   description: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
     color: LIGHTGRAY,
     marginBottom: 5,
   },
@@ -94,21 +91,21 @@ const styles = StyleSheet.create({
     padding: 10,
     marginLeft: 5,
     marginRight: 5,
-    justifyContent: "center",
+    justifyContent: 'center',
     width: (width - gutter * 3) / 2,
     marginBottom: gutter,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   productName: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   image: {
-    alignSelf: "center",
+    alignSelf: 'center',
     width: 60,
     height: 60,
-    resizeMode: "stretch",
+    resizeMode: 'stretch',
     marginTop: 0,
   },
 });

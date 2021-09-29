@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   Button,
   Dimensions,
   TouchableOpacity,
-} from "react-native";
-import { Image } from "react-native-elements";
+} from 'react-native';
+import {Image} from 'react-native-elements';
 import {
   APP_THEME_COLOR,
   BOLD,
@@ -16,10 +16,9 @@ import {
   descriptionText,
   WHITE_COLOR,
   TRANSPARENT,
-} from "../../constants";
-import Card from "../../elements/Card";
+} from '../../constants';
 
-const { width, height } = Dimensions.get("window");
+const {width, height} = Dimensions.get('window');
 const gutter = 15;
 
 class Product extends React.Component {
@@ -29,16 +28,12 @@ class Product extends React.Component {
         style={[
           styles.product,
           this.props.data.didSelected
-            ? { borderColor: APP_THEME_COLOR, borderRadius: 5, borderWidth: 1 }
-            : { borderColor: TRANSPARENT },
+            ? {borderColor: APP_THEME_COLOR, borderRadius: 5, borderWidth: 1}
+            : {borderColor: TRANSPARENT},
         ]}
-        onPress={() => this.props.onSelectProduct(this.props.data)}
-      >
-        <Image
-          source={{ uri: this.props.data.item.img }}
-          style={styles.image}
-        />
-        <View style={{ backgroundColor: TRANSPARENT }}>
+        onPress={() => this.props.onSelectProduct(this.props.data)}>
+        <Image source={{uri: this.props.data.item.img}} style={styles.image} />
+        <View style={{backgroundColor: TRANSPARENT}}>
           <View style={styles.productName}>
             <Text style={styles.name} h2>
               {this.props.data.item.name}
@@ -71,64 +66,64 @@ class Product extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   name: {
     color: DARKBLACK,
     fontSize: 14,
     fontWeight: BOLD,
     flex: 1,
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
     paddingVertical: 6,
     paddingBottom: 0,
-    textAlign: "center",
+    textAlign: 'center',
   },
 
   price: {
     fontWeight: BOLD,
     flex: 1,
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
     marginLeft: 5,
     color: APP_THEME_COLOR,
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
 
   description: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
     color: descriptionText,
     paddingBottom: 2,
-    textAlign: "center",
+    textAlign: 'center',
   },
   product: {
     padding: 10,
     marginLeft: 5,
     marginRight: 5,
-    justifyContent: "center",
+    justifyContent: 'center',
     width: (width - gutter * 3) / 2,
     marginBottom: gutter,
     backgroundColor: WHITE_COLOR,
-    shadowColor: "#000000",
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
       height: 3,
     },
     shadowRadius: 2,
     shadowOpacity: 0.2,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     borderRadius: 8,
   },
   productName: {
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   image: {
     height: 180,
-    alignItems: "center",
-    justifyContent: "center",
-    resizeMode: "contain",
+    alignItems: 'center',
+    justifyContent: 'center',
+    resizeMode: 'contain',
     backgroundColor: TRANSPARENT,
   },
 });

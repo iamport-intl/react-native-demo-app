@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Text,
   TextInput,
@@ -7,10 +7,10 @@ import {
   Animated,
   Easing,
   TouchableWithoutFeedback,
-} from "react-native";
+} from 'react-native';
 
-const TextField = (props) => {
-  const { label, errorText, value, style, onBlur, onFocus, ...restOfProps } =
+const TextField = props => {
+  const {label, errorText, value, style, onBlur, onFocus, ...restOfProps} =
     props;
   const [isFocused, setIsFocused] = useState(false);
 
@@ -26,9 +26,9 @@ const TextField = (props) => {
     }).start();
   }, [focusAnim, isFocused, value]);
 
-  let color = isFocused ? "#080F9C" : "#B9C4CA";
+  let color = isFocused ? '#080F9C' : '#B9C4CA';
   if (errorText) {
-    color = "#B00020";
+    color = '#B00020';
   }
 
   return (
@@ -43,11 +43,11 @@ const TextField = (props) => {
         ref={inputRef}
         {...restOfProps}
         value={value}
-        onBlur={(event) => {
+        onBlur={event => {
           setIsFocused(false);
           onBlur?.(event);
         }}
-        onFocus={(event) => {
+        onFocus={event => {
           setIsFocused(true);
           onFocus?.(event);
         }}
@@ -78,18 +78,16 @@ const TextField = (props) => {
                 },
               ],
             },
-          ]}
-        >
+          ]}>
           <Text
             style={[
               styles.label,
               {
                 color,
               },
-            ]}
-          >
+            ]}>
             {label}
-            {errorText ? "*" : ""}
+            {errorText ? '*' : ''}
           </Text>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -103,24 +101,24 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderRadius: 4,
-    fontFamily: "Avenir-Medium",
+    fontFamily: 'Avenir-Medium',
     fontSize: 16,
   },
   labelContainer: {
-    position: "absolute",
+    position: 'absolute',
     paddingHorizontal: 8,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   label: {
-    fontFamily: "Avenir-Heavy",
+    fontFamily: 'Avenir-Heavy',
     fontSize: 16,
   },
   error: {
     marginTop: 4,
     marginLeft: 12,
     fontSize: 12,
-    color: "#B00020",
-    fontFamily: "Avenir-Medium",
+    color: '#B00020',
+    fontFamily: 'Avenir-Medium',
   },
 });
 

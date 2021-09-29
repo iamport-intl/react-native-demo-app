@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Dimensions,
@@ -11,35 +11,35 @@ import {
   Button,
   TouchableOpacity,
   Image,
-} from "react-native";
-import WebView from "react-native-webview";
-import PropTypes from "prop-types";
-import axios from "axios";
+} from 'react-native';
+import WebView from 'react-native-webview';
+import PropTypes from 'prop-types';
+import axios from 'axios';
 import {
   bodyParams,
   requiredParams,
   initiateURL,
   api,
   fetchMerchantsURL,
-} from "./constants";
-
-import hmacSHA256 from "crypto-js/hmac-sha256";
-import Base64 from "crypto-js/enc-base64";
+} from './constants';
+import {HmacSHA256} from 'crypto-js';
+import Base64 from 'crypto-js/enc-base64';
 
 class Checkout extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       initiatingPayment: false,
-      paymentURL: "",
+      paymentURL: '',
       loadPaymentPage: false,
       showPaymentModal: false,
       pageLoading: true,
-      messageFromWebView: "",
-      secretHash: "",
-      originList: ["momo://", "zalopay://"],
-      env: "prod",
+      messageFromWebView: '',
+      secretHash: '',
+      originList: ['momo://', 'zalopay://'],
+      env: 'prod',
       data: {},
+      webUrl: '',
     };
   }
 
@@ -52,36 +52,67 @@ class Checkout extends React.Component {
         if (callback) {
           callback();
         }
-      }
+      },
     );
   };
 
   _createHash = (data, secretKey) => {
-    let message = "";
+    let message = '';
     message =
-      "amount=" +
-      encodeURIComponent(data["amount"]) +
-      "&currency=" +
-      encodeURIComponent(data["currency"]) +
-      "&failure_url=" +
-      encodeURIComponent(data["failure_url"]) +
-      "&merchant_order_id=" +
-      encodeURIComponent(data["merchant_order_id"]) +
-      "&pmt_channel=" +
-      encodeURIComponent(data["pmt_channel"]) +
-      "&pmt_method=" +
-      encodeURIComponent(data["pmt_method"]) +
-      "&success_url=" +
-      encodeURIComponent(data["success_url"]);
+      'amount=' +
+      encodeURIComponent(data.amount) +
+      '&currency=' +
+      encodeURIComponent(data.currency) +
+      '&failure_url=' +
+      encodeURIComponent(data.failure_url) +
+      '&merchant_order_id=' +
+      encodeURIComponent(data.merchant_order_id) +
+      '&pmt_channel=' +
+      encodeURIComponent(data.pmt_channel) +
+      '&pmt_method=' +
+      encodeURIComponent(data.pmt_method) +
+      '&success_url=' +
+      encodeURIComponent(data.success_url);
 
-    let hash = hmacSHA256(message, secretKey);
+    let hash = HmacSHA256(message, secretKey);
     let signatureHash = Base64.stringify(hash);
     return signatureHash;
   };
 
-  _fetchHash = async (props) => {
+  createHash = (
+    key,
+    amount,
+    currency,
+    failureUrl,
+    merchantOrderId,
+    successUrl,
+  ) => {
+    let mainParams =
+      'amount=' +
+      encodeURIComponent(amount) +
+      '&client_key=' +
+      encodeURIComponent(key) +
+      '&currency=' +
+      encodeURIComponent(currency) +
+      '&failure_url=' +
+      encodeURIComponent(failureUrl) +
+      '&merchant_order_id=' +
+      encodeURIComponent(merchantOrderId) +
+      '&success_url=' +
+      encodeURIComponent(successUrl);
+
+    console.log(mainParams);
+    const secretKey =
+      '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+
+    let hash = HmacSHA256(mainParams, secretKey);
+    let signatureHash = Base64.stringify(hash);
+
+    return signatureHash;
+  };
+  _fetchHash = async props => {
     this.setPageLoading(true);
-    let secretHash = "";
+    let secretHash = '';
     const {
       paymentChannel,
       paymentMethod,
@@ -105,7 +136,7 @@ class Checkout extends React.Component {
       success_url: successUrl,
       failure_url: failureUrl,
     };
-    if (!Boolean(fetchHashUrl) && !Boolean(secretKey)) {
+    if (!fetchHashUrl && !secretKey) {
       return secretHash;
     } else if (fetchHashUrl == undefined) {
       secretHash = this._createHash(data, secretKey);
@@ -116,16 +147,16 @@ class Checkout extends React.Component {
       let requestConfig = {
         timeout: 30000,
         headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
+          Accept: '*/*',
+          'Content-Type': 'application/json',
         },
       };
       try {
         let response = await axios.post(url, body, requestConfig);
-        secretHash = response.data["hash"];
+        secretHash = response.data.hash;
       } catch (err) {
         callbackFunction({
-          status: "failure",
+          status: 'failure',
           message: err,
         });
       }
@@ -134,23 +165,23 @@ class Checkout extends React.Component {
     return secretHash;
   };
 
-  getOTP = async (mobileNumber) => {
+  getOTP = async mobileNumber => {
     // var number = this.props["billingAddress"]?.billing_phone;
     let config = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     };
     return await this._callPostMethod(
-      initiateURL[this.getEnv()] + "verification/generateOTP/" + mobileNumber,
+      initiateURL[this.getEnv()] + 'verification/generateOTP/' + mobileNumber,
       {},
-      config
+      config,
     );
   };
 
   fetchSavedCards = async (number, otp) => {
     var url =
-      initiateURL[this.getEnv()] + "user/" + number + "/savedCard?otp=" + otp;
+      initiateURL[this.getEnv()] + 'user/' + number + '/savedCard?otp=' + otp;
 
     return await this._callGetMethod(url);
   };
@@ -158,21 +189,21 @@ class Checkout extends React.Component {
   fetchAvailablePaymentGateway = async () => {
     let url =
       fetchMerchantsURL[this.getEnv()] +
-      "merchants/SglffyyZgojEdXWL/paymethodsbyKey";
+      'merchants/SglffyyZgojEdXWL/paymethodsbyKey';
 
     let val = await this._callGetMethod(url);
     return val;
   };
 
-  _callGetMethod = async (url) => {
+  _callGetMethod = async url => {
     return new Promise((resolve, reject) => {
       console.warn(`url : ${url}`);
       axios
         .get(url)
-        .then((response) => {
+        .then(response => {
           resolve(response);
         })
-        .catch((error) => {
+        .catch(error => {
           resolve(error);
         });
     });
@@ -183,25 +214,25 @@ class Checkout extends React.Component {
       let requestConfig = config;
       console.warn(
         `url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
-          requestConfig
-        )}`
+          requestConfig,
+        )}`,
       );
       axios
         .post(url, body, requestConfig)
-        .then((response) => {
-          console.warn("Response : " + JSON.stringify(response, null, 4));
+        .then(response => {
+          console.warn('Response : ' + JSON.stringify(response, null, 4));
           resolve(response);
         })
-        .catch((error) => {
-          console.warn("ERROR: " + JSON.stringify(error, null, 4));
+        .catch(error => {
+          console.warn('ERROR: ' + JSON.stringify(error, null, 4));
           resolve(error);
         });
     });
   };
 
-  getToken = async (cardDetails) => {
+  getToken = async cardDetails => {
     let url =
-      "https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a";
+      'https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a';
 
     let body = {
       card: {
@@ -212,16 +243,16 @@ class Checkout extends React.Component {
         expiration_year: cardDetails.expiry_year,
       },
     };
-    console.log("Token Response", body);
+    console.log('Token Response', body);
 
     let requestConfig = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     };
 
     let response = await this._callPostMethod(url, body, requestConfig);
-    console.log("Token Response", response);
+    console.log('Token Response', response);
     return response;
   };
 
@@ -234,13 +265,13 @@ class Checkout extends React.Component {
   };
 
   startPayment = async (isSavedCards, savedTokenRes, data) => {
-    var token = "";
-    var partial_card_number = "";
-    var expiry_year = "";
-    var expiry_month = "";
-    var cardType = "";
+    var token = '';
+    var partial_card_number = '';
+    var expiry_year = '';
+    var expiry_month = '';
+    var cardType = '';
 
-    let { body, missingParams } = await this._prepareRequestBody(data);
+    let {body, missingParams} = await this._prepareRequestBody(data);
 
     if (isSavedCards) {
       token = savedTokenRes.token;
@@ -271,91 +302,90 @@ class Checkout extends React.Component {
 
     let requestConfig = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     };
 
     let val = await this._callPostMethod(
-      initiateURL[this.getEnv()] + "initiatePayment",
+      initiateURL[this.getEnv()] + 'initiatePayment',
       data,
-      requestConfig
+      requestConfig,
     );
-    return { val: val, data: data };
+    return {val: val, data: data};
   };
 
-  _prepareRequestBody = async (props) => {
+  _prepareRequestBody = async props => {
     let body = {};
-    props = { ...props };
-    props["signatureHash"] = await this._fetchHash({ ...props });
-    console.warn("Signature hash value : ", props["signatureHash"]);
-    let missingParams = requiredParams.filter((item) => {
+    props = {...props};
+    console.log('testing', props);
+    props.signatureHash = await this._fetchHash({...props});
+    console.warn('Signature hash value : ', props.signatureHash);
+    let missingParams = requiredParams.filter(item => {
       let output = false;
-      if (item.includes("/")) {
+      if (item.includes('/')) {
         let keyMissing = item
-          .split("/")
+          .split('/')
           .filter(
-            (key) =>
-              Object.keys(props).includes(key) == false || !Boolean(props[key])
+            key => Object.keys(props).includes(key) == false || !props[key],
           );
-        output = keyMissing.length == item.split("/").length;
+        output = keyMissing.length == item.split('/').length;
       } else {
-        output =
-          Object.keys(props).includes(item) == false || !Boolean(props[item]);
+        output = Object.keys(props).includes(item) == false || !props[item];
       }
       return output;
     });
 
     if (missingParams.length == 0) {
-      requiredParams.forEach((param) => {
+      requiredParams.forEach(param => {
         body[bodyParams[param]] = props[param];
       });
-      body[bodyParams["signatureHash"]] = props["signatureHash"];
+      body[bodyParams.signatureHash] = props.signatureHash;
     }
-    return { body, missingParams };
+    return {body, missingParams};
   };
 
-  initiatePayment = async (data) => {
-    let { body, missingParams } = await this._prepareRequestBody(data);
-    let { callbackFunction } = this.props;
+  initiatePayment = async data => {
+    let {body, missingParams} = await this._prepareRequestBody(data);
+    let {callbackFunction} = this.props;
     let env = this.getEnv();
-    if (missingParams.length == 0) {
-      const { chaipayKey } = data;
+    if (missingParams.length === 0) {
+      const {chaipayKey} = data;
       return new Promise((resolve, reject) => {
-        let url = initiateURL[env] + api["initiatePayment"];
+        let url = initiateURL[env] + api.initiatePayment;
         body = JSON.stringify(body);
         let requestConfig = {
           timeout: 30000,
           headers: {
             Authorization: `Bearer ${chaipayKey}`,
-            Accept: "*/*",
-            "Content-Type": "application/json",
+            Accept: '*/*',
+            'Content-Type': 'application/json',
           },
         };
         console.warn(
           `url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
-            requestConfig
-          )}`
+            requestConfig,
+          )}`,
         );
         axios
           .post(url, body, requestConfig)
-          .then((response) => {
-            console.warn("Response : " + JSON.stringify(response));
+          .then(response => {
+            console.warn('Response : ' + JSON.stringify(response));
             let data = response.data;
 
-            if (data["redirect_url"]) {
+            if (data.redirect_url) {
               this.setState(
                 {
-                  paymentURL: data["redirect_url"],
+                  paymentURL: data.redirect_url,
                   showPaymentModal: true,
                   initiatingPayment: false,
                 },
                 () => {
                   resolve(true);
-                }
+                },
               );
             }
           })
-          .catch((error) => {
+          .catch(error => {
             this.setState(
               {
                 initiatingPayment: false,
@@ -366,44 +396,44 @@ class Checkout extends React.Component {
                 } else {
                   reject({
                     message:
-                      "Something went wrong, please contact administrator",
+                      'Something went wrong, please contact administrator',
                     is_success: false,
                   });
                 }
-              }
+              },
             );
           });
       });
     } else {
-      let errorMessage = missingParams.join(", ") + " are required.";
+      let errorMessage = missingParams.join(', ') + ' are required.';
       // alert(errorMessage);
       callbackFunction({
-        status: "failure",
+        status: 'failure',
         message: errorMessage,
       });
       return;
     }
   };
 
-  _handleInvalidUrl = (event) => {
-    const { redirectUrl } = this.props;
-    const { originList } = this.state;
+  _handleInvalidUrl = event => {
+    const {redirectUrl} = this.props;
+    const {originList} = this.state;
     let url = event.url;
-    let externalUrlFor = originList.filter((origin) => url.startsWith(origin));
+    let externalUrlFor = originList.filter(origin => url.startsWith(origin));
     let openUrlInternally =
-      url.startsWith(redirectUrl) == false && externalUrlFor.length == 0;
-    console.log("openUrl", url);
+      url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
+    console.log('openUrl', url);
     if (!openUrlInternally) {
-      Linking.openURL(url).catch((error) => {
+      Linking.openURL(url).catch(error => {
         this._handleError(error);
       });
     }
     return openUrlInternally;
   };
 
-  _handleError = (error) => {
-    const { nativeEvent } = error;
-    const { callbackFunction } = this.props;
+  _handleError = error => {
+    const {nativeEvent} = error;
+    const {callbackFunction} = this.props;
     this.setState(
       {
         pageLoading: false,
@@ -413,82 +443,82 @@ class Checkout extends React.Component {
         if (nativeEvent) {
           callbackFunction(nativeEvent);
         } else {
-          callbackFunction({ status: "failed", message: error });
+          callbackFunction({status: 'failed', message: error});
         }
-      }
+      },
     );
   };
 
-  _onMessage = (event) => {
+  _onMessage = event => {
     if (event.persist) {
-      console.warn("event persist exists:");
+      console.warn('event persist exists:');
       event.persist();
       event.preventDefault();
     }
-    const { callbackFunction } = this.props;
-    console.warn("ON message called s: " + JSON.stringify(event));
+    const {callbackFunction} = this.props;
+    console.warn('ON message called s: ' + JSON.stringify(event));
     this.setState(
       {
         pageLoading: false,
         messageFromWebView: event.nativeEvent.data,
         showPaymentModal: false,
       },
-      () => callbackFunction(this.state.messageFromWebView)
+      () => callbackFunction(this.state.messageFromWebView),
     );
   };
 
   _onClose = () => {
-    const { callbackFunction } = this.props;
+    const {callbackFunction} = this.props;
     this.setState(
       {
         initiatingPayment: false,
-        paymentURL: "",
+        paymentURL: '',
         loadPaymentPage: false,
         showPaymentModal: false,
         pageLoading: false,
-        messageFromWebView: "",
+        messageFromWebView: '',
       },
       () => {
-        callbackFunction({ is_success: false, message: "Modal closed" });
-      }
+        callbackFunction({is_success: false, message: 'Modal closed'});
+      },
     );
   };
 
   getEnv = () => {
-    return this.props.env || "prod";
+    return this.props.env || 'prod';
   };
 
-  _afterResponseFromGateway = (orderRef = "", queryString = "") => {
-    const { paymentChannel } = this.state.data;
+  _afterResponseFromGateway = (orderRef = '', queryString = '') => {
+    const {paymentChannel} = this.state.data;
     let url =
       initiateURL[this.getEnv()] +
-      "handleShopperRedirect/" +
+      'handleShopperRedirect/' +
       paymentChannel +
-      "?chaiMobileSDK=true&" +
+      '?chaiMobileSDK=true&' +
       queryString;
-    console.warn("URL after payment Gateway : ", url);
-    let chaipayKey = "lzrYFPfyMLROallZ";
+    console.warn('URL after payment Gateway : ', url);
+    let chaipayKey = 'lzrYFPfyMLROallZ';
     let requestConfig = {
       timeout: 30000,
       headers: {
         Authorization: `Bearer ${chaipayKey}`,
-        Accept: "*/*",
-        "Content-Type": "application/json",
+        Accept: '*/*',
+        'Content-Type': 'application/json',
       },
     };
     return new Promise((resolve, reject) => {
       axios
         .get(url, requestConfig)
-        .then((response) => {
-          console.warn("Response after callback : " + JSON.stringify(response));
+        .then(response => {
+          console.warn('Response after callback : ' + JSON.stringify(response));
           resolve(response.data);
         })
-        .catch((error) => {
+        .catch(error => {
           if (error.response) {
             reject(error.response.data);
           } else {
             reject({
-              message: "Something went wrong, please contact administrator",
+              message: 'Something went wrong, please contact administrator',
               is_success: false,
             });
           }
@@ -496,8 +526,8 @@ class Checkout extends React.Component {
     });
   };
 
-  startPaymentwithWallets = (data) => {
-    this.setState({ data: data });
+  startPaymentwithWallets = data => {
+    this.setState({data: data});
     try {
       this.setState(
         {
@@ -505,55 +535,103 @@ class Checkout extends React.Component {
         },
         () => {
           this.initiatePayment(data)
-            .then((response) => {
-              console.warn("Response from api :" + JSON.stringify(response));
+            .then(response => {
+              console.warn('Response from api :' + JSON.stringify(response));
             })
-            .catch((error) => {
-              console.warn("Error response from api :" + JSON.stringify(error));
+            .catch(error => {
+              console.warn('Error response from api :' + JSON.stringify(error));
             });
-        }
+        },
       );
     } catch (error) {
-      console.warn("Error from checkout ", error);
+      console.warn('Error from checkout ', error);
+    }
+  };
+
+  openWebUrl = (data, jwtToken = '') => {
+    this.checkoutUI(data, jwtToken);
+  };
+
+  checkoutUI = async (data, JWTToken) => {
+    let url = 'https://dev-api.chaipay.io/api/paymentLink';
+    let config = {...data};
+    config.signature_hash = this.createHash(
+      config.chaipay_key,
+      config.amount,
+      config.currency,
+      config.failure_url,
+      config.merchant_order_id,
+      config.success_url,
+    );
+
+    console.log('Signature', config.signature_hash);
+    var body = config;
+    let requestConfig = {
+      timeout: 30000,
+      headers: {
+        Authorization: `Bearer ${JWTToken}`,
+        Accept: '*/*',
+        'X-Chaipay-Client-Key': data.chaipay_key,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    let response = await this._callPostMethod(url, body, requestConfig);
+    console.log('SIRI;;;;', JSON.stringify(response, null, 4));
+
+    if (response.status === 200 || response.status === 201) {
+      console.log('hello');
+      this.setState({
+        showPaymentModal: true,
+        webUrl: response.data.payment_link,
+      });
     }
   };
 
   componentDidMount() {
-    const { redirectUrl, callbackFunction } = this.props;
-    Linking.removeAllListeners("url");
-    Linking.addEventListener("url", async (event) => {
+    const {redirectUrl, callbackFunction} = this.props;
+    Linking.removeAllListeners('url');
+    Linking.addEventListener('url', async event => {
       this.setPageLoading(true);
       try {
-        let url = event?.url ?? "none";
-        console.warn("Hey there I am called ", redirectUrl, url);
-        if (url != "none" && url.startsWith(redirectUrl)) {
+        let url = event?.url ?? 'none';
+        console.warn('Hey there I am called ', redirectUrl, '\nURL::::', url);
+        if (url !== 'none' && url.startsWith('chaipay')) {
           this._onClose();
-          let dataFromLink = url.split("?")[1];
-          let dataToBeSaved = await this._afterResponseFromGateway(
-            "",
-            dataFromLink
-          );
-          console.warn("Response after callback : ", dataToBeSaved);
-          callbackFunction(dataToBeSaved);
+          let dataFromLink = url.split('?')[1];
+          console.log(dataFromLink);
+          if (dataFromLink) {
+            let dataToBeSaved = await this._afterResponseFromGateway(
+              '',
+              dataFromLink,
+            );
+            console.warn('Response after callback : ', dataToBeSaved);
+            callbackFunction(dataToBeSaved);
+          }
         }
       } catch (error) {
-        console.warn("Error occurred ", error);
+        console.warn('Error occurred ', error);
         callbackFunction(error);
       }
       this.setPageLoading(false);
     });
     return () => {
-      Linking.removeEventListener("url");
+      Linking.removeEventListener('url');
     };
   }
 
   componentWillUnmount() {
-    Linking.removeAllListeners("url");
+    Linking.removeAllListeners('url');
   }
 
   render() {
-    const { showPaymentModal, paymentURL, initiatingPayment, originList } =
-      this.state;
+    const {
+      showPaymentModal,
+      paymentURL,
+      initiatingPayment,
+      originList,
+      webUrl,
+    } = this.state;
     let {
       checkoutButtonTitle,
       checkoutButtonColor,
@@ -568,9 +646,9 @@ class Checkout extends React.Component {
       checkoutButtonTitleStyle,
     } = styles;
     checkoutButtonTitle = initiatingPayment
-      ? "Please wait..."
-      : checkoutButtonTitle || "Checkout";
-    checkoutButtonColor = checkoutButtonColor || "green";
+      ? 'Please wait...'
+      : checkoutButtonTitle || 'Checkout';
+    checkoutButtonColor = checkoutButtonColor || 'green';
 
     return (
       <View>
@@ -579,21 +657,19 @@ class Checkout extends React.Component {
           animationType="fade"
           statusBarTranslucent={false}
           onRequestClose={this._onClose}
-          visible={showPaymentModal}
-        >
+          visible={showPaymentModal}>
           <SafeAreaView style={webviewContainer}>
-            <View style={{ flexDirection: "row" }}>
+            <View style={{flexDirection: 'row'}}>
               <TouchableOpacity
-                style={{ marginLeft: 5 }}
+                style={{marginLeft: 5}}
                 activeOpacity={0.5}
-                onPress={this._onClose}
-              >
+                onPress={this._onClose}>
                 <Image
-                  source={require("../assets/close.png")}
+                  source={require('../assets/close.png')}
                   style={{
                     width: 30,
                     height: 30,
-                    resizeMode: "stretch",
+                    resizeMode: 'stretch',
                     marginLeft: 10,
                     marginTop: 0,
                   }}
@@ -601,18 +677,17 @@ class Checkout extends React.Component {
               </TouchableOpacity>
               <Text
                 style={{
-                  alignSelf: "center",
-                  fontWeight: "bold",
+                  alignSelf: 'center',
+                  fontWeight: 'bold',
                   fontSize: 18,
                   marginLeft: width / 2 - 90,
-                }}
-              >
+                }}>
                 CHECKOUT
               </Text>
             </View>
             {paymentURL ? (
               <WebView
-                originWhitelist={[...originList, "http://", "https://"]}
+                originWhitelist={[...originList, 'http://', 'https://']}
                 onShouldStartLoadWithRequest={this._handleInvalidUrl}
                 onLoadStart={() => {
                   this.setState({
@@ -632,15 +707,43 @@ class Checkout extends React.Component {
                 startInLoadingState={false}
                 style={checkoutWebView}
                 renderLoading={() => (
-                  <ActivityIndicator color={"#6464e7"} size={"large"} />
+                  <ActivityIndicator color={'#6464e7'} size={'large'} />
                 )}
                 javaScriptEnabled={true}
-                source={{ uri: paymentURL }}
+                source={{uri: paymentURL}}
+              />
+            ) : null}
+            {webUrl ? (
+              <WebView
+                injectedJavaScriptBeforeContentLoaded={`
+    window.onerror = function(message, sourcefile, lineno, colno, error) {
+      alert("Message: " + message + " - Source: " + sourcefile + " Line: " + lineno + ":" + colno);
+      console.log("Message: ", message,  " - Source: ",sourcefile ," Line: " , lineno , ":" + colno)
+      return true;
+    };
+    true;
+  `}
+                onShouldStartLoadWithRequest={this._handleInvalidUrl}
+                originWhitelist={[...originList, 'http://', 'https://']}
+                onLoadStart={() => {
+                  this.setState({
+                    pageLoading: true,
+                  });
+                }}
+                onLoadEnd={() => {
+                  this.setState({
+                    pageLoading: false,
+                  });
+                }}
+                scalesPageToFit
+                cacheEnabled={false}
+                javaScriptEnabled={true}
+                source={{uri: webUrl}}
               />
             ) : null}
             {this.state.pageLoading ? (
               <View style={indicatorView}>
-                <ActivityIndicator color={"#6464e7"} size={"large"} />
+                <ActivityIndicator color={'#6464e7'} size={'large'} />
               </View>
             ) : null}
           </SafeAreaView>
@@ -674,31 +777,31 @@ Checkout.propTypes = {
 };
 
 Checkout.defaultProp = {
-  paymentChannel: "",
-  paymentMethod: "",
-  merchantOrderId: "",
+  paymentChannel: '',
+  paymentMethod: '',
+  merchantOrderId: '',
   amount: 0,
-  currency: "",
-  failureUrl: "",
-  redirectUrl: "",
-  successUrl: "",
-  signatureHash: "",
-  chaipayKey: "",
-  checkoutButtonColor: "green",
-  checkoutButtonTitle: "Checkout",
-  env: "prod",
+  currency: '',
+  failureUrl: '',
+  redirectUrl: '',
+  successUrl: '',
+  signatureHash: '',
+  chaipayKey: '',
+  checkoutButtonColor: 'green',
+  checkoutButtonTitle: 'Checkout',
+  env: 'prod',
 };
-let width = Dimensions.get("screen").width;
-let height = Dimensions.get("screen").height;
+let width = Dimensions.get('screen').width;
+let height = Dimensions.get('screen').height;
 const styles = StyleSheet.create({
   indicatorView: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     top: 0,
     bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   webviewContainer: {
     flex: 1,
@@ -708,38 +811,38 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   closeButtonContainer: {
-    backgroundColor: "#3D3D3D",
+    backgroundColor: '#3D3D3D',
     borderRadius: 5,
     marginHorizontal: 20,
-    alignContent: "center",
-    justifyContent: "center",
+    alignContent: 'center',
+    justifyContent: 'center',
     height: 40,
-    alignSelf: "center",
+    alignSelf: 'center',
     marginBottom: 60,
     width: width - 30,
     marginTop: 20,
   },
   closeTextStyle: {
-    color: "white",
-    fontWeight: "bold",
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   checkOutViewStyle: {
-    backgroundColor: "#3D3D3D",
+    backgroundColor: '#3D3D3D',
     borderRadius: 5,
     marginHorizontal: 20,
-    alignContent: "center",
-    justifyContent: "center",
+    alignContent: 'center',
+    justifyContent: 'center',
     height: 40,
-    alignSelf: "center",
+    alignSelf: 'center',
     width: width - 30,
     marginTop: height / 2 - 20 - 88,
   },
   checkoutButtonTitleStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

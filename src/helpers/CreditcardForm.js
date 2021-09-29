@@ -1,17 +1,12 @@
-import React, { useState } from "react";
-import { Component } from "react";
+import React, {Component} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   Dimensions,
   TextInput,
-  TouchableWithoutFeedback,
   Animated,
-  Easing,
-} from "react-native";
-import ThemedDialog from "react-native-elements/dist/dialog/Dialog";
+} from 'react-native';
 import {
   APP_THEME_COLOR,
   BOLD,
@@ -19,19 +14,19 @@ import {
   HEADERBLACK,
   TRANSPARENT,
   WHITE_COLOR,
-} from "../constants";
-var valid = require("card-validator");
+} from '../constants';
+var valid = require('card-validator');
 
 //import TextField from "../helpers/TextField";
-const { width, height } = Dimensions.get("screen");
+const {width, height} = Dimensions.get('screen');
 class CreditCardForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: "",
-      cardNumber: "",
-      expiration: "",
-      cvv: "",
+      name: '',
+      cardNumber: '',
+      expiration: '',
+      cvv: '',
       isFocused: false,
       cardNumberError: false,
       expiryError: false,
@@ -43,15 +38,15 @@ class CreditCardForm extends Component {
     this.focusAnim = React.createRef(new Animated.Value(0)).current;
   }
   onSubmit() {
-    console.log("form submitted");
+    console.log('form submitted');
   }
 
   handlingCardExpiry(text) {
-    if (text.indexOf(".") >= 0 || text.length > 7) {
+    if (text.indexOf('.') >= 0 || text.length > 7) {
       return;
     }
     if (text.length === 2 && this.state.expiration.length === 1) {
-      text += "/";
+      text += '/';
     }
     this.setState({
       expiration: text,
@@ -63,26 +58,26 @@ class CreditCardForm extends Component {
       cvv: this.state.cvv,
     });
     var numberValidation = valid.expirationDate(text);
-    this.setState({ expiryError: !numberValidation.isValid });
+    this.setState({expiryError: !numberValidation.isValid});
   }
 
   handleCardNumber(text) {
-    if (text.indexOf(".") >= 0) {
+    if (text.indexOf('.') >= 0) {
       return;
     }
 
     var numberValidation = valid.number(text);
     if (text.length > 13) {
-      this.setState({ cardNumberError: !numberValidation.isValid });
+      this.setState({cardNumberError: !numberValidation.isValid});
     } else {
-      this.setState({ cardNumberError: false });
+      this.setState({cardNumberError: false});
     }
 
     let formattedText = text
-      .replace(/\s?/g, "")
-      .replace(/(\d{4})/g, "$1 ")
+      .replace(/\s?/g, '')
+      .replace(/(\d{4})/g, '$1 ')
       .trim();
-    this.setState({ cardNumber: formattedText });
+    this.setState({cardNumber: formattedText});
     this.props.newCardData({
       name: this.state.name,
       cardNumber: text,
@@ -99,7 +94,7 @@ class CreditCardForm extends Component {
     containerStyles,
     onFocus,
     onBlur,
-    keyboardType = "default",
+    keyboardType = 'default',
     ref,
     cardNumberError,
     expiryError,
@@ -107,7 +102,7 @@ class CreditCardForm extends Component {
     let color = descriptionText;
 
     return (
-      <View style={{ marginVertical: 8, ...containerStyles }}>
+      <View style={{marginVertical: 8, ...containerStyles}}>
         <Text
           style={[
             styles.label,
@@ -115,37 +110,36 @@ class CreditCardForm extends Component {
               color,
               paddingVertical: 4,
             },
-          ]}
-        >
+          ]}>
           {label}
         </Text>
         <TextInput
           style={[styles.input]}
           placeholder={defaultPlaceholder}
-          placeholderTextColor={"#B9C4CA"}
+          placeholderTextColor={'#B9C4CA'}
           ref={ref}
           value={value}
           selectTextOnFocus={true}
-          onFocus={(event) => {}}
+          onFocus={event => {}}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
         />
         {cardNumberError ? (
-          <Text style={{ color: APP_THEME_COLOR }}>Wrong card details</Text>
+          <Text style={{color: APP_THEME_COLOR}}>Wrong card details</Text>
         ) : null}
       </View>
     );
   };
   render() {
     return (
-      <View style={{ backgroundColor: TRANSPARENT, padding: 10 }}>
+      <View style={{backgroundColor: TRANSPARENT, padding: 10}}>
         <this.TextField
           style={styles.textField}
           label="Cardholder Name"
           value={this.state.name}
-          defaultPlaceholder={"Name"}
-          onChangeText={(text) => {
-            this.setState({ name: text });
+          defaultPlaceholder={'Name'}
+          onChangeText={text => {
+            this.setState({name: text});
             this.props.newCardData({
               name: text,
               cardNumber: this.state.cardNumber,
@@ -153,16 +147,16 @@ class CreditCardForm extends Component {
               cvv: this.state.cvv,
             });
           }}
-          onBlur={(text) => {}}
+          onBlur={text => {}}
           ref={this.cardNameRef}
         />
         <this.TextField
           style={styles.textField}
           label="Card Number"
-          defaultPlaceholder={"1234 1234 1234 1234"}
+          defaultPlaceholder={'1234 1234 1234 1234'}
           value={this.state.cardNumber}
           keyboardType="numeric"
-          onChangeText={(text) => {
+          onChangeText={text => {
             this.handleCardNumber(text);
           }}
           onBlur={this.onCardNumberBlur}
@@ -171,12 +165,12 @@ class CreditCardForm extends Component {
         />
         <View style={styles.row}>
           <this.TextField
-            containerStyles={{ width: (width - 120) / 2 }}
+            containerStyles={{width: (width - 120) / 2}}
             label="Expiration Date"
-            defaultPlaceholder={"MM/YYYY"}
+            defaultPlaceholder={'MM/YYYY'}
             value={this.state.expiration}
             keyboardType="numeric"
-            onChangeText={(text) => {
+            onChangeText={text => {
               this.handlingCardExpiry(text);
             }}
             onBlur={this.onExpiryBlur}
@@ -184,13 +178,13 @@ class CreditCardForm extends Component {
             expiryError={this.state.expiryError}
           />
           <this.TextField
-            containerStyles={{ marginHorizontal: 30, width: (width - 40) / 2 }}
+            containerStyles={{marginHorizontal: 30, width: (width - 40) / 2}}
             label="Security Code"
             value={this.state.cvv}
-            defaultPlaceholder={"X X X"}
+            defaultPlaceholder={'X X X'}
             keyboardType="numeric"
-            onChangeText={(text) => {
-              this.setState({ cvv: text });
+            onChangeText={text => {
+              this.setState({cvv: text});
               this.props.newCardData({
                 name: this.state.name,
                 cardNumber: this.state.cardNumber,
@@ -198,7 +192,7 @@ class CreditCardForm extends Component {
                 cvv: text,
               });
             }}
-            onBlur={(text) => {}}
+            onBlur={text => {}}
             ref={this.cvvRef}
           />
         </View>
@@ -208,7 +202,7 @@ class CreditCardForm extends Component {
 }
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   textField: {
     flex: 1,
@@ -219,42 +213,42 @@ const styles = StyleSheet.create({
 
     borderRadius: 4,
     fontSize: 16,
-    backgroundColor: "#F2F2F2",
+    backgroundColor: '#F2F2F2',
   },
   labelContainer: {
-    position: "absolute",
+    position: 'absolute',
     paddingHorizontal: 8,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   label: {
     fontSize: 16,
-    fontWeight: "400",
-    color: "#333333",
+    fontWeight: '400',
+    color: '#333333',
   },
   error: {
     marginTop: 4,
     marginLeft: 12,
     fontSize: 12,
-    color: "#B00020",
-    fontFamily: "Avenir-Medium",
+    color: '#B00020',
+    fontFamily: 'Avenir-Medium',
   },
   verifyButtonView: {
     height: 50,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 5,
     paddingVertical: 5,
     width: width - 60,
-    alignSelf: "center",
-    justifyContent: "center",
+    alignSelf: 'center',
+    justifyContent: 'center',
     backgroundColor: APP_THEME_COLOR,
     flex: 1,
   },
   verifyTextView: {
-    alignSelf: "center",
-    textAlign: "center",
-    alignItems: "center",
+    alignSelf: 'center',
+    textAlign: 'center',
+    alignItems: 'center',
     color: WHITE_COLOR,
 
     fontWeight: BOLD,
@@ -263,7 +257,7 @@ const styles = StyleSheet.create({
   verifyContainerView: {
     backgroundColor: TRANSPARENT,
     width: width - 40,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });
 export default CreditCardForm;
