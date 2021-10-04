@@ -22,11 +22,13 @@ import {
   descriptionText,
   TRANSPARENT,
   currency,
+  SUCCESS_COLOR,
 } from '../../constants';
 import Product from '../Product';
-import {first, isEmpty, omit, sumBy, values} from 'lodash';
+import {first, isEmpty, last, map, omit, sumBy, values} from 'lodash';
 import Checkout from '../../../paymentSDK';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import ThemedListItem from 'react-native-elements/dist/list/ListItem';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -35,42 +37,42 @@ const products = [
     key: 1,
     name: 'Bella Toes',
     description: 'Premium quality',
-    price: 250009,
+    price: 10000,
     img: 'https://demo.chaipay.io/images/bella-toes.jpg',
   },
   {
     key: 2,
     name: 'Chikku Loafers',
     description: 'Special design',
-    price: 150000,
+    price: 1000,
     img: 'https://demo.chaipay.io/images/chikku-loafers.jpg',
   },
   {
     key: 3,
     name: '(SRV) Sneakers',
     description: 'White sneakers',
-    price: 180000,
+    price: 1000,
     img: 'https://demo.chaipay.io/images/banner2.jpg',
   },
   {
     key: 4,
     name: 'Shuberry Heels',
     description: 'Comfortable heels',
-    price: 30000,
+    price: 3000,
     img: 'https://demo.chaipay.io/images/ab.jpg',
   },
   {
     key: 5,
     name: 'Red Bellies',
     description: 'Premium quality',
-    price: 25000,
+    price: 2500,
     img: 'https://demo.chaipay.io/images/red-bellies.jpg',
   },
   {
     key: 6,
     name: 'Catwalk Flats',
     description: 'Premium quality',
-    price: 15000,
+    price: 1500,
     img: 'https://demo.chaipay.io/images/catwalk-flats.jpg',
   },
 ];
@@ -82,6 +84,7 @@ class Shop extends React.Component {
       selectedProducts: {},
       allProducts: products,
       showUIPopUp: false,
+      orderDetails: {},
     };
     this.checkout = React.createRef();
   }
@@ -122,26 +125,42 @@ class Shop extends React.Component {
 
     var secretKey =
       '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+    var secretKey1 =
+      'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
   };
 
   getDefaultConfig = () => {
-    let payload = {
-      chaipay_key: 'lzrYFPfyMLROallZ',
-      merchant_details: {
-        name: 'Downy',
-        logo: 'images/v184_135.png',
+    var totalAmount = 0;
+    let orderDetails = [];
+    map(values(this.state.selectedProducts), item => {
+      totalAmount = totalAmount + item.price;
+      orderDetails.push({
+        id: `${item.key}`,
+        price: item.price,
+        name: item.name,
+        quantity: 1,
+        image: item.img,
+      });
+    });
+    // Todo: Have to modify the structure for selectedproducts
+    //chaipayKey: 'lzrYFPfyMLROallZ',
+    let payload1 = {
+      chaipayKey: 'SglffyyZgojEdXWL',
+      merchantDetails: {
+        name: 'Chaipay',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
         back_url: 'https://demo.chaipay.io/checkout.html',
         promo_code: 'Downy350',
-        promo_discount: 35000,
+        promo_discount: 0,
         shipping_charges: 0.0,
       },
-      merchant_order_id: 'MERCHANT' + new Date().getTime(),
-      signature_hash: 'flDFcPNx4pASRWonw52s0Sec3ee1PJQrdTklDrZGjq0=',
-      amount: 365000,
+      merchantOrderId: 'MERCHANT' + new Date().getTime(),
+      signatureHash: 'flDFcPNx4pASRWonw52s0Sec3ee1PJQrdTklDrZGjq0=',
+      amount: totalAmount,
       currency: 'VND',
-      country_code: 'VN',
-      billing_details: {
-        billing_name: 'Test mark',
+      countryCode: 'VN',
+      billingAddress: {
+        billing_name: 'Test React native',
         billing_email: 'markweins@gmail.com',
         billing_phone: '9998878788',
         billing_address: {
@@ -154,7 +173,7 @@ class Shop extends React.Component {
           state: 'Mah',
         },
       },
-      shipping_details: {
+      shippingAddress: {
         shipping_name: 'xyz',
         shipping_email: 'xyz@gmail.com',
         shipping_phone: '1234567890',
@@ -168,34 +187,20 @@ class Shop extends React.Component {
           state: 'Mah',
         },
       },
-      order_details: [
-        {
-          id: '1',
-          price: 200000,
-          name: 'Stubborn Attachments',
-          quantity: 1,
-          image: 'https://www.demo.chaipay.io/images/bella-toes.jpg',
-        },
-        {
-          id: '2',
-          price: 500000,
-          name: 'Stubborn Attachments',
-          quantity: 1,
-          image: 'https://www.demo.chaipay.io/images/bella-toes.jpg',
-        },
-      ],
-      success_url: 'chaipay://',
-      failure_url: 'chaipay://',
-      redirect_url: 'chaipay://',
-      expiry_hours: 2,
+      orderDetails: orderDetails,
+      successUrl: 'chaipay://checkout',
+      failureUrl: 'chaipay://checkout',
+      mobileRedirectUrl: 'chaipay://checkout',
+      expiryHours: 2,
       source: 'api',
-      description: 'test desc',
-      show_shipping_details: true,
-      show_back_button: false,
-      default_guest_checkout: false,
-      is_checkout_embed: false,
+      description: 'test RN',
+      showShippingDetails: true,
+      showBackButton: false,
+      defaultGuestCheckout: false,
+      isCheckoutEmbed: false,
     };
-    return payload;
+
+    return payload1;
   };
 
   onClose = () => {
@@ -203,10 +208,11 @@ class Shop extends React.Component {
   };
 
   afterCheckout = transactionDetails => {
+    console.log('HYYYY', transactionDetails);
     if (transactionDetails) {
       if (typeof transactionDetails === 'object') {
         this.setState({orderDetails: transactionDetails});
-      } else if (transactionDetails == 'Modal closed') {
+      } else if (transactionDetails === 'Modal closed') {
         this.setState({orderDetails: transactionDetails});
       } else {
         this.setState({orderDetails: JSON.parse(transactionDetails)});
@@ -214,7 +220,10 @@ class Shop extends React.Component {
     }
   };
 
-  ResponseView = ({orderDetails}) => {
+  hideOrderDetailsAlert = () => {
+    this.setState({orderDetails: {}});
+  };
+  ResponseView = orderDetails => {
     let totalAmount = sumBy(
       values(this.props.route.params?.selectedProducts),
       'price',
@@ -222,8 +231,8 @@ class Shop extends React.Component {
     const deliveryAmount = 8500;
 
     return (
-      <View style={{flex: 1}}>
-        <View style={{flex: 1}}>
+      <View>
+        <View>
           {orderDetails?.status_reason === 'SUCCESS' ||
           orderDetails.is_success === 'true' ? (
             <>
@@ -282,7 +291,8 @@ class Shop extends React.Component {
               </View>
             </>
           ) : orderDetails?.status_reason === 'INVALID_TRANSACTION_ERROR' ||
-            orderDetails.is_success === 'false' ? (
+            orderDetails.is_success === 'false' ||
+            orderDetails.status === 'Failed' ? (
             <>
               <Image
                 style={{alignSelf: 'center', justifyContent: 'center'}}
@@ -350,12 +360,11 @@ class Shop extends React.Component {
           ) : (
             <Text>{JSON.stringify(orderDetails, null, 4)}</Text>
           )}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.payNowView,
               {
-                marginTop: 50,
-                width: width - 40,
+                marginBottom: 50,
                 backgroundColor:
                   orderDetails?.status_reason === 'SUCCESS' ||
                   orderDetails.is_success === 'true'
@@ -365,30 +374,16 @@ class Shop extends React.Component {
             ]}
             disabled={false}
             onPress={() => {
-              if (
-                orderDetails?.status_reason === 'SUCCESS' ||
-                orderDetails.is_success === 'true'
-              ) {
-                this.props.navigation.goBack();
-              } else {
-                this.setState({orderDetails: undefined});
-              }
+              this.setState({orderDetails: undefined});
             }}>
             <Text style={styles.payNowTextView}>Go Back</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     );
   };
 
   render() {
-    // const productList = products.map(product => (
-    //   <Product
-    //     key={product.key}
-    //     data={product}
-    //     navigation={this.props.navigation}
-    //   />
-    // ));
     return (
       <View
         style={{
@@ -489,18 +484,40 @@ class Shop extends React.Component {
             disabled={isEmpty(this.state.selectedProducts)}
             onPress={() => {
               this.setState({showUIPopUp: true});
-              // var payload = {
-              //   iss: 'CHAIPAY',
-              //   sub: 'lzrYFPfyMLROallZ',
-              //   iat: new Date().getTime(),
-              //   exp: 2732390920,
-              // };
-
-              // var secretKey =
-              //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
             }}>
             <Text style={styles.buyNowTextView}>Buy Now</Text>
           </TouchableOpacity>
+          {!isEmpty(this.state.orderDetails) ? (
+            <AwesomeAlert
+              show={this.state.orderDetails}
+              showProgress={false}
+              customView={this.ResponseView(this.state.orderDetails)}
+              closeOnTouchOutside={true}
+              closeOnHardwareBackPress={false}
+              showCancelButton={false}
+              showConfirmButton={true}
+              confirmText={
+                this.state.orderDetails.is_success
+                  ? 'Continue Shopping'
+                  : this.state.orderDetails.message === 'Modal closed'
+                  ? 'Dismiss'
+                  : 'Continue Shopping'
+              }
+              onDismiss={() => this.setState({orderDetails: {}})}
+              confirmButtonColor={
+                this.state.orderDetails?.message === 'Modal closed'
+                  ? APP_THEME_COLOR
+                  : this.state.orderDetails.is_success ||
+                    this.state.orderDetails.status !== 'Failed'
+                  ? SUCCESS_COLOR
+                  : APP_THEME_COLOR
+              }
+              confirmButtonTextStyle={{paddingHorizontal: 15}}
+              onConfirmPressed={() => {
+                this.hideOrderDetailsAlert();
+              }}
+            />
+          ) : null}
           {this.state.showUIPopUp ? (
             <AwesomeAlert
               show={this.state.showUIPopUp}
@@ -512,6 +529,8 @@ class Shop extends React.Component {
               closeOnHardwareBackPress={false}
               showCancelButton={true}
               showConfirmButton={true}
+              cancelButtonTextStyle={{fontSize: 10}}
+              confirmButtonTextStyle={{fontSize: 10}}
               cancelText="Chaipay Checkout UI"
               confirmText="Custom Checkout UI"
               cancelButtonColor={APP_THEME_COLOR}
@@ -520,10 +539,12 @@ class Shop extends React.Component {
                 let config = this.getDefaultConfig();
                 let jwtToken =
                   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoibHpyWUZQZnlNTFJPYWxsWiIsImlhdCI6MTYzMjM5MDkyMCwiZXhwIjoyNzMyMzkwOTIwfQ.IRgiM-zjAdJEVDuPSNfxmDszZQi_csE1q7xjVRvPvoc';
+
                 this.checkout.current.openWebUrl(config, jwtToken);
                 this.onClose();
               }}
               onConfirmPressed={() => {
+                console.log('esha:', this.state.selectedProducts);
                 this.props.navigation.navigate('Checkout', {
                   price: '2345',
                   selectedProducts: this.state.selectedProducts,
@@ -624,6 +645,26 @@ const styles = StyleSheet.create({
   footerView: {
     height: 15,
     backgroundColor: TRANSPARENT,
+  },
+  stackView: {
+    flexDirection: 'row',
+    marginVertical: 5,
+    justifyContent: 'space-around',
+  },
+  leftStackText: {fontSize: 13, flex: 0.4},
+  rightStackText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 5,
+    flex: 0.6,
+    textAlign: 'left',
+  },
+  successStyle: {
+    alignSelf: 'center',
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 25,
+    textAlign: 'center',
   },
 });
 

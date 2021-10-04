@@ -21,9 +21,13 @@ import {
   initiateURL,
   api,
   fetchMerchantsURL,
+  webRequiredParams,
+  webBodyParams,
 } from './constants';
 import {HmacSHA256} from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
+import {last} from 'lodash';
+import {env} from 'process';
 
 class Checkout extends React.Component {
   constructor(props) {
@@ -102,8 +106,10 @@ class Checkout extends React.Component {
       encodeURIComponent(successUrl);
 
     console.log(mainParams);
+    // const secretKey =
+    //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
     const secretKey =
-      '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+      'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
 
     let hash = HmacSHA256(mainParams, secretKey);
     let signatureHash = Base64.stringify(hash);
@@ -344,6 +350,19 @@ class Checkout extends React.Component {
     return {body, missingParams};
   };
 
+  prepareWebRequestBody = async props => {
+    let body = {};
+    props = {...props};
+
+    console.warn('Signature hash value :', props.signatureHash);
+
+    webRequiredParams.forEach(param => {
+      body[webBodyParams[param]] = props[param];
+    });
+    body[webBodyParams.signatureHash] = props.signatureHash;
+    return {body};
+  };
+
   initiatePayment = async data => {
     let {body, missingParams} = await this._prepareRequestBody(data);
     let {callbackFunction} = this.props;
@@ -422,7 +441,7 @@ class Checkout extends React.Component {
     let externalUrlFor = originList.filter(origin => url.startsWith(origin));
     let openUrlInternally =
       url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
-    console.log('openUrl', url);
+    console.log('openUrl', url, 'RedirectUrl', redirectUrl);
     if (!openUrlInternally) {
       Linking.openURL(url).catch(error => {
         this._handleError(error);
@@ -488,8 +507,10 @@ class Checkout extends React.Component {
     return this.props.env || 'prod';
   };
 
-  _afterResponseFromGateway = (orderRef = '', queryString = '') => {
-    const {paymentChannel} = this.state.data;
+  _afterResponseFromGateway = (payChannel = '', queryString = '') => {
+    var {paymentChannel, chaipayKey} = this.state.data;
+    paymentChannel = payChannel;
+    console.log('paymentChannel', paymentChannel, 'chaipayKey', chaipayKey);
     let url =
       initiateURL[this.getEnv()] +
       'handleShopperRedirect/' +
@@ -497,7 +518,6 @@ class Checkout extends React.Component {
       '?chaiMobileSDK=true&' +
       queryString;
     console.warn('URL after payment Gateway : ', url);
-    let chaipayKey = 'lzrYFPfyMLROallZ';
     let requestConfig = {
       timeout: 30000,
       headers: {
@@ -548,13 +568,21 @@ class Checkout extends React.Component {
     }
   };
 
-  openWebUrl = (data, jwtToken = '') => {
-    this.checkoutUI(data, jwtToken);
+  openWebUrl = async (data, jwtToken = '') => {
+    this.setState({data: data});
+
+    let {body} = await this.prepareWebRequestBody(data);
+
+    this.checkoutUI(body, jwtToken);
   };
 
   checkoutUI = async (data, JWTToken) => {
     let url = 'https://dev-api.chaipay.io/api/paymentLink';
+    // TODO: Change
+    //let url = initiateURL[this.state.env] + 'paymentLink';
+
     let config = {...data};
+
     config.signature_hash = this.createHash(
       config.chaipay_key,
       config.amount,
@@ -565,6 +593,7 @@ class Checkout extends React.Component {
     );
 
     console.log('Signature', config.signature_hash);
+
     var body = config;
     let requestConfig = {
       timeout: 30000,
@@ -577,10 +606,8 @@ class Checkout extends React.Component {
     };
 
     let response = await this._callPostMethod(url, body, requestConfig);
-    console.log('SIRI;;;;', JSON.stringify(response, null, 4));
 
     if (response.status === 200 || response.status === 201) {
-      console.log('hello');
       this.setState({
         showPaymentModal: true,
         webUrl: response.data.payment_link,
@@ -596,13 +623,18 @@ class Checkout extends React.Component {
       try {
         let url = event?.url ?? 'none';
         console.warn('Hey there I am called ', redirectUrl, '\nURL::::', url);
-        if (url !== 'none' && url.startsWith('chaipay')) {
+        if (url !== 'none' && url.startsWith(redirectUrl)) {
           this._onClose();
+
+          let firstPart = url.split('?')[0];
+          let paymentChannel = last(firstPart.split('/'));
+          console.log('URL ka first aprt', firstPart, paymentChannel);
+
           let dataFromLink = url.split('?')[1];
-          console.log(dataFromLink);
+          console.log('dataFromLink', dataFromLink);
           if (dataFromLink) {
             let dataToBeSaved = await this._afterResponseFromGateway(
-              '',
+              paymentChannel,
               dataFromLink,
             );
             console.warn('Response after callback : ', dataToBeSaved);

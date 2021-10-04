@@ -50,7 +50,7 @@ import {
 import CreditCardForm from '../../helpers/CreditcardForm';
 
 const {width, height} = Dimensions.get('screen');
-const deliveryAmount = 8500;
+const deliveryAmount = 500;
 const styles = StyleSheet.create({
   contentContainerStyle: {
     alignItems: 'center',
@@ -266,7 +266,7 @@ class Checkout1 extends React.Component {
       OTP: '',
       shouldShowOrderDetails: false,
       walletCollpse: false,
-      mobileNumberVerificationDone: true,
+      mobileNumberVerificationDone: false,
       savedCards: [],
       userData: {},
       callingfromSavedCards: false,
@@ -301,12 +301,6 @@ class Checkout1 extends React.Component {
       .catch(error => {
         console.log('error', error);
       });
-    // AsyncStorage.getItem('SAVED_CARDS').then(data => {
-    //   this.setState({savedCards: JSON.parse(data)});
-    // });
-    // AsyncStorage.getItem('USER_DATA').then(data => {
-    //   this.setState({userData: JSON.parse(data)});
-    // });
   }
 
   static navigationOptions = ({navigation}) => {
@@ -733,7 +727,7 @@ class Checkout1 extends React.Component {
       ],
       successUrl: 'chaipay://',
       failureUrl: 'chaipay://',
-      redirectUrl: 'chaipay',
+      redirectUrl: 'chaipay://checkout',
     };
   };
 
@@ -1416,6 +1410,8 @@ class Checkout1 extends React.Component {
                   : selectedItem?.payment_method_key;
 
               newPayload.amount = totalAmount + deliveryAmount;
+              // newPayload.secretKey =
+              //   'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
               newPayload.secretKey =
                 '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
 

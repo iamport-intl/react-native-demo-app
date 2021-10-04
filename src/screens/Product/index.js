@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     alignSelf: 'flex-start',
     borderRadius: 8,
+    elevation: 2,
   },
   productName: {
     alignItems: 'center',

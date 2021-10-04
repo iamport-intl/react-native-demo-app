@@ -40,7 +40,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
 
-                <data android:scheme="chaipay" />
+                <data android:scheme="chaipay" android:host="checkout" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
 
