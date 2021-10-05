@@ -26,7 +26,7 @@ import {
 } from './constants';
 import {HmacSHA256} from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
-import {last} from 'lodash';
+import {includes, last} from 'lodash';
 import {env} from 'process';
 
 class Checkout extends React.Component {
@@ -631,14 +631,27 @@ class Checkout extends React.Component {
           console.log('URL ka first aprt', firstPart, paymentChannel);
 
           let dataFromLink = url.split('?')[1];
-          console.log('dataFromLink', dataFromLink);
+
           if (dataFromLink) {
-            let dataToBeSaved = await this._afterResponseFromGateway(
-              paymentChannel,
-              dataFromLink,
-            );
-            console.warn('Response after callback : ', dataToBeSaved);
-            callbackFunction(dataToBeSaved);
+            var regex = /[?&]([^=#]+)=([^&#]*)/g,
+              params = {},
+              match;
+            while ((match = regex.exec(url))) {
+              params[match[1]] = match[2];
+            }
+
+            let token = params.tokenization_possible;
+
+            if (token) {
+              callbackFunction(params);
+            } else {
+              let dataToBeSaved = await this._afterResponseFromGateway(
+                paymentChannel,
+                dataFromLink,
+              );
+              console.warn('Response after callback : ', dataToBeSaved);
+              callbackFunction(dataToBeSaved);
+            }
           }
         }
       } catch (error) {

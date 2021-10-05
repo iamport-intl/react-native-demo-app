@@ -234,7 +234,8 @@ class Shop extends React.Component {
       <View>
         <View>
           {orderDetails?.status_reason === 'SUCCESS' ||
-          orderDetails.is_success === 'true' ? (
+          orderDetails.is_success === 'true' ||
+          orderDetails.status === 'Success' ? (
             <>
               <Image
                 style={{alignSelf: 'center', justifyContent: 'center'}}
