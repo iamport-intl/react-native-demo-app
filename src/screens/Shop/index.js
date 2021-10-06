@@ -224,11 +224,7 @@ class Shop extends React.Component {
     this.setState({orderDetails: {}});
   };
   ResponseView = orderDetails => {
-    let totalAmount = sumBy(
-      values(this.props.route.params?.selectedProducts),
-      'price',
-    );
-    const deliveryAmount = 8500;
+    let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
 
     return (
       <View>
@@ -244,17 +240,8 @@ class Shop extends React.Component {
               <View
                 style={{
                   marginTop: 15,
-                  marginHorizontal: 20,
+                  marginHorizontal: 10,
                   paddingBottom: 15,
-                  shadowColor: '#000000',
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowRadius: 2,
-                  shadowOpacity: 0.3,
-                  backgroundColor: WHITE_COLOR,
-                  borderRadius: 5,
                 }}>
                 <Text style={styles.successStyle}>
                   Yay! Your order has been successfully placed
@@ -279,7 +266,7 @@ class Shop extends React.Component {
                   <View style={styles.stackView}>
                     <Text style={styles.leftStackText}>Amount Paid: </Text>
                     <Text style={styles.rightStackText}>
-                      {`${currency} ${totalAmount + deliveryAmount}`}
+                      {`${currency} ${totalAmount}`}
                     </Text>
                   </View>
                   <View style={styles.stackView}>
@@ -486,7 +473,9 @@ class Shop extends React.Component {
             onPress={() => {
               this.setState({showUIPopUp: true});
             }}>
-            <Text style={styles.buyNowTextView}>Buy Now</Text>
+            <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
+              Buy Now
+            </Text>
           </TouchableOpacity>
           {!isEmpty(this.state.orderDetails) ? (
             <AwesomeAlert
@@ -614,8 +603,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignItems: 'center',
     color: WHITE_COLOR,
-    fontWeight: BOLD,
     fontSize: 16,
+    flex: 1,
   },
 
   headerContainerView: {
@@ -664,7 +653,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontWeight: 'bold',
     fontSize: 20,
-    marginTop: 25,
+    marginTop: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
 });
