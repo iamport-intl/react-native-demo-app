@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: APP_THEME_COLOR,
   },
-  OTPContainerStyle: {marginHorizontal: 15},
+  OTPContainerStyle: {},
 
   primaryHeadertext: {
     fontSize: 16,
@@ -585,7 +585,7 @@ class Checkout1 extends React.Component {
                 );
                 if (val?.status === 200 || val?.status === 201) {
                   // AsyncStorage.setItem('SAVED_CARDS', JSON.stringify(val.data));
-                  this.setState({savedCards: val.data});
+                  this.setState({savedCards: val.data.content});
                   this.setState({mobileNumberVerificationDone: true});
                 }
               } else {
@@ -1422,12 +1422,6 @@ class Checkout1 extends React.Component {
           }}>
           <Text style={styles.payNowTextView}>Pay Now</Text>
         </TouchableOpacity>
-        <Checkout
-          ref={this.checkout}
-          env={'dev'}
-          callbackFunction={this.afterCheckout}
-          redirectUrl={'chaipay'}
-        />
       </View>
     );
   };
@@ -1475,27 +1469,37 @@ class Checkout1 extends React.Component {
                 </Text>
               </>
             )}
-            <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
-              <ScrollView
-                contentContainerStyle={styles.contentContainerStyle}
-                style={styles.container}
-                removeClippedSubviews={false}>
-                <this.ListOfItemsView />
+            {!hasNumber ? null : (
+              <>
+                <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+                  <ScrollView
+                    contentContainerStyle={styles.contentContainerStyle}
+                    style={styles.container}
+                    removeClippedSubviews={false}>
+                    <this.ListOfItemsView />
 
-                {this.state.mobileNumberVerificationDone ? (
-                  <this.PaymentOptionsView />
-                ) : null}
-              </ScrollView>
-            </KeyboardAvoidingView>
-            <View>
-              {this.state.shouldShowOrderDetails ? (
-                <this.OrderDetailsView totalAmount={totalAmount} />
-              ) : null}
-              <this.SafeAndsecureView />
-              <this.PayNowView image={image} totalAmount={totalAmount} />
-            </View>
+                    {this.state.mobileNumberVerificationDone ? (
+                      <this.PaymentOptionsView />
+                    ) : null}
+                  </ScrollView>
+                </KeyboardAvoidingView>
+                <View>
+                  {this.state.shouldShowOrderDetails ? (
+                    <this.OrderDetailsView totalAmount={totalAmount} />
+                  ) : null}
+                  <this.SafeAndsecureView />
+                  <this.PayNowView image={image} totalAmount={totalAmount} />
+                </View>
+              </>
+            )}
           </>
         )}
+        <Checkout
+          ref={this.checkout}
+          env={'dev'}
+          callbackFunction={this.afterCheckout}
+          redirectUrl={'chaipay'}
+        />
       </View>
     );
   }

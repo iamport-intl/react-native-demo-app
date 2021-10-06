@@ -568,7 +568,7 @@ class Checkout extends React.Component {
     }
   };
 
-  openWebUrl = async (data, jwtToken = '') => {
+  openCheckoutUI = async (data, jwtToken = '') => {
     this.setState({data: data});
 
     let {body} = await this.prepareWebRequestBody(data);

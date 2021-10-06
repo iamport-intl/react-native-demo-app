@@ -144,7 +144,7 @@ class Shop extends React.Component {
     });
     // Todo: Have to modify the structure for selectedproducts
     //chaipayKey: 'lzrYFPfyMLROallZ',
-    let payload1 = {
+    let payload = {
       chaipayKey: 'SglffyyZgojEdXWL',
       merchantDetails: {
         name: 'Chaipay',
@@ -200,7 +200,7 @@ class Shop extends React.Component {
       isCheckoutEmbed: false,
     };
 
-    return payload1;
+    return payload;
   };
 
   onClose = () => {
@@ -541,7 +541,7 @@ class Shop extends React.Component {
                 let jwtToken =
                   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoibHpyWUZQZnlNTFJPYWxsWiIsImlhdCI6MTYzMjM5MDkyMCwiZXhwIjoyNzMyMzkwOTIwfQ.IRgiM-zjAdJEVDuPSNfxmDszZQi_csE1q7xjVRvPvoc';
 
-                this.checkout.current.openWebUrl(config, jwtToken);
+                this.checkout.current.openCheckoutUI(config, jwtToken);
                 this.onClose();
               }}
               onConfirmPressed={() => {
