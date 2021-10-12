@@ -124,7 +124,7 @@ class Shop extends React.Component {
     };
 
     var secretKey =
-      '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+      '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
     var secretKey1 =
       'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
   };
@@ -145,7 +145,7 @@ class Shop extends React.Component {
     // Todo: Have to modify the structure for selectedproducts
     //chaipayKey: 'lzrYFPfyMLROallZ',
     let payload = {
-      chaipayKey: 'SglffyyZgojEdXWL',
+      chaipayKey: 'aiHKafKIbsdUJDOb',
       merchantDetails: {
         name: 'Chaipay',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
@@ -196,7 +196,7 @@ class Shop extends React.Component {
       description: 'test RN',
       showShippingDetails: true,
       showBackButton: false,
-      defaultGuestCheckout: false,
+      defaultGuestCheckout: true,
       isCheckoutEmbed: false,
     };
 
@@ -208,7 +208,6 @@ class Shop extends React.Component {
   };
 
   afterCheckout = transactionDetails => {
-    console.log('HYYYY', transactionDetails);
     if (transactionDetails) {
       if (typeof transactionDetails === 'object') {
         this.setState({orderDetails: transactionDetails});
@@ -221,7 +220,8 @@ class Shop extends React.Component {
   };
 
   hideOrderDetailsAlert = () => {
-    this.setState({orderDetails: {}});
+    this.setState({orderDetails: undefined});
+    console.log('OrderDetails', this.state.orderDetails);
   };
   ResponseView = orderDetails => {
     let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
@@ -322,7 +322,7 @@ class Shop extends React.Component {
                   <View style={styles.stackView}>
                     <Text style={styles.leftStackText}>Amount: </Text>
                     <Text style={styles.rightStackText}>
-                      {`${currency} ${totalAmount + deliveryAmount}`}
+                      {`${currency} ${totalAmount}`}
                     </Text>
                   </View>
                   <View style={styles.stackView}>
@@ -493,7 +493,7 @@ class Shop extends React.Component {
                   ? 'Dismiss'
                   : 'Continue Shopping'
               }
-              onDismiss={() => this.setState({orderDetails: {}})}
+              onDismiss={() => this.setState({orderDetails: undefined})}
               confirmButtonColor={
                 this.state.orderDetails?.message === 'Modal closed'
                   ? APP_THEME_COLOR
@@ -534,7 +534,6 @@ class Shop extends React.Component {
                 this.onClose();
               }}
               onConfirmPressed={() => {
-                console.log('esha:', this.state.selectedProducts);
                 this.props.navigation.navigate('Checkout', {
                   price: '2345',
                   selectedProducts: this.state.selectedProducts,
@@ -547,7 +546,7 @@ class Shop extends React.Component {
             ref={this.checkout}
             env={'dev'}
             callbackFunction={this.afterCheckout}
-            redirectUrl={'chaipay://'}
+            redirectUrl={'chaipay://checkout'}
           />
         </View>
       </View>

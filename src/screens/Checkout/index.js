@@ -288,7 +288,7 @@ class Checkout1 extends React.Component {
         let filteredWalletList = filter(data.data.WALLET, item => {
           return item.is_enabled;
         });
-        this.setState({walletsList: filteredWalletList});
+        this.setState({walletsList: data.data.WALLET});
         let filterCardList = filter(data.data.CARD, item => {
           return (
             item.is_default &&
@@ -682,7 +682,7 @@ class Checkout1 extends React.Component {
     );
     let selectedItem = first(values(this.state.selectedItem));
     return {
-      chaipayKey: 'lzrYFPfyMLROallZ',
+      chaipayKey: 'aiHKafKIbsdUJDOb',
       paymentChannel: selectedItem?.payment_channel_key,
       paymentMethod: selectedItem?.payment_method_key,
       merchantOrderId: 'MERCHANT' + new Date().getTime(),
@@ -930,15 +930,15 @@ class Checkout1 extends React.Component {
                     WALLETS
                   </Text>
                 </View>
-                <View style={{flexDirection: 'row'}}>
+                <View style={{flexDirection: 'row', marginRight: 0}}>
                   <Image
                     source={require('../../../assets/momo.png')}
                     style={{
                       alignSelf: 'center',
-                      width: 40,
-                      height: 40,
+                      width: 20,
+                      height: 20,
                       resizeMode: 'contain',
-                      marginHorizontal: 8,
+                      marginHorizontal: 3,
                     }}
                   />
                   <Image
@@ -958,8 +958,11 @@ class Checkout1 extends React.Component {
                         color: descriptionText,
                         alignSelf: 'center',
                         textAlign: 'center',
-                        fontSize: 12,
-                      }}>{`+${this.state.walletsList.length - 2} more`}</Text>
+                        fontSize: 10,
+                      }}
+                      adjustsFontSizeToFit>{`+${
+                      this.state.walletsList.length - 2
+                    } more`}</Text>
                   ) : null}
                   <Image
                     source={colapsableImage}
@@ -969,6 +972,7 @@ class Checkout1 extends React.Component {
                       height: 20,
                       resizeMode: 'contain',
                       marginTop: 0,
+                      matginRight: 5,
                     }}
                   />
                 </View>
@@ -1054,30 +1058,30 @@ class Checkout1 extends React.Component {
                     source={require('../../../assets/mastercard.png')}
                     style={{
                       alignSelf: 'center',
-                      width: 30,
-                      height: 30,
+                      width: 20,
+                      height: 20,
                       resizeMode: 'contain',
                       marginTop: 0,
-                      marginHorizontal: 5,
+                      marginHorizontal: 3,
                     }}
                   />
                   <Image
                     source={require('../../../assets/visa.png')}
                     style={{
                       alignSelf: 'center',
-                      width: 30,
-                      height: 30,
+                      width: 20,
+                      height: 20,
                       resizeMode: 'contain',
                       marginTop: 0,
-                      marginHorizontal: 5,
+                      marginHorizontal: 3,
                     }}
                   />
                   <Image
                     source={require('../../../assets/jcb.png')}
                     style={{
                       alignSelf: 'center',
-                      width: 30,
-                      height: 30,
+                      width: 20,
+                      height: 20,
                       resizeMode: 'contain',
                       marginTop: 0,
                       marginHorizontal: 5,
@@ -1250,7 +1254,7 @@ class Checkout1 extends React.Component {
       chaipay_key: 'lzrYFPfyMLROallZ',
       merchant_details: {
         name: 'Downy',
-        logo: 'images/v184_135.png',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
         back_url: 'https://demo.chaipay.io/checkout.html',
         promo_code: 'Downy350',
         promo_discount: 35000,
@@ -1413,7 +1417,7 @@ class Checkout1 extends React.Component {
               // newPayload.secretKey =
               //   'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
               newPayload.secretKey =
-                '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+                '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
 
               var response =
                 this.checkout.current.startPaymentwithWallets(newPayload);

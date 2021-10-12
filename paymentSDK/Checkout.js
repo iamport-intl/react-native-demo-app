@@ -8,7 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Text,
-  Button,
+  Platform,
   TouchableOpacity,
   Image,
 } from 'react-native';
@@ -26,8 +26,6 @@ import {
 } from './constants';
 import {HmacSHA256} from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
-import {includes, last} from 'lodash';
-import {env} from 'process';
 
 class Checkout extends React.Component {
   constructor(props) {
@@ -40,7 +38,7 @@ class Checkout extends React.Component {
       pageLoading: true,
       messageFromWebView: '',
       secretHash: '',
-      originList: ['momo://', 'zalopay://'],
+      originList: ['momo://', 'zalopay://', 'http://', 'https://', 'intent://'],
       env: 'prod',
       data: {},
       webUrl: '',
@@ -78,7 +76,10 @@ class Checkout extends React.Component {
       '&success_url=' +
       encodeURIComponent(data.success_url);
 
-    let hash = HmacSHA256(message, secretKey);
+    let hash = HmacSHA256(
+      message,
+      '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5',
+    );
     let signatureHash = Base64.stringify(hash);
     return signatureHash;
   };
@@ -109,7 +110,7 @@ class Checkout extends React.Component {
     // const secretKey =
     //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
     const secretKey =
-      'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
+      '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
 
     let hash = HmacSHA256(mainParams, secretKey);
     let signatureHash = Base64.stringify(hash);
@@ -760,14 +761,6 @@ class Checkout extends React.Component {
             ) : null}
             {webUrl ? (
               <WebView
-                injectedJavaScriptBeforeContentLoaded={`
-    window.onerror = function(message, sourcefile, lineno, colno, error) {
-      alert("Message: " + message + " - Source: " + sourcefile + " Line: " + lineno + ":" + colno);
-      console.log("Message: ", message,  " - Source: ",sourcefile ," Line: " , lineno , ":" + colno)
-      return true;
-    };
-    true;
-  `}
                 onShouldStartLoadWithRequest={this._handleInvalidUrl}
                 originWhitelist={[...originList, 'http://', 'https://']}
                 onLoadStart={() => {
