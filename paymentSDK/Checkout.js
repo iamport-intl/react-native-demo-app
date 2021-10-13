@@ -26,6 +26,7 @@ import {
 } from './constants';
 import {HmacSHA256} from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
+import {last} from 'lodash';
 
 class Checkout extends React.Component {
   constructor(props) {

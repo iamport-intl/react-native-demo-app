@@ -196,7 +196,7 @@ class Shop extends React.Component {
       description: 'test RN',
       showShippingDetails: true,
       showBackButton: false,
-      defaultGuestCheckout: true,
+      defaultGuestCheckout: false,
       isCheckoutEmbed: false,
     };
 
