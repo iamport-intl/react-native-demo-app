@@ -55,14 +55,14 @@ const products = [
     key: 2,
     name: 'Chikku Loafers',
     description: 'Special design',
-    price: 1000,
+    price: 1900,
     img: 'https://demo.chaipay.io/images/chikku-loafers.jpg',
   },
   {
     key: 3,
     name: '(SRV) Sneakers',
     description: 'White sneakers',
-    price: 1000,
+    price: 1800,
     img: 'https://demo.chaipay.io/images/banner2.jpg',
   },
   {

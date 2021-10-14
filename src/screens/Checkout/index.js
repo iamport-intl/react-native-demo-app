@@ -22,6 +22,7 @@ import {
   FlatList,
   TouchableOpacity,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 
 import {
@@ -65,6 +66,15 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 
+  indicatorView: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   phoneViewContainer: {
     alignItems: 'center',
     padding: 20,
@@ -276,6 +286,7 @@ class Checkout1 extends React.Component {
       showOtherPayments: false,
       showList1: true,
       creditCardClicked: false,
+      showLoader: false,
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
@@ -323,6 +334,7 @@ class Checkout1 extends React.Component {
   };
 
   onClickPaymentSelected = (item, fromSavedCards) => {
+    this.setState({creditCardClicked: false, otherPayments: false});
     this.setState({newCardData: {}});
     this.setState({callingfromSavedCards: fromSavedCards});
     this.setState({selectedItem: item});
@@ -773,7 +785,7 @@ class Checkout1 extends React.Component {
         {
           id: 'knb',
           name: 'kim nguyen bao',
-          price: 1000,
+          price: 1900,
           quantity: 1,
         },
       ],
@@ -792,7 +804,7 @@ class Checkout1 extends React.Component {
     data.paymentMethod = cardType.payment_method_key;
     data.merchantOrderId = 'MERCHANT' + new Date().getTime();
     data.secretKey =
-      '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
+      '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
 
     console.log('SavedTokenResponse', savedCard);
     let response;
@@ -807,6 +819,8 @@ class Checkout1 extends React.Component {
         data,
       );
     }
+
+    this.setState({showLoader: false});
 
     if (response.val.status === 200 || response.val.status === 201) {
       this.setState({orderDetails: response.val.data});
@@ -1040,7 +1054,7 @@ class Checkout1 extends React.Component {
         </View>
 
         <View>
-          <Collapse isExpanded>
+          <Collapse isExpanded disabled>
             <CollapseHeader>
               <View
                 style={{
@@ -1195,6 +1209,7 @@ class Checkout1 extends React.Component {
                     ? {
                         borderColor: APP_THEME_COLOR,
                         borderWidth: 0.5,
+                        borderRadius: 5,
                       }
                     : {},
                 ]}
@@ -1202,6 +1217,7 @@ class Checkout1 extends React.Component {
                   this.setState({
                     creditCardClicked: !this.state.creditCardClicked,
                     otherPayments: false,
+                    selectedItem: {},
                   })
                 }>
                 <View style={{flexDirection: 'row', paddingVertical: 12}}>
@@ -1213,7 +1229,7 @@ class Checkout1 extends React.Component {
                       height: 20,
                       resizeMode: 'contain',
                       marginTop: 0,
-                      marginLeft: 15,
+                      marginLeft: 5,
                     }}
                   />
 
@@ -1308,8 +1324,6 @@ class Checkout1 extends React.Component {
                 </View>
               </View>
             ) : null}
-          </>
-          <>
             {showATMCardFlow ? (
               <View style={{backgroundColor: WHITE_COLOR}}>
                 <TouchableOpacity
@@ -1319,6 +1333,7 @@ class Checkout1 extends React.Component {
                     {marginHorizontal: 10},
                     this.state.otherPayments
                       ? {
+                          borderRadius: 5,
                           borderColor: APP_THEME_COLOR,
                           borderWidth: 0.5,
                         }
@@ -1328,6 +1343,7 @@ class Checkout1 extends React.Component {
                     this.setState({
                       otherPayments: !this.state.otherPayments,
                       creditCardClicked: false,
+                      selectedItem: {},
                     })
                   }>
                   <View style={{flexDirection: 'row', paddingVertical: 15}}>
@@ -1556,46 +1572,91 @@ class Checkout1 extends React.Component {
           <TouchableOpacity
             style={[styles.payNowView, {flex: 0.5}]}
             onPress={() => {
-              if (
-                isEmpty(this.state.newCardData) &&
-                isEmpty(this.state.selectedItem)
-              ) {
-                alert('Please select any payment method to proceed further');
-              } else if (!isEmpty(this.state.newCardData)) {
-                let cardData = this.state.newCardData;
+              this.setState({showLoader: true});
 
-                this.confirmCardPayment({
-                  card_number: cardData.cardNumber,
-                  card_holder_name: cardData.name,
-                  cvv: cardData.cvv,
-                  expiry_month: cardData.expiration.slice(0, -5),
-                  expiry_year: cardData.expiration.slice(3, 7),
-                });
-              } else if (this.state.callingfromSavedCards) {
-                this.confirmCardPayment(
-                  first(values(this.state.selectedItem)),
-                  true,
-                );
-              } else {
+              if (this.state.creditCardClicked) {
                 let newPayload = {...payload};
-                let selectedItem = first(values(this.state.selectedItem));
+                let selectedItem = first(this.state.paymentCardType);
 
                 newPayload.merchantOrderId = 'MERCHANT' + new Date().getTime();
                 newPayload.paymentChannel = selectedItem?.payment_channel_key;
-                newPayload.paymentMethod =
-                  selectedItem?.payment_channel_key === 'VNPAY'
-                    ? 'VNPAY_ALL'
-                    : selectedItem?.payment_method_key;
+                newPayload.paymentMethod = selectedItem?.payment_method_key;
 
-                newPayload.amount = totalAmount + deliveryAmount;
-                // newPayload.secretKey =
-                //   'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
+                newPayload.amount = totalAmount;
                 newPayload.secretKey =
-                  '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
+                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
 
                 var response =
                   this.checkout.current.startPaymentwithWallets(newPayload);
+                this.setState({showLoader: false});
+
                 this.afterCheckout(response);
+              } else if (this.state.otherPayments) {
+                let newPayload = {...payload};
+                const filteredCards = filter(this.state.cardList, item => {
+                  return item?.sub_type === 'ATM_CARD';
+                });
+                let selectedItem = first(filteredCards);
+
+                newPayload.merchantOrderId = 'MERCHANT' + new Date().getTime();
+                newPayload.paymentChannel = selectedItem?.payment_channel_key;
+                newPayload.paymentMethod = selectedItem?.payment_method_key;
+
+                newPayload.amount = totalAmount;
+                newPayload.secretKey =
+                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+
+                var response =
+                  this.checkout.current.startPaymentwithWallets(newPayload);
+                this.setState({showLoader: false});
+
+                this.afterCheckout(response);
+              } else {
+                if (
+                  isEmpty(this.state.newCardData) &&
+                  isEmpty(this.state.selectedItem)
+                ) {
+                  this.setState({showLoader: false});
+                  alert('Please select any payment method to proceed further');
+                } else if (!isEmpty(this.state.newCardData)) {
+                  let cardData = this.state.newCardData;
+
+                  this.confirmCardPayment({
+                    card_number: cardData.cardNumber,
+                    card_holder_name: cardData.name,
+                    cvv: cardData.cvv,
+                    expiry_month: cardData.expiration.slice(0, -5),
+                    expiry_year: cardData.expiration.slice(3, 7),
+                  });
+                } else if (this.state.callingfromSavedCards) {
+                  this.confirmCardPayment(
+                    first(values(this.state.selectedItem)),
+                    true,
+                  );
+                } else {
+                  let newPayload = {...payload};
+                  let selectedItem = first(values(this.state.selectedItem));
+
+                  newPayload.merchantOrderId =
+                    'MERCHANT' + new Date().getTime();
+                  newPayload.paymentChannel = selectedItem?.payment_channel_key;
+                  newPayload.paymentMethod =
+                    selectedItem?.payment_channel_key === 'VNPAY'
+                      ? 'VNPAY_ALL'
+                      : selectedItem?.payment_method_key;
+
+                  newPayload.amount = totalAmount + deliveryAmount;
+                  // newPayload.secretKey =
+                  //   'a3b8281f6f2d3101baf41b8fde56ae7f2558c28133c1e4d477f606537e328440';
+                  newPayload.secretKey =
+                    '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+
+                  var response =
+                    this.checkout.current.startPaymentwithWallets(newPayload);
+                  this.setState({showLoader: false});
+
+                  this.afterCheckout(response);
+                }
               }
             }}>
             <Text style={styles.payNowTextView}>Pay Now</Text>
@@ -1652,6 +1713,11 @@ class Checkout1 extends React.Component {
             </>
           </>
         )}
+        {this.state.showLoader ? (
+          <View style={styles.indicatorView}>
+            <ActivityIndicator color={APP_THEME_COLOR} size={'large'} />
+          </View>
+        ) : null}
         <Checkout
           ref={this.checkout}
           env={'staging'}

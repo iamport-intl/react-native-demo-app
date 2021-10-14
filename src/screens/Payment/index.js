@@ -93,7 +93,7 @@ const Payment = ({route}) => {
       {
         id: 'knb',
         name: 'kim nguyen bao',
-        price: 1000,
+        price: 1900,
         quantity: 1,
       },
     ],
