@@ -14,6 +14,7 @@ import {
   BLACK,
   TRANSPARENT,
   LIGHTGRAY,
+  descriptionText,
 } from '../../constants';
 import Card from '../../elements/Card';
 
@@ -51,12 +52,16 @@ class ScheduledProductCell extends React.Component {
 const styles = StyleSheet.create({
   containerView: {
     marginVertical: 5,
-    width: width - 10,
+    width: width - 30,
     flexDirection: 'row',
     justifyContent: 'space-between',
     flex: 1,
-    paddingRight: 25,
-    paddingLeft: 5,
+    paddingRight: 15,
+    paddingLeft: 15,
+    paddingVertical: 5,
+    borderRadius: 5,
+    borderColor: descriptionText,
+    borderWidth: 0.5,
   },
   name: {
     color: BLACK,

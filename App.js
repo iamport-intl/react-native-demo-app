@@ -6,34 +6,6 @@
  * @flow strict-local
  */
 
-// import React from 'react';
-// import {View, Text} from 'react-native';
-// import {NavigationContainer} from '@react-navigation/native';
-// import {createStackNavigator} from '@react-navigation/stack';
-// import HomeScreen from './src/screens/Shop';
-
-// function HomeScreen1() {
-//   return (
-//     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-//       <Text>Home Screen</Text>
-//     </View>
-//   );
-// }
-
-// const Stack = createStackNavigator();
-
-// function App() {
-//   return (
-//     <NavigationContainer>
-//       <Stack.Navigator>
-//         <Stack.Screen name="Home" component={HomeScreen} />
-//       </Stack.Navigator>
-//     </NavigationContainer>
-//   );
-// }
-
-// export default App;
-
 import React from 'react';
 import {TouchableOpacity, Image, View, StatusBar, Platform} from 'react-native';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
@@ -43,6 +15,8 @@ import {createMaterialBottomTabNavigator} from '@react-navigation/material-botto
 import HomeScreen from './src/screens/Home';
 import ShopScreen from './src/screens/Shop';
 import PaymentScreen from './src/screens/Payment';
+import Profile from './src/screens/Profile';
+import More from './src/screens/More';
 import CheckoutScreen from './src/screens/Checkout';
 import {APP_THEME_COLOR, BOLD, WHITE_COLOR} from './src/constants';
 import {LogBox} from 'react-native';
@@ -72,34 +46,21 @@ const HomeTabs = () => {
         }}
       />
       <Tab.Screen
-        name="Search  "
-        component={HomeScreen}
+        name="Profile"
+        component={Profile}
         options={{
-          tabBarLabel: 'Search',
+          tabBarLabel: 'Profile',
           tabBarIcon: ({color, size}) => (
             <Image
               style={{width: 15, height: 15, resizeMode: 'contain'}}
-              source={require('./assets/search.png')}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Products"
-        component={ShopScreen}
-        options={{
-          tabBarLabel: 'Products',
-          tabBarIcon: ({color, size}) => (
-            <Image
-              style={{width: 15, height: 15, resizeMode: 'contain'}}
-              source={require('./assets/products.png')}
+              source={require('./assets/user.png')}
             />
           ),
         }}
       />
       <Tab.Screen
         name="More"
-        component={HomeScreen}
+        component={More}
         options={{
           tabBarLabel: 'More',
           tabBarIcon: ({color, size}) => (

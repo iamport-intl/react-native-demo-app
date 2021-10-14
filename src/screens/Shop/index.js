@@ -11,6 +11,7 @@ import {
   Dimensions,
   Modal,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import {
   APP_THEME_COLOR,
@@ -25,7 +26,17 @@ import {
   SUCCESS_COLOR,
 } from '../../constants';
 import Product from '../Product';
-import {first, isEmpty, last, map, omit, sumBy, values} from 'lodash';
+import {
+  filter,
+  first,
+  isEmpty,
+  last,
+  map,
+  omit,
+  orderBy,
+  sumBy,
+  values,
+} from 'lodash';
 import Checkout from '../../../paymentSDK';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import ThemedListItem from 'react-native-elements/dist/list/ListItem';
@@ -85,6 +96,7 @@ class Shop extends React.Component {
       allProducts: products,
       showUIPopUp: false,
       orderDetails: {},
+      ascendingSort: true,
     };
     this.checkout = React.createRef();
   }
@@ -196,7 +208,7 @@ class Shop extends React.Component {
       description: 'test RN',
       showShippingDetails: true,
       showBackButton: false,
-      defaultGuestCheckout: true,
+      defaultGuestCheckout: false,
       isCheckoutEmbed: false,
     };
 
@@ -385,7 +397,7 @@ class Shop extends React.Component {
             paddingVertical: 15,
             backgroundColor: WHITE_COLOR,
           }}
-          data={products}
+          data={this.state.allProducts}
           numColumns={2}
           keyExtractor={item => item.key}
           renderItem={product => {
@@ -407,8 +419,12 @@ class Shop extends React.Component {
           ListHeaderComponent={() => {
             return (
               <View style={styles.headerContainerView}>
-                <View style={styles.headerView}>
-                  <Text style={styles.featuredText}>Featured</Text>
+                <View
+                  style={[
+                    styles.headerView,
+                    Platform.OS === 'ios' ? {margiTop: 5} : {marginTop: 30},
+                  ]}>
+                  <Text style={styles.featuredText}>Shoe Mart</Text>
                   <View style={styles.headerButtonView}>
                     <Text
                       style={
@@ -417,33 +433,53 @@ class Shop extends React.Component {
                     <View
                       style={{
                         flexDirection: 'row',
-                        flex: 0.5,
+                        flex: 1,
+                        justifyContent: 'flex-end',
                       }}>
                       <TouchableOpacity
                         style={{
-                          marginHorizontal: 15,
                           flexDirection: 'row',
+                          alignItems: 'center',
+                          marginLeft: 5,
+                          marginRight: 5,
+                        }}
+                        onPress={() => {
+                          this.setState({
+                            ascendingSort: this.state.ascendingSort
+                              ? false
+                              : true,
+                          });
+                          let orderType = this.state.ascendingSort
+                            ? 'asc'
+                            : 'desc';
+                          let filterProducts = orderBy(
+                            this.state.allProducts,
+                            'price',
+                            orderType,
+                          );
+                          this.setState({allProducts: filterProducts});
                         }}>
+                        <Image
+                          style={{
+                            alignSelf: 'center',
+                            justifyContent: 'center',
+                            width: 12,
+                            height: 12,
+                            alignContent: 'center',
+                          }}
+                          source={
+                            this.state.ascendingSort
+                              ? require('../../../assets/ascendingSort.png')
+                              : require('../../../assets/descendingSort.png')
+                          }
+                        />
                         <Text
                           style={{
                             color: BLACK,
                             fontSize: 12,
+                            marginLeft: 5,
                           }}>
                           Sort
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          marginHorizontal: 15,
-                          flexDirection: 'row',
-                        }}>
-                        <Text
-                          style={{
-                            color: BLACK,
-                            fontSize: 12,
-                          }}>
-                          {' '}
-                          filter
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -471,7 +507,11 @@ class Shop extends React.Component {
             ]}
             disabled={isEmpty(this.state.selectedProducts)}
             onPress={() => {
-              this.setState({showUIPopUp: true});
+              // this.setState({showUIPopUp: true});
+              this.props.navigation.navigate('Checkout', {
+                price: '2345',
+                selectedProducts: this.state.selectedProducts,
+              });
             }}>
             <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
               Buy Now
@@ -544,9 +584,13 @@ class Shop extends React.Component {
           ) : null}
           <Checkout
             ref={this.checkout}
-            env={'dev'}
+            env={'staging'}
             callbackFunction={this.afterCheckout}
             redirectUrl={'chaipay://checkout'}
+            secretKey={
+              '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c'
+            }
+            chaipayKey={'xFgseojiprOhkgPa'}
           />
         </View>
       </View>
@@ -586,6 +630,16 @@ const styles = StyleSheet.create({
   buyNowContainerView: {
     width: width,
     backgroundColor: WHITE_COLOR,
+    height: 70,
+    justifyContent: 'flex-end',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 1,
+      height: 3,
+    },
+    shadowRadius: 3,
+    shadowOpacity: 0.2,
+    elevation: 6,
   },
   buyNowView: {
     height: 50,
@@ -609,27 +663,28 @@ const styles = StyleSheet.create({
   headerContainerView: {
     marginTop: 0,
     backgroundColor: WHITE_COLOR,
+    marginBottom: 5,
   },
   headerView: {
-    marginTop: 0,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     backgroundColor: WHITE_COLOR,
   },
   featuredText: {
     textAlign: 'left',
     color: APP_THEME_COLOR,
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: BOLD,
   },
   headerButtonView: {
     flexDirection: 'row',
     flex: 1,
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 10,
   },
   numberOfItemsText: {
     flex: 0.5,
     color: descriptionText,
-    paddingBottom: 10,
   },
   footerView: {
     height: 15,

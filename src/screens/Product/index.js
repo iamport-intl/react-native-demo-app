@@ -107,14 +107,14 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE_COLOR,
     shadowColor: '#000000',
     shadowOffset: {
-      width: 0,
+      width: 1,
       height: 3,
     },
-    shadowRadius: 2,
+    shadowRadius: 5,
     shadowOpacity: 0.2,
     alignSelf: 'flex-start',
     borderRadius: 8,
-    elevation: 2,
+    elevation: 6,
   },
   productName: {
     alignItems: 'center',

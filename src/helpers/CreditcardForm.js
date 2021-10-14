@@ -30,6 +30,7 @@ class CreditCardForm extends Component {
       isFocused: false,
       cardNumberError: false,
       expiryError: false,
+      cardValidation: {},
     };
     this.carNumberRef = React.createRef();
     this.cardNameRef = React.createRef();
@@ -67,12 +68,13 @@ class CreditCardForm extends Component {
     }
 
     var numberValidation = valid.number(text);
+    console.log(numberValidation);
+    this.setState({cardValidation: numberValidation});
     if (text.length > 13) {
       this.setState({cardNumberError: !numberValidation.isValid});
     } else {
       this.setState({cardNumberError: false});
     }
-
     let formattedText = text
       .replace(/\s?/g, '')
       .replace(/(\d{4})/g, '$1 ')
@@ -102,7 +104,7 @@ class CreditCardForm extends Component {
     let color = descriptionText;
 
     return (
-      <View style={{marginVertical: 8, ...containerStyles}}>
+      <View style={{marginVertical: 5, ...containerStyles}}>
         <Text
           style={[
             styles.label,
@@ -132,69 +134,94 @@ class CreditCardForm extends Component {
   };
   render() {
     return (
-      <View style={{backgroundColor: TRANSPARENT, padding: 10}}>
-        <this.TextField
-          style={styles.textField}
-          label="Cardholder Name"
-          value={this.state.name}
-          defaultPlaceholder={'Name'}
-          onChangeText={text => {
-            this.setState({name: text});
-            this.props.newCardData({
-              name: text,
-              cardNumber: this.state.cardNumber,
-              expiration: this.state.expiration,
-              cvv: this.state.cvv,
-            });
-          }}
-          onBlur={text => {}}
-          ref={this.cardNameRef}
-        />
-        <this.TextField
-          style={styles.textField}
-          label="Card Number"
-          defaultPlaceholder={'1234 1234 1234 1234'}
-          value={this.state.cardNumber}
-          keyboardType="numeric"
-          onChangeText={text => {
-            this.handleCardNumber(text);
-          }}
-          onBlur={this.onCardNumberBlur}
-          ref={this.carNumberRef}
-          cardNumberError={this.state.cardNumberError}
-        />
-        <View style={styles.row}>
+      <View
+        style={{
+          backgroundColor: WHITE_COLOR,
+          shadowColor: '#000000',
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          shadowRadius: 5,
+          shadowOpacity: 0.2,
+          elevation: 6,
+          borderRadius: 5,
+        }}>
+        <View
+          style={{
+            backgroundColor: WHITE_COLOR,
+            margin: 15,
+            marginTop: 5,
+          }}>
           <this.TextField
-            containerStyles={{width: (width - 120) / 2}}
-            label="Expiration Date"
-            defaultPlaceholder={'MM/YYYY'}
-            value={this.state.expiration}
-            keyboardType="numeric"
+            style={styles.textField}
+            label="Cardholder Name"
+            value={this.state.name}
+            defaultPlaceholder={'Name'}
             onChangeText={text => {
-              this.handlingCardExpiry(text);
-            }}
-            onBlur={this.onExpiryBlur}
-            ref={this.expiryRef}
-            expiryError={this.state.expiryError}
-          />
-          <this.TextField
-            containerStyles={{marginHorizontal: 30, width: (width - 40) / 2}}
-            label="Security Code"
-            value={this.state.cvv}
-            defaultPlaceholder={'X X X'}
-            keyboardType="numeric"
-            onChangeText={text => {
-              this.setState({cvv: text});
+              this.setState({name: text});
               this.props.newCardData({
-                name: this.state.name,
+                name: text,
                 cardNumber: this.state.cardNumber,
                 expiration: this.state.expiration,
-                cvv: text,
+                cvv: this.state.cvv,
               });
             }}
             onBlur={text => {}}
-            ref={this.cvvRef}
+            ref={this.cardNameRef}
           />
+          <this.TextField
+            style={styles.textField}
+            label="Card Number"
+            defaultPlaceholder={'1234 1234 1234 1234'}
+            value={this.state.cardNumber}
+            keyboardType="numeric"
+            onChangeText={text => {
+              this.handleCardNumber(text);
+            }}
+            onBlur={this.onCardNumberBlur}
+            ref={this.carNumberRef}
+            cardNumberError={this.state.cardNumberError}
+          />
+          <View style={styles.row}>
+            <this.TextField
+              containerStyles={{
+                marginHorizontal: 5,
+                width: (width - 80) / 2,
+              }}
+              label="Expiration Date"
+              defaultPlaceholder={'MM/YYYY'}
+              value={this.state.expiration}
+              keyboardType="numeric"
+              onChangeText={text => {
+                this.handlingCardExpiry(text);
+              }}
+              onBlur={this.onExpiryBlur}
+              ref={this.expiryRef}
+              expiryError={this.state.expiryError}
+            />
+            <this.TextField
+              containerStyles={{
+                marginHorizontal: 15,
+                width: (width - 100) / 2,
+              }}
+              label="Security Code"
+              value={this.state.cvv}
+              defaultPlaceholder={'X X X'}
+              keyboardType="numeric"
+              onChangeText={text => {
+                this.setState({cvv: text});
+                this.props.newCardData({
+                  name: this.state.name,
+                  cardNumber: this.state.cardNumber,
+                  expiration: this.state.expiration,
+                  cvv: text,
+                });
+              }}
+              onBlur={text => {}}
+              ref={this.cvvRef}
+            />
+          </View>
         </View>
       </View>
     );
@@ -209,8 +236,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   input: {
-    padding: 14,
-
+    padding: 8,
     borderRadius: 4,
     fontSize: 16,
     backgroundColor: '#F2F2F2',
