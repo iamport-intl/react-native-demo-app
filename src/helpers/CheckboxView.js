@@ -53,7 +53,7 @@ class CheckboxView extends Component {
               {this.props.item.name}
             </Text>
             {this.props.item.description ? (
-              <Text style={{fontSize: 10, fontWeight: '200', marginTop: 3}}>
+              <Text style={{fontSize: 12, fontWeight: '200', marginTop: 3}}>
                 {this.props.item.description}
               </Text>
             ) : null}

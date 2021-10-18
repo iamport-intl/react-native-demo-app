@@ -289,6 +289,7 @@ class Checkout1 extends React.Component {
       showList1: true,
       creditCardClicked: false,
       showLoader: false,
+      savedCardsData: undefined,
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
@@ -296,6 +297,22 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
+    AsyncStorage.getItem('formattedMobileNumber').then(value => {
+      this.setState({formattedText: value});
+    });
+
+    AsyncStorage.getItem('mobileNumber').then(value => {
+      this.setState({mobileNumber: value});
+    });
+
+    // AsyncStorage.setItem('SavedCardsData', JSON.stringify({}));
+
+    AsyncStorage.getItem('SavedCardsData').then(value => {
+      let data = JSON.parse(value);
+      console.log('DATA', data);
+      this.setState({savedCardsData: data});
+    });
+
     this.checkout.current
       .fetchAvailablePaymentGateway()
       .then(data => {
@@ -673,6 +690,7 @@ class Checkout1 extends React.Component {
                   this.state.formattedText,
                   this.state.OTP,
                 );
+                console.log('Values:', val);
                 if (val?.status === 200 || val?.status === 201) {
                   AsyncStorage.setItem(
                     'SAVED_CARDS',
@@ -974,7 +992,66 @@ class Checkout1 extends React.Component {
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => {
+                    onPress={async () => {
+                      console.log('saved card', this.state.savedCardsData);
+
+                      if (
+                        this.state.savedCardsData?.token &&
+                        !this.state.showSavedCards
+                      ) {
+                        let value = await this.checkout.current.fetchSavedCards(
+                          this.state.formattedText,
+                          this.state.OTP,
+                          this.state.savedCardsData?.token,
+                        );
+
+                        console.log('Value', value);
+                        if (
+                          value?.status === 200 ||
+                          value?.status === 201 ||
+                          value?.status_code === '2000'
+                        ) {
+                          console.log('value', value);
+                          this.setState({savedCards: value.data.content});
+                          this.setState({
+                            mobileNumberVerificationDone: true,
+                          });
+                        } else {
+                          console.log('ESHA', value);
+
+                          AsyncStorage.setItem(
+                            'SavedCardsData',
+                            JSON.stringify({}),
+                          );
+                          this.setState({savedCards: {}});
+
+                          let val = await this.checkout.current.getOTP(
+                            this.state.formattedText,
+                          );
+                          if (val.status === 200 || val.status === 201) {
+                            this.setState({shouldShowOTP: true});
+                            AsyncStorage.setItem(
+                              'SavedCardsData',
+                              JSON.stringify(val),
+                            );
+                          }
+                        }
+                      } else {
+                        if (!this.state.showSavedCards) {
+                          console.log('Hyy there');
+                          let val = await this.checkout.current.getOTP(
+                            this.state.formattedText,
+                          );
+                          if (val.status === 200 || val.status === 201) {
+                            this.setState({shouldShowOTP: true});
+                            AsyncStorage.setItem(
+                              'SavedCardsData',
+                              JSON.stringify(val),
+                            );
+                          }
+                        }
+                      }
+
                       this.setState({
                         showSavedCards: !this.state.showSavedCards,
                       });
@@ -1078,6 +1155,7 @@ class Checkout1 extends React.Component {
                                 await this.checkout.current.fetchSavedCards(
                                   this.state.formattedText,
                                   this.state.OTP,
+                                  this.state.savedCardsData?.token,
                                 );
 
                               if (
@@ -1086,14 +1164,22 @@ class Checkout1 extends React.Component {
                                 value?.status_code === '2000'
                               ) {
                                 AsyncStorage.setItem(
-                                  'SAVED_CARDS',
+                                  'SavedCardsData',
                                   JSON.stringify(value.data),
                                 );
                                 this.setState({savedCards: value.data.content});
                                 this.setState({
                                   mobileNumberVerificationDone: true,
                                 });
+                              } else {
+                                if (
+                                  value?.status_code === '4000' ||
+                                  value?.status_code === '400'
+                                ) {
+                                  AsyncStorage.setItem('SavedCardsData', {});
+                                }
                               }
+                              this.setState({shouldShowOTP: false});
                             } else {
                               let val = await this.checkout.current.getOTP(
                                 this.state.formattedText,
@@ -1113,32 +1199,73 @@ class Checkout1 extends React.Component {
                 ) : null}
 
                 {hasNumber && this.state.showSavedCards ? (
-                  <View style={{marginHorizontal: 15}}>
-                    {isEmpty(this.state.savedCards) ? (
-                      <Text style={{padding: 15, textAlign: 'center'}}>
-                        You dont have any saved cards yet
+                  shouldShowOTP ? (
+                    <>
+                      <Text
+                        style={{
+                          paddingTop: 15,
+                          color: GRAYSHADE,
+                          fontSize: 16,
+                          textAlign: shouldShowOTP ? 'center' : 'left',
+                        }}>
+                        Enter{' '}
+                        {shouldShowOTP
+                          ? `the authentication code sent on your ${this.state.mobileNumber}`
+                          : 'Phone Number'}
                       </Text>
-                    ) : (
-                      map(this.state.savedCards, product => {
-                        return (
-                          <View>
-                            <CheckboxView
-                              fromSavedCards={true}
-                              item={{
-                                name: `${product.partial_card_number}`,
-                                ...product,
-                              }}
-                              image={{uri: product.logo}}
-                              isSelected={
-                                cardvalue === product.partial_card_number
-                              }
-                              didSelected={this.onClickPaymentSelected}
-                            />
-                          </View>
-                        );
-                      })
-                    )}
-                  </View>
+
+                      <View style={{marginVertical: 15}}>
+                        <OTPTextInput
+                          ref={this.otpInput}
+                          containerStyle={[
+                            styles.OTPContainerStyle,
+                            {marginHorizontal: 10, width: width - 40},
+                          ]}
+                          textInputStyle={[
+                            styles.roundedTextInput,
+                            {
+                              borderWidth: 1,
+                              height: (width - 40 - 10 * 5) / 7,
+                              width: (width - 40 - 10 * 5) / 7,
+                              borderBottomWidth: 1,
+                            },
+                          ]}
+                          offTintColor={descriptionText}
+                          tintColor={APP_THEME_COLOR}
+                          inputCount={6}
+                          handleTextChange={text => this.handleTextChange(text)}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <View style={{marginHorizontal: 15}}>
+                      {isEmpty(this.state.savedCards) ? (
+                        <Text style={{padding: 15, textAlign: 'center'}}>
+                          You don't have any saved cards yet
+                        </Text>
+                      ) : (
+                        map(this.state.savedCards, product => {
+                          return (
+                            <View style={{marginLeft: -30}}>
+                              <CheckboxView
+                                fromSavedCards={true}
+                                item={{
+                                  name: `${product.partial_card_number}`,
+                                  description: `${product.expiry_month} / ${product.expiry_year}`,
+                                  ...product,
+                                }}
+                                image={{uri: product.logo}}
+                                isSelected={
+                                  cardvalue === product.partial_card_number
+                                }
+                                didSelected={this.onClickPaymentSelected}
+                              />
+                            </View>
+                          );
+                        })
+                      )}
+                    </View>
+                  )
                 ) : null}
               </View>
             </View>

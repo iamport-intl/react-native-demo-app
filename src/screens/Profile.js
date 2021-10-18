@@ -31,21 +31,22 @@ class Profile extends React.Component {
     super(props);
     this.state = {
       mobileNumber: null,
+      formattedText: '',
       showMobileNumberInput: false,
     };
   }
 
   componentDidMount() {
-    AsyncStorage.getItem('mobileNumber')
-      .then(value => {
-        this.setState({mobileNumber: value});
-      })
-      .then(res => {
-        //do something else
-      });
+    AsyncStorage.getItem('formattedMobileNumber').then(value => {
+      this.setState({formattedText: value});
+    });
+    AsyncStorage.getItem('mobileNumber').then(value => {
+      this.setState({mobileNumber: value});
+    });
   }
 
   setFormattedNumber(formattedText) {
+    console.log('Number', formattedText);
     this.setState({formattedText: formattedText});
   }
 
@@ -155,7 +156,7 @@ class Profile extends React.Component {
                 {this.state.mobileNumber
                   ? 'Mobile Number'
                   : 'Test User \n +918341468168'}{' '}
-                {'\n'} {this.state.mobileNumber}
+                {'\n'} {this.state.formattedText}
               </Text>
             </View>
           )}

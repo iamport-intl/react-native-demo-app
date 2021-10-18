@@ -39,7 +39,7 @@ import {
 } from 'lodash';
 import Checkout from '../../../paymentSDK';
 import AwesomeAlert from 'react-native-awesome-alerts';
-import ThemedListItem from 'react-native-elements/dist/list/ListItem';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -101,6 +101,10 @@ class Shop extends React.Component {
     this.checkout = React.createRef();
   }
 
+  componentDidMount() {
+    AsyncStorage.setItem('formattedMobileNumber', '+918341469169');
+    AsyncStorage.setItem('mobileNumber', '8341469169');
+  }
   _didSelectedProducts = selectedProduct => {
     if (isEmpty(this.state.selectedProducts)) {
       this.setState({

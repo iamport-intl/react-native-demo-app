@@ -185,11 +185,25 @@ class Checkout extends React.Component {
     );
   };
 
-  fetchSavedCards = async (number, otp) => {
+  fetchSavedCards = async (number, otp, token) => {
+    console.log(token);
     var url =
-      initiateURL[this.getEnv()] + 'user/' + number + '/savedCard?otp=' + otp;
+      initiateURL[this.getEnv()] +
+      'user/' +
+      number +
+      '/savedCard' +
+      `${token ? '' : `?otp=${otp}`}`;
 
-    return await this._callGetMethod(url);
+    let requestConfig = {
+      headers:
+        token !== undefined
+          ? {
+              Authorization: `Bearer ${token}`,
+              'X-Chaipay-Client-Key': this.props.chaipayKey,
+            }
+          : {'X-Chaipay-Client-Key': this.props.chaipayKey},
+    };
+    return await this._callGetMethod(url, requestConfig);
   };
 
   fetchAvailablePaymentGateway = async () => {
@@ -201,15 +215,16 @@ class Checkout extends React.Component {
     return val;
   };
 
-  _callGetMethod = async url => {
+  _callGetMethod = async (url, requestConfig) => {
     return new Promise((resolve, reject) => {
       console.warn(`url : ${url}`);
       axios
-        .get(url)
+        .get(url, requestConfig)
         .then(response => {
           resolve(response);
         })
         .catch(error => {
+          console.log('error', error);
           resolve(error);
         });
     });
