@@ -242,7 +242,7 @@ class Shop extends React.Component {
       <View>
         <View>
           {orderDetails?.status_reason === 'SUCCESS' ||
-          orderDetails.is_success === 'true' ||
+          orderDetails?.is_success === 'true' ||
           orderDetails.status === 'Success' ? (
             <>
               <Image
@@ -291,7 +291,7 @@ class Shop extends React.Component {
               </View>
             </>
           ) : orderDetails?.status_reason === 'INVALID_TRANSACTION_ERROR' ||
-            orderDetails.is_success === 'false' ||
+            orderDetails?.is_success === 'false' ||
             orderDetails.status === 'Failed' ? (
             <>
               <Image
@@ -527,7 +527,7 @@ class Shop extends React.Component {
               showCancelButton={false}
               showConfirmButton={true}
               confirmText={
-                this.state.orderDetails.is_success
+                this.state.orderDetails?.is_success
                   ? 'Continue Shopping'
                   : this.state.orderDetails.message === 'Modal closed'
                   ? 'Dismiss'
@@ -537,7 +537,7 @@ class Shop extends React.Component {
               confirmButtonColor={
                 this.state.orderDetails?.message === 'Modal closed'
                   ? APP_THEME_COLOR
-                  : this.state.orderDetails.is_success ||
+                  : this.state.orderDetails?.is_success ||
                     this.state.orderDetails.status !== 'Failed'
                   ? SUCCESS_COLOR
                   : APP_THEME_COLOR

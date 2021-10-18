@@ -18,7 +18,12 @@ import PaymentScreen from './src/screens/Payment';
 import Profile from './src/screens/Profile';
 import More from './src/screens/More';
 import CheckoutScreen from './src/screens/Checkout';
-import {APP_THEME_COLOR, BOLD, WHITE_COLOR} from './src/constants';
+import {
+  APP_THEME_COLOR,
+  BOLD,
+  IMAGE_BACKGROUND_COLOR,
+  WHITE_COLOR,
+} from './src/constants';
 import {LogBox} from 'react-native';
 import {platform} from 'os';
 LogBox.ignoreAllLogs();

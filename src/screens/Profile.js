@@ -17,8 +17,12 @@ import {
   WHITE_COLOR,
   TRANSPARENT,
   IMAGE_BACKGROUND_COLOR,
+  BORDERCOLOR,
 } from '../constants.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {TouchableOpacity} from 'react-native';
+import PhoneInput from 'react-native-phone-number-input';
+
 const {width, height} = Dimensions.get('window');
 const gutter = 15;
 
@@ -27,6 +31,7 @@ class Profile extends React.Component {
     super(props);
     this.state = {
       mobileNumber: null,
+      showMobileNumberInput: false,
     };
   }
 
@@ -38,6 +43,14 @@ class Profile extends React.Component {
       .then(res => {
         //do something else
       });
+  }
+
+  setFormattedNumber(formattedText) {
+    this.setState({formattedText: formattedText});
+  }
+
+  setNumber(text) {
+    this.setState({mobileNumber: text});
   }
 
   render() {
@@ -55,10 +68,8 @@ class Profile extends React.Component {
         <View
           style={{
             flexDirection: 'row',
-            marginTop: 15,
-            alignItems: 'center',
+            justifyContent: 'space-between',
             backgroundColor: WHITE_COLOR,
-            marginHorizontal: 15,
             borderRadius: 6,
             shadowColor: '#000000',
             shadowOffset: {
@@ -68,36 +79,114 @@ class Profile extends React.Component {
             shadowRadius: 5,
             shadowOpacity: 0.2,
             elevation: 6,
+            marginHorizontal: 15,
           }}>
-          <View
-            style={{
-              marginLeft: 40,
-
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              backgroundColor: WHITE_COLOR,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <Image
+          {this.state.showMobileNumberInput ? (
+            <View style={{marginHorizontal: -15}}>
+              <Text style={{marginTop: 15, marginLeft: 30, fontWeight: '600'}}>
+                Update Mobile Number
+              </Text>
+              <PhoneInput
+                containerStyle={{
+                  marginVertical: 15,
+                  alignSelf: 'center',
+                  marginLeft: 30,
+                  width: width - 120,
+                  borderWidth: 1,
+                  borderColor: BORDERCOLOR,
+                  borderRadius: 3,
+                }}
+                autoFocus
+                textContainerStyle={{
+                  height: 50,
+                  backgroundColor: WHITE_COLOR,
+                  marginLeft: -20,
+                }}
+                textInputStyle={{height: 60}}
+                ref={this.phone}
+                defaultValue={this.state.mobileNumber}
+                defaultCode="IN"
+                layout="second"
+                onChangeText={text => {
+                  this.setNumber(text);
+                }}
+                onChangeFormattedText={text => {
+                  this.setFormattedNumber(text);
+                }}
+                withDarkTheme={false}
+                withShadow={false}
+              />
+            </View>
+          ) : (
+            <View
               style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                alignSelf: 'center',
-              }}
-              source={{
-                uri: 'https://616570b8d97281068a3367ff--jolly-wiles-792d81.netlify.app/Plain%20tshirt.jpeg',
-              }}
-            />
-          </View>
-          <Text style={{marginLeft: 30, marginTop: 15, fontWeight: '400'}}>
-            {this.state.mobileNumber
-              ? 'Mobile Number'
-              : 'Test User \n +918341468168'}{' '}
-            {'\n'} {this.state.mobileNumber}
-          </Text>
+                flexDirection: 'row',
+
+                alignItems: 'center',
+                backgroundColor: WHITE_COLOR,
+
+                borderRadius: 6,
+                flex: 1,
+                marginRight: 8,
+              }}>
+              <View
+                style={{
+                  marginLeft: 0,
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  backgroundColor: WHITE_COLOR,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Image
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    alignSelf: 'center',
+                  }}
+                  source={{
+                    uri: 'https://616570b8d97281068a3367ff--jolly-wiles-792d81.netlify.app/Plain%20tshirt.jpeg',
+                  }}
+                />
+              </View>
+              <Text style={{marginLeft: 0, marginTop: 15, fontWeight: '400'}}>
+                {this.state.mobileNumber
+                  ? 'Mobile Number'
+                  : 'Test User \n +918341468168'}{' '}
+                {'\n'} {this.state.mobileNumber}
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={{marginTop: 25, marginRight: 20}}
+            onPress={() => {
+              if (this.state.showMobileNumberInput) {
+                AsyncStorage.setItem(
+                  'formattedMobileNumber',
+                  this.state.formattedText,
+                );
+                AsyncStorage.setItem('mobileNumber', this.state.mobileNumber);
+                this.setState({showMobileNumberInput: false});
+              } else {
+                this.setState({showMobileNumberInput: true});
+              }
+            }}>
+            {this.state.showMobileNumberInput ? (
+              <Text style={{marginTop: -10}}>Save</Text>
+            ) : (
+              <Image
+                style={{
+                  width: 20,
+                  height: 20,
+                  alignSelf: 'center',
+                }}
+                source={require('../../assets/edit.png')}
+              />
+            )}
+          </TouchableOpacity>
         </View>
         <View
           style={{
@@ -117,7 +206,7 @@ class Profile extends React.Component {
           <Text style={{marginLeft: 15, marginTop: 15, fontWeight: '500'}}>
             Address:
           </Text>
-          <Text style={{marginLeft: 85, marginTop: 10, marginBottom: 15}}>
+          <Text style={{marginLeft: 15, marginTop: 10, marginBottom: 15}}>
             {'MIG I A7'} {'\n'}
             {'Sujatha Nagar, Pendurthy'}
             {'\n'}

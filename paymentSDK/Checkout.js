@@ -39,7 +39,7 @@ class Checkout extends React.Component {
       pageLoading: true,
       messageFromWebView: '',
       secretHash: '',
-      originList: ['momo://', 'zalopay://', 'http://', 'https://', 'intent://'],
+      originList: ['momo://*', 'zalopay://*', 'chaipay://*', 'intent://*'],
       env: 'prod',
       data: {},
       webUrl: '',
@@ -107,7 +107,6 @@ class Checkout extends React.Component {
       '&success_url=' +
       encodeURIComponent(successUrl);
 
-    console.log(mainParams);
     // const secretKey =
     //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
     const secretKey = this.props.secretKey;
@@ -198,7 +197,6 @@ class Checkout extends React.Component {
       fetchMerchantsURL[this.getEnv()] +
       `merchants/${this.props.chaipayKey}/paymethodsbyKey`;
 
-    console.log('url', url);
     let val = await this._callGetMethod(url);
     return val;
   };
@@ -325,7 +323,6 @@ class Checkout extends React.Component {
   _prepareRequestBody = async props => {
     let body = {};
     props = {...props};
-    console.log('testing', props);
     props.signatureHash = await this._fetchHash({...props});
     console.warn('Signature hash value : ', props.signatureHash);
     let missingParams = requiredParams.filter(item => {
@@ -336,7 +333,7 @@ class Checkout extends React.Component {
           .filter(
             key => Object.keys(props).includes(key) == false || !props[key],
           );
-        output = keyMissing.length == item.split('/').length;
+        output = keyMissing.length === item.split('/').length;
       } else {
         output = Object.keys(props).includes(item) == false || !props[item];
       }
@@ -441,14 +438,36 @@ class Checkout extends React.Component {
     const {redirectUrl} = this.props;
     const {originList} = this.state;
     let url = event.url;
-    let externalUrlFor = originList.filter(origin => url.startsWith(origin));
+    let externalUrlFor = originList.filter(origin => {
+      let splitOrigin = origin.split('*')[0];
+      console.log('splitOrigin', splitOrigin);
+
+      return url.startsWith(splitOrigin);
+    });
+    console.log('externalUrlFor', externalUrlFor);
+
     let openUrlInternally =
       url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
-    console.log('openUrl', url, 'RedirectUrl', redirectUrl);
+    console.log(
+      'openUrl',
+      url,
+      'RedirectUrl',
+      redirectUrl,
+      'openUrlInternally',
+      openUrlInternally,
+    );
+    console.log('esha12', url);
+
     if (!openUrlInternally) {
-      Linking.openURL(url).catch(error => {
-        this._handleError(error);
-      });
+      if (url.startsWith('http') || url.startsWith('https')) {
+        console.log('esha', url);
+
+        this.setState({paymentURL: url});
+      } else {
+        Linking.openURL(url).catch(error => {
+          this._handleError(error);
+        });
+      }
     }
     return openUrlInternally;
   };
@@ -506,6 +525,20 @@ class Checkout extends React.Component {
     );
   };
 
+  close = () => {
+    this.setState(
+      {
+        initiatingPayment: false,
+        paymentURL: '',
+        loadPaymentPage: false,
+        showPaymentModal: false,
+        pageLoading: false,
+        messageFromWebView: '',
+      },
+      () => {},
+    );
+  };
+
   getEnv = () => {
     return this.props.env || 'prod';
   };
@@ -514,7 +547,6 @@ class Checkout extends React.Component {
     var {paymentChannel} = this.state.data;
     var {chaipayKey} = this.props;
     paymentChannel = payChannel;
-    console.log('paymentChannel', paymentChannel, 'chaipayKey', chaipayKey);
     let url =
       initiateURL[this.getEnv()] +
       'handleShopperRedirect/' +
@@ -552,6 +584,7 @@ class Checkout extends React.Component {
 
   startPaymentwithWallets = data => {
     this.setState({data: data});
+    let {callbackFunction} = this.props;
     try {
       this.setState(
         {
@@ -563,6 +596,8 @@ class Checkout extends React.Component {
               console.warn('Response from api :' + JSON.stringify(response));
             })
             .catch(error => {
+              callbackFunction(error);
+              this.close();
               console.warn('Error response from api :' + JSON.stringify(error));
             });
         },
@@ -628,7 +663,7 @@ class Checkout extends React.Component {
         let url = event?.url ?? 'none';
         console.warn('Hey there I am called ', redirectUrl, '\nURL::::', url);
         if (url !== 'none' && url.startsWith(redirectUrl)) {
-          this._onClose();
+          this.close();
 
           let firstPart = url.split('?')[0];
           let paymentChannel = last(firstPart.split('/'));
