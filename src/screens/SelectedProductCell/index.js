@@ -14,6 +14,8 @@ import {
   BLACK,
   TRANSPARENT,
   LIGHTGRAY,
+  descriptionText,
+  currency,
 } from '../../constants';
 import Card from '../../elements/Card';
 
@@ -22,22 +24,47 @@ const gutter = 15;
 
 class ScheduledProductCell extends React.Component {
   render() {
+    let removeInstock = this.props.removeInStock;
+    let removeBorder = this.props.removeBorder;
+
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(this.props.product.price);
+
     return (
-      <View style={styles.containerView}>
+      <View
+        style={[
+          styles.containerView,
+          removeBorder
+            ? {paddingVertical: 0, marginverticl: 0}
+            : {borderColor: descriptionText, borderWidth: 0.5},
+        ]}>
         <View style={{alignSelf: 'center'}}>
           <Text style={styles.name} h2>
             {this.props.product.name}
           </Text>
 
-          <Text style={styles.description} h2>
-            {this.props.product.description}
-          </Text>
-          <View style={styles.priceView}>
-            <Text style={styles.price} h4>
-              ${this.props.product.price}
-            </Text>
-            <Text style={styles.inStock}>{' In stock'}</Text>
-          </View>
+          {removeInstock ? (
+            <View style={styles.priceView}>
+              <Text style={styles.description} h2>
+                {this.props.product.description}
+              </Text>
+              <Text style={[styles.price, {marginLeft: 5, marginTop: -3}]} h4>
+                {formattedNumber}
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.description}>
+                {this.props.product.description}
+              </Text>
+              <View style={[styles.priceView, {justifyContent: 'flex-start'}]}>
+                <Text style={[styles.price]}>{formattedNumber}</Text>
+                <Text style={styles.inStock}>{' In stock'}</Text>
+              </View>
+            </>
+          )}
         </View>
 
         <Card>
@@ -51,12 +78,12 @@ class ScheduledProductCell extends React.Component {
 const styles = StyleSheet.create({
   containerView: {
     marginVertical: 5,
-    width: width - 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    flex: 1,
-    paddingRight: 25,
-    paddingLeft: 5,
+    paddingRight: 15,
+    paddingLeft: 15,
+    paddingVertical: 5,
+    borderRadius: 5,
   },
   name: {
     color: BLACK,
@@ -74,6 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignContent: 'center',
+    justifyContent: 'center',
   },
   inStock: {
     fontWeight: '500',
@@ -83,7 +111,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '700',
     color: LIGHTGRAY,
     marginBottom: 5,
   },

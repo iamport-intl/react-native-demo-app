@@ -17,11 +17,21 @@ import {
   WHITE_COLOR,
   TRANSPARENT,
 } from '../../constants';
+import 'intl';
+import 'intl/locale-data/jsonp/id';
 
 const {width, height} = Dimensions.get('window');
 const gutter = 15;
 
 class Product extends React.Component {
+  formatNumber = number => {
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(number);
+    return formattedNumber;
+  };
+
   render() {
     return (
       <TouchableOpacity
@@ -43,8 +53,7 @@ class Product extends React.Component {
             </Text>
 
             <Text style={styles.price} h4>
-              {currency}
-              {this.props.data.item.price}
+              {this.formatNumber(this.props.data.item.price)}
             </Text>
           </View>
           {/* <Button
@@ -107,14 +116,14 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE_COLOR,
     shadowColor: '#000000',
     shadowOffset: {
-      width: 0,
+      width: 1,
       height: 3,
     },
-    shadowRadius: 2,
+    shadowRadius: 5,
     shadowOpacity: 0.2,
     alignSelf: 'flex-start',
     borderRadius: 8,
-    elevation: 2,
+    elevation: 6,
   },
   productName: {
     alignItems: 'center',

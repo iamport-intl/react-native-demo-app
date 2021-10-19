@@ -39,10 +39,13 @@ class Checkout extends React.Component {
       pageLoading: true,
       messageFromWebView: '',
       secretHash: '',
-      originList: ['momo://', 'zalopay://', 'http://', 'https://', 'intent://'],
+      originList: ['momo://*', 'zalopay://*', 'chaipay://*', 'intent://*'],
       env: 'prod',
       data: {},
       webUrl: '',
+      clientKey: 'vzJeunCkacgDYxMk',
+      secretKey:
+        '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11',
     };
   }
 
@@ -77,10 +80,7 @@ class Checkout extends React.Component {
       '&success_url=' +
       encodeURIComponent(data.success_url);
 
-    let hash = HmacSHA256(
-      message,
-      '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5',
-    );
+    let hash = HmacSHA256(message, this.props.secretKey);
     let signatureHash = Base64.stringify(hash);
     return signatureHash;
   };
@@ -107,11 +107,9 @@ class Checkout extends React.Component {
       '&success_url=' +
       encodeURIComponent(successUrl);
 
-    console.log(mainParams);
     // const secretKey =
     //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
-    const secretKey =
-      '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
+    const secretKey = this.props.secretKey;
 
     let hash = HmacSHA256(mainParams, secretKey);
     let signatureHash = Base64.stringify(hash);
@@ -187,31 +185,46 @@ class Checkout extends React.Component {
     );
   };
 
-  fetchSavedCards = async (number, otp) => {
+  fetchSavedCards = async (number, otp, token) => {
+    console.log(token);
     var url =
-      initiateURL[this.getEnv()] + 'user/' + number + '/savedCard?otp=' + otp;
+      initiateURL[this.getEnv()] +
+      'user/' +
+      number +
+      '/savedCard' +
+      `${token ? '' : `?otp=${otp}`}`;
 
-    return await this._callGetMethod(url);
+    let requestConfig = {
+      headers:
+        token !== undefined
+          ? {
+              Authorization: `Bearer ${token}`,
+              'X-Chaipay-Client-Key': this.props.chaipayKey,
+            }
+          : {'X-Chaipay-Client-Key': this.props.chaipayKey},
+    };
+    return await this._callGetMethod(url, requestConfig);
   };
 
   fetchAvailablePaymentGateway = async () => {
     let url =
       fetchMerchantsURL[this.getEnv()] +
-      'merchants/SglffyyZgojEdXWL/paymethodsbyKey';
+      `merchants/${this.props.chaipayKey}/paymethodsbyKey`;
 
     let val = await this._callGetMethod(url);
     return val;
   };
 
-  _callGetMethod = async url => {
+  _callGetMethod = async (url, requestConfig) => {
     return new Promise((resolve, reject) => {
       console.warn(`url : ${url}`);
       axios
-        .get(url)
+        .get(url, requestConfig)
         .then(response => {
           resolve(response);
         })
         .catch(error => {
+          console.log('error', error);
           resolve(error);
         });
     });
@@ -325,7 +338,6 @@ class Checkout extends React.Component {
   _prepareRequestBody = async props => {
     let body = {};
     props = {...props};
-    console.log('testing', props);
     props.signatureHash = await this._fetchHash({...props});
     console.warn('Signature hash value : ', props.signatureHash);
     let missingParams = requiredParams.filter(item => {
@@ -336,7 +348,7 @@ class Checkout extends React.Component {
           .filter(
             key => Object.keys(props).includes(key) == false || !props[key],
           );
-        output = keyMissing.length == item.split('/').length;
+        output = keyMissing.length === item.split('/').length;
       } else {
         output = Object.keys(props).includes(item) == false || !props[item];
       }
@@ -370,7 +382,8 @@ class Checkout extends React.Component {
     let {callbackFunction} = this.props;
     let env = this.getEnv();
     if (missingParams.length === 0) {
-      const {chaipayKey} = data;
+      const {chaipayKey} = this.props;
+
       return new Promise((resolve, reject) => {
         let url = initiateURL[env] + api.initiatePayment;
         body = JSON.stringify(body);
@@ -440,14 +453,36 @@ class Checkout extends React.Component {
     const {redirectUrl} = this.props;
     const {originList} = this.state;
     let url = event.url;
-    let externalUrlFor = originList.filter(origin => url.startsWith(origin));
+    let externalUrlFor = originList.filter(origin => {
+      let splitOrigin = origin.split('*')[0];
+      console.log('splitOrigin', splitOrigin);
+
+      return url.startsWith(splitOrigin);
+    });
+    console.log('externalUrlFor', externalUrlFor);
+
     let openUrlInternally =
       url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
-    console.log('openUrl', url, 'RedirectUrl', redirectUrl);
+    console.log(
+      'openUrl',
+      url,
+      'RedirectUrl',
+      redirectUrl,
+      'openUrlInternally',
+      openUrlInternally,
+    );
+    console.log('esha12', url);
+
     if (!openUrlInternally) {
-      Linking.openURL(url).catch(error => {
-        this._handleError(error);
-      });
+      if (url.startsWith('http') || url.startsWith('https')) {
+        console.log('esha', url);
+
+        this.setState({paymentURL: url});
+      } else {
+        Linking.openURL(url).catch(error => {
+          this._handleError(error);
+        });
+      }
     }
     return openUrlInternally;
   };
@@ -505,14 +540,28 @@ class Checkout extends React.Component {
     );
   };
 
+  close = () => {
+    this.setState(
+      {
+        initiatingPayment: false,
+        paymentURL: '',
+        loadPaymentPage: false,
+        showPaymentModal: false,
+        pageLoading: false,
+        messageFromWebView: '',
+      },
+      () => {},
+    );
+  };
+
   getEnv = () => {
     return this.props.env || 'prod';
   };
 
   _afterResponseFromGateway = (payChannel = '', queryString = '') => {
-    var {paymentChannel, chaipayKey} = this.state.data;
+    var {paymentChannel} = this.state.data;
+    var {chaipayKey} = this.props;
     paymentChannel = payChannel;
-    console.log('paymentChannel', paymentChannel, 'chaipayKey', chaipayKey);
     let url =
       initiateURL[this.getEnv()] +
       'handleShopperRedirect/' +
@@ -550,6 +599,7 @@ class Checkout extends React.Component {
 
   startPaymentwithWallets = data => {
     this.setState({data: data});
+    let {callbackFunction} = this.props;
     try {
       this.setState(
         {
@@ -561,6 +611,8 @@ class Checkout extends React.Component {
               console.warn('Response from api :' + JSON.stringify(response));
             })
             .catch(error => {
+              callbackFunction(error);
+              this.close();
               console.warn('Error response from api :' + JSON.stringify(error));
             });
         },
@@ -626,7 +678,7 @@ class Checkout extends React.Component {
         let url = event?.url ?? 'none';
         console.warn('Hey there I am called ', redirectUrl, '\nURL::::', url);
         if (url !== 'none' && url.startsWith(redirectUrl)) {
-          this._onClose();
+          this.close();
 
           let firstPart = url.split('?')[0];
           let paymentChannel = last(firstPart.split('/'));

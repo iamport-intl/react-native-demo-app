@@ -9,7 +9,7 @@ class CheckboxView extends Component {
       <TouchableOpacity
         style={{
           flexDirection: 'row',
-          marginVertical: 15,
+          marginVertical: 8,
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
@@ -28,9 +28,9 @@ class CheckboxView extends Component {
           }}>
           <View
             style={{
-              borderRadius: 11,
-              height: 22,
-              width: 22,
+              borderRadius: 8,
+              height: 16,
+              width: 16,
               borderWidth: 1,
               borderColor: APP_THEME_COLOR,
               padding: 2,
@@ -38,9 +38,9 @@ class CheckboxView extends Component {
             }}>
             <View
               style={{
-                borderRadius: 8,
-                height: 16,
-                width: 16,
+                borderRadius: 5,
+                height: 10,
+                width: 10,
 
                 backgroundColor: this.props.isSelected
                   ? APP_THEME_COLOR
@@ -53,7 +53,7 @@ class CheckboxView extends Component {
               {this.props.item.name}
             </Text>
             {this.props.item.description ? (
-              <Text style={{fontSize: 10, fontWeight: '200', marginTop: 3}}>
+              <Text style={{fontSize: 12, fontWeight: '200', marginTop: 3}}>
                 {this.props.item.description}
               </Text>
             ) : null}
