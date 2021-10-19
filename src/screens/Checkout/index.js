@@ -13,6 +13,8 @@ import {
 import React from 'react';
 import {Dimensions} from 'react-native';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import 'intl';
+import 'intl/locale-data/jsonp/id';
 
 import {
   View,
@@ -59,7 +61,7 @@ import {
 import CreditCardForm from '../../helpers/CreditcardForm';
 
 const {width, height} = Dimensions.get('screen');
-const deliveryAmount = 500;
+const deliveryAmount = 5000;
 const styles = StyleSheet.create({
   contentContainerStyle: {
     alignItems: 'center',
@@ -309,7 +311,6 @@ class Checkout1 extends React.Component {
 
     AsyncStorage.getItem('SavedCardsData').then(value => {
       let data = JSON.parse(value);
-      console.log('DATA', data);
       this.setState({savedCardsData: data});
     });
 
@@ -363,13 +364,15 @@ class Checkout1 extends React.Component {
 
   afterCheckout = transactionDetails => {
     if (transactionDetails) {
-      if (typeof transactionDetails === 'object') {
-        this.setState({orderDetails: transactionDetails});
-      } else if (transactionDetails?.message === 'Modal closed') {
-        this.setState({orderDetails: transactionDetails});
-      } else {
-        this.setState({orderDetails: JSON.parse(transactionDetails)});
-      }
+      this.setState({orderDetails: transactionDetails});
+
+      // if (typeof transactionDetails === 'object') {
+      //   this.setState({orderDetails: transactionDetails});
+      // } else if (transactionDetails?.message === 'Modal closed') {
+      //   this.setState({orderDetails: transactionDetails});
+      // } else {
+      //   this.setState({orderDetails: JSON.parse(transactionDetails)});
+      // }
     }
   };
 
@@ -511,7 +514,7 @@ class Checkout1 extends React.Component {
             <HorizontalTextStackView
               item={{
                 name: 'Order',
-                value: `${totalAmount} ${currency}`,
+                value: `${this.formatNumber(totalAmount)}`,
                 fontSize: 13,
                 fontWeight: '400',
                 rightFontWeight: '500',
@@ -522,7 +525,7 @@ class Checkout1 extends React.Component {
             <HorizontalTextStackView
               item={{
                 name: 'Delivery',
-                value: `${deliveryAmount} ${currency}`,
+                value: `${this.formatNumber(deliveryAmount)}`,
                 fontSize: 13,
                 fontWeight: '400',
                 color: ORDERTEXT,
@@ -533,7 +536,7 @@ class Checkout1 extends React.Component {
             <HorizontalTextStackView
               item={{
                 name: 'Amount Paid',
-                value: `${totalAmount + deliveryAmount} ${currency}`,
+                value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
                 fontSize: 16,
                 fontWeight: '500',
                 color: ORDERTEXT,
@@ -621,101 +624,14 @@ class Checkout1 extends React.Component {
     );
   };
 
-  MobileNumberView = ({shouldShowOTP}) => {
-    return (
-      <View>
-        <Text
-          style={{
-            marginLeft: 20,
-            paddingTop: 15,
-            color: GRAYSHADE,
-            fontSize: 16,
-          }}>
-          Enter{' '}
-          {shouldShowOTP
-            ? `the authentication code sent on you ${this.state.mobileNumber}`
-            : 'Phone Number'}
-        </Text>
-        {shouldShowOTP ? (
-          <View style={{marginVertical: 15}}>
-            <OTPTextInput
-              ref={this.otpInput}
-              containerStyle={styles.OTPContainerStyle}
-              textInputStyle={styles.roundedTextInput}
-              offTintColor={descriptionText}
-              tintColor={APP_THEME_COLOR}
-              inputCount={6}
-              handleTextChange={text => this.handleTextChange(text)}
-            />
-          </View>
-        ) : (
-          <View style={{marginHorizontal: -15}}>
-            <PhoneInput
-              containerStyle={{
-                marginVertical: 15,
-                alignSelf: 'center',
-                width: width - 40,
-                borderWidth: 1,
-                borderColor: BORDERCOLOR,
-                borderRadius: 3,
-              }}
-              autoFocus
-              textContainerStyle={{
-                height: 50,
-                backgroundColor: WHITE_COLOR,
-                marginLeft: -20,
-              }}
-              textInputStyle={{height: 60}}
-              ref={this.phone}
-              defaultValue={this.state.mobileNumber}
-              defaultCode="IN"
-              layout="second"
-              onChangeText={text => {
-                this.setNumber(text);
-              }}
-              onChangeFormattedText={text => {
-                this.setFormattedNumber(text);
-              }}
-              withDarkTheme={false}
-              withShadow={false}
-            />
-          </View>
-        )}
-        <View style={styles.nextContainerView}>
-          <TouchableOpacity
-            style={styles.nextButtonView}
-            onPress={async () => {
-              if (this.state.shouldShowOTP) {
-                let val = await this.checkout.current.fetchSavedCards(
-                  this.state.formattedText,
-                  this.state.OTP,
-                );
-                console.log('Values:', val);
-                if (val?.status === 200 || val?.status === 201) {
-                  AsyncStorage.setItem(
-                    'SAVED_CARDS',
-                    JSON.stringify(val.data.content),
-                  );
-                  this.setState({savedCards: val.data.content});
-                  this.setState({mobileNumberVerificationDone: true});
-                }
-              } else {
-                let val = await this.checkout.current.getOTP(
-                  this.state.formattedText,
-                );
-                if (val.status === 200 || val.status === 201) {
-                  this.setState({shouldShowOTP: true});
-                }
-              }
-            }}>
-            <Text style={styles.nextTextView}>
-              {shouldShowOTP ? 'Verify' : 'Next'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+  formatNumber = number => {
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(number);
+    return formattedNumber;
   };
+
   OrderDetailsView = ({totalAmount}) => {
     return (
       <View
@@ -740,7 +656,7 @@ class Checkout1 extends React.Component {
           <HorizontalTextStackView
             item={{
               name: 'Order',
-              value: `${totalAmount} ${currency}`,
+              value: `${this.formatNumber(totalAmount)}`,
               fontSize: 13,
               fontWeight: '400',
               color: ORDERTEXT,
@@ -749,7 +665,7 @@ class Checkout1 extends React.Component {
           <HorizontalTextStackView
             item={{
               name: 'Delivery',
-              value: `${deliveryAmount} ${currency}`,
+              value: `${this.formatNumber(deliveryAmount)}`,
               fontSize: 13,
               fontWeight: '400',
               color: ORDERTEXT,
@@ -758,7 +674,7 @@ class Checkout1 extends React.Component {
           <HorizontalTextStackView
             item={{
               name: 'Summary',
-              value: `${totalAmount + deliveryAmount} ${currency}`,
+              value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
               fontSize: 16,
               fontWeight: '500',
               color: ORDERTEXT,
@@ -848,7 +764,7 @@ class Checkout1 extends React.Component {
     );
     let selectedItem = first(values(this.state.selectedItem));
     return {
-      chaipayKey: 'xFgseojiprOhkgPa',
+      chaipayKey: 'vzJeunCkacgDYxMk',
       paymentChannel: selectedItem?.payment_channel_key,
       paymentMethod: selectedItem?.payment_method_key,
       merchantOrderId: 'MERCHANT' + new Date().getTime(),
@@ -982,80 +898,77 @@ class Checkout1 extends React.Component {
                   backgroundColor: WHITE_COLOR,
                   marginHorizontal: 15,
                 }}>
-                <View
+                <TouchableOpacity
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
+                  }}
+                  onPress={async () => {
+                    if (
+                      (this.state.savedCardsData?.token &&
+                        !this.state.showSavedCards) ||
+                      this.state.shouldShowOTP
+                    ) {
+                      let value = await this.checkout.current.fetchSavedCards(
+                        this.state.formattedText,
+                        this.state.OTP,
+                        this.state.savedCardsData?.token,
+                      );
+
+                      if (
+                        value?.status === 200 ||
+                        value?.status === 201 ||
+                        value?.status_code === '2000'
+                      ) {
+                        this.setState({savedCards: value.data.content});
+                        this.setState({
+                          mobileNumberVerificationDone: true,
+                        });
+                        this.setState({shouldShowOTP: false});
+                      } else {
+                        this.setState({
+                          mobileNumberVerificationDone: true,
+                        });
+
+                        AsyncStorage.setItem(
+                          'SavedCardsData',
+                          JSON.stringify({}),
+                        );
+                        this.setState({savedCards: {}});
+
+                        let val = await this.checkout.current.getOTP(
+                          this.state.formattedText,
+                        );
+                        if (val.status === 200 || val.status === 201) {
+                          this.setState({shouldShowOTP: true});
+                        }
+                      }
+                    } else {
+                      if (!this.state.showSavedCards) {
+                        AsyncStorage.setItem(
+                          'SavedCardsData',
+                          JSON.stringify({}),
+                        );
+                        this.setState({savedCards: {}});
+
+                        let val = await this.checkout.current.getOTP(
+                          this.state.formattedText,
+                        );
+                        if (val.status === 200 || val.status === 201) {
+                          this.setState({shouldShowOTP: true});
+                        }
+                      }
+                    }
+
+                    this.setState({
+                      showSavedCards: !this.state.showSavedCards,
+                    });
                   }}>
                   <Text style={{fontSize: 16, fontWeight: '500'}}>
                     Saved Payment Methods
                   </Text>
 
-                  <TouchableOpacity
-                    onPress={async () => {
-                      console.log('saved card', this.state.savedCardsData);
-
-                      if (
-                        this.state.savedCardsData?.token &&
-                        !this.state.showSavedCards
-                      ) {
-                        let value = await this.checkout.current.fetchSavedCards(
-                          this.state.formattedText,
-                          this.state.OTP,
-                          this.state.savedCardsData?.token,
-                        );
-
-                        console.log('Value', value);
-                        if (
-                          value?.status === 200 ||
-                          value?.status === 201 ||
-                          value?.status_code === '2000'
-                        ) {
-                          console.log('value', value);
-                          this.setState({savedCards: value.data.content});
-                          this.setState({
-                            mobileNumberVerificationDone: true,
-                          });
-                        } else {
-                          console.log('ESHA', value);
-
-                          AsyncStorage.setItem(
-                            'SavedCardsData',
-                            JSON.stringify({}),
-                          );
-                          this.setState({savedCards: {}});
-
-                          let val = await this.checkout.current.getOTP(
-                            this.state.formattedText,
-                          );
-                          if (val.status === 200 || val.status === 201) {
-                            this.setState({shouldShowOTP: true});
-                            AsyncStorage.setItem(
-                              'SavedCardsData',
-                              JSON.stringify(val),
-                            );
-                          }
-                        }
-                      } else {
-                        if (!this.state.showSavedCards) {
-                          console.log('Hyy there');
-                          let val = await this.checkout.current.getOTP(
-                            this.state.formattedText,
-                          );
-                          if (val.status === 200 || val.status === 201) {
-                            this.setState({shouldShowOTP: true});
-                            AsyncStorage.setItem(
-                              'SavedCardsData',
-                              JSON.stringify(val),
-                            );
-                          }
-                        }
-                      }
-
-                      this.setState({
-                        showSavedCards: !this.state.showSavedCards,
-                      });
-                    }}>
+                  <View>
                     <Image
                       source={
                         !this.state.showSavedCards
@@ -1070,174 +983,120 @@ class Checkout1 extends React.Component {
                         marginRight: 5,
                       }}
                     />
-                  </TouchableOpacity>
-                </View>
-                {!hasNumber && this.state.showSavedCards ? (
+                  </View>
+                </TouchableOpacity>
+                {this.state.showSavedCards ? (
                   <>
                     <View>
-                      <Text
-                        style={{
-                          paddingTop: 15,
-                          color: GRAYSHADE,
-                          fontSize: 16,
-                          textAlign: shouldShowOTP ? 'center' : 'left',
-                        }}>
-                        Enter{' '}
-                        {shouldShowOTP
-                          ? `the authentication code sent on your ${this.state.mobileNumber}`
-                          : 'Phone Number'}
-                      </Text>
                       {shouldShowOTP ? (
-                        <View style={{marginVertical: 15}}>
-                          <OTPTextInput
-                            ref={this.otpInput}
-                            containerStyle={[
-                              styles.OTPContainerStyle,
-                              {marginHorizontal: 10, width: width - 40},
-                            ]}
-                            textInputStyle={[
-                              styles.roundedTextInput,
-                              {
-                                borderWidth: 1,
-                                height: (width - 40 - 10 * 5) / 7,
-                                width: (width - 40 - 10 * 5) / 7,
-                                borderBottomWidth: 1,
-                              },
-                            ]}
-                            offTintColor={descriptionText}
-                            tintColor={APP_THEME_COLOR}
-                            inputCount={6}
-                            handleTextChange={text =>
-                              this.handleTextChange(text)
-                            }
-                          />
-                        </View>
-                      ) : (
-                        <View style={{marginHorizontal: -15}}>
-                          <PhoneInput
-                            containerStyle={{
-                              marginVertical: 15,
-                              alignSelf: 'center',
-                              width: width - 40,
-                              borderWidth: 1,
-                              borderColor: BORDERCOLOR,
-                              borderRadius: 3,
-                            }}
-                            autoFocus
-                            textContainerStyle={{
-                              height: 50,
-                              backgroundColor: WHITE_COLOR,
-                              marginLeft: -20,
-                            }}
-                            textInputStyle={{height: 60}}
-                            ref={this.phone}
-                            defaultValue={this.state.mobileNumber}
-                            defaultCode="IN"
-                            layout="second"
-                            onChangeText={text => {
-                              this.setNumber(text);
-                            }}
-                            onChangeFormattedText={text => {
-                              this.setFormattedNumber(text);
-                            }}
-                            withDarkTheme={false}
-                            withShadow={false}
-                          />
-                        </View>
-                      )}
+                        <>
+                          <Text
+                            style={{
+                              paddingTop: 15,
+                              color: GRAYSHADE,
+                              fontSize: 16,
+                              textAlign: shouldShowOTP ? 'center' : 'left',
+                            }}>
+                            {`Enter the authentication code sent on your ${this.state.mobileNumber}`}
+                          </Text>
+                          <View style={{marginVertical: 15}}>
+                            <OTPTextInput
+                              ref={this.otpInput}
+                              containerStyle={[
+                                styles.OTPContainerStyle,
+                                {marginHorizontal: 10, width: width - 40},
+                              ]}
+                              textInputStyle={[
+                                styles.roundedTextInput,
+                                {
+                                  borderWidth: 1,
+                                  height: (width - 40 - 10 * 5) / 7,
+                                  width: (width - 40 - 10 * 5) / 7,
+                                  borderBottomWidth: 1,
+                                },
+                              ]}
+                              offTintColor={descriptionText}
+                              tintColor={APP_THEME_COLOR}
+                              inputCount={6}
+                              handleTextChange={text =>
+                                this.handleTextChange(text)
+                              }
+                            />
+                          </View>
+                        </>
+                      ) : null}
                       <View
                         style={[styles.nextContainerView, {width: width - 30}]}>
-                        <TouchableOpacity
-                          style={styles.nextButtonView}
-                          onPress={async () => {
-                            if (this.state.shouldShowOTP) {
-                              let value =
-                                await this.checkout.current.fetchSavedCards(
-                                  this.state.formattedText,
-                                  this.state.OTP,
-                                  this.state.savedCardsData?.token,
-                                );
+                        {shouldShowOTP ? (
+                          <TouchableOpacity
+                            style={styles.nextButtonView}
+                            onPress={async () => {
+                              if (this.state.shouldShowOTP) {
+                                let value =
+                                  await this.checkout.current.fetchSavedCards(
+                                    this.state.formattedText,
+                                    this.state.OTP,
+                                  );
 
-                              if (
-                                value?.status === 200 ||
-                                value?.status === 201 ||
-                                value?.status_code === '2000'
-                              ) {
-                                AsyncStorage.setItem(
-                                  'SavedCardsData',
-                                  JSON.stringify(value.data),
-                                );
-                                this.setState({savedCards: value.data.content});
-                                this.setState({
-                                  mobileNumberVerificationDone: true,
-                                });
-                              } else {
                                 if (
-                                  value?.status_code === '4000' ||
-                                  value?.status_code === '400'
+                                  value?.status === 200 ||
+                                  value?.status === 201 ||
+                                  value?.status_code === '2000'
                                 ) {
-                                  AsyncStorage.setItem('SavedCardsData', {});
+                                  AsyncStorage.setItem(
+                                    'SavedCardsData',
+                                    JSON.stringify(value.data),
+                                  );
+                                  this.setState({savedCardsData: value.data});
+                                  this.setState({
+                                    savedCards: value.data.content,
+                                  });
+                                  this.setState({shouldShowOTP: false});
+
+                                  this.setState({
+                                    mobileNumberVerificationDone: true,
+                                  });
+                                } else {
+                                  if (
+                                    value?.status_code === '4000' ||
+                                    value?.status_code === '400'
+                                  ) {
+                                    AsyncStorage.setItem('SavedCardsData', {});
+                                    this.setState({shouldShowOTP: false});
+                                  }
+                                }
+                              } else {
+                                if (this.state.shouldShowOTP) {
+                                  AsyncStorage.setItem(
+                                    'SavedCardsData',
+                                    JSON.stringify({}),
+                                  );
+                                  this.setState({savedCards: {}});
+
+                                  let val = await this.checkout.current.getOTP(
+                                    this.state.formattedText,
+                                  );
+                                  if (
+                                    val.status === 200 ||
+                                    val.status === 201
+                                  ) {
+                                    this.setState({shouldShowOTP: true});
+                                  }
                                 }
                               }
-                              this.setState({shouldShowOTP: false});
-                            } else {
-                              let val = await this.checkout.current.getOTP(
-                                this.state.formattedText,
-                              );
-                              if (val.status === 200 || val.status === 201) {
-                                this.setState({shouldShowOTP: true});
-                              }
-                            }
-                          }}>
-                          <Text style={styles.nextTextView}>
-                            {shouldShowOTP ? 'Verify' : 'Next'}
-                          </Text>
-                        </TouchableOpacity>
+                            }}>
+                            <Text style={styles.nextTextView}>
+                              {shouldShowOTP ? 'Verify' : 'Next'}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : null}
                       </View>
                     </View>
                   </>
                 ) : null}
 
-                {hasNumber && this.state.showSavedCards ? (
-                  shouldShowOTP ? (
-                    <>
-                      <Text
-                        style={{
-                          paddingTop: 15,
-                          color: GRAYSHADE,
-                          fontSize: 16,
-                          textAlign: shouldShowOTP ? 'center' : 'left',
-                        }}>
-                        Enter{' '}
-                        {shouldShowOTP
-                          ? `the authentication code sent on your ${this.state.mobileNumber}`
-                          : 'Phone Number'}
-                      </Text>
-
-                      <View style={{marginVertical: 15}}>
-                        <OTPTextInput
-                          ref={this.otpInput}
-                          containerStyle={[
-                            styles.OTPContainerStyle,
-                            {marginHorizontal: 10, width: width - 40},
-                          ]}
-                          textInputStyle={[
-                            styles.roundedTextInput,
-                            {
-                              borderWidth: 1,
-                              height: (width - 40 - 10 * 5) / 7,
-                              width: (width - 40 - 10 * 5) / 7,
-                              borderBottomWidth: 1,
-                            },
-                          ]}
-                          offTintColor={descriptionText}
-                          tintColor={APP_THEME_COLOR}
-                          inputCount={6}
-                          handleTextChange={text => this.handleTextChange(text)}
-                        />
-                      </View>
-                    </>
-                  ) : (
+                {this.state.showSavedCards ? (
+                  shouldShowOTP ? null : (
                     <View style={{marginHorizontal: 15}}>
                       {isEmpty(this.state.savedCards) ? (
                         <Text style={{padding: 15, textAlign: 'center'}}>
@@ -1763,6 +1622,10 @@ class Checkout1 extends React.Component {
     const deepLinkURL = 'chaipay://checkout';
 
     var payload = this.getData();
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(totalAmount + deliveryAmount);
 
     return (
       <View style={{width: width, backgroundColor: WHITE_COLOR}}>
@@ -1812,7 +1675,7 @@ class Checkout1 extends React.Component {
                   fontSize: 16,
                   fontWeight: '600',
                 }}>
-                {`${totalAmount + deliveryAmount} ${currency}`}
+                {`${formattedNumber}`}
               </Text>
             </View>
           </View>
@@ -1835,7 +1698,7 @@ class Checkout1 extends React.Component {
 
                 newPayload.amount = totalAmount;
                 newPayload.secretKey =
-                  '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
+                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
 
                 var response =
                   this.checkout.current.startPaymentwithWallets(newPayload);
@@ -1855,7 +1718,7 @@ class Checkout1 extends React.Component {
 
                 newPayload.amount = totalAmount;
                 newPayload.secretKey =
-                  '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
+                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
 
                 var response =
                   this.checkout.current.startPaymentwithWallets(newPayload);
@@ -1898,7 +1761,7 @@ class Checkout1 extends React.Component {
 
                   newPayload.amount = totalAmount + deliveryAmount;
                   newPayload.secretKey =
-                    '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
+                    '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
                   var response =
                     this.checkout.current.startPaymentwithWallets(newPayload);
                   this.setState({showLoader: false});
@@ -1930,6 +1793,7 @@ class Checkout1 extends React.Component {
       : require('../../../assets/colapse.png');
 
     let orderDetails = this.state.orderDetails;
+
     return (
       <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
         {orderDetails !== undefined ? (
@@ -2036,9 +1900,9 @@ class Checkout1 extends React.Component {
           callbackFunction={this.afterCheckout}
           redirectUrl={'chaipay://checkout'}
           secretKey={
-            '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c'
+            '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11'
           }
-          chaipayKey={'xFgseojiprOhkgPa'}
+          chaipayKey={'vzJeunCkacgDYxMk'}
         />
       </View>
     );

@@ -170,6 +170,8 @@ class Profile extends React.Component {
                   this.state.formattedText,
                 );
                 AsyncStorage.setItem('mobileNumber', this.state.mobileNumber);
+                AsyncStorage.setItem('SavedCardsData', JSON.stringify({}));
+
                 this.setState({showMobileNumberInput: false});
               } else {
                 this.setState({showMobileNumberInput: true});

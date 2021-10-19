@@ -15,6 +15,7 @@ import {
   TRANSPARENT,
   LIGHTGRAY,
   descriptionText,
+  currency,
 } from '../../constants';
 import Card from '../../elements/Card';
 
@@ -25,6 +26,11 @@ class ScheduledProductCell extends React.Component {
   render() {
     let removeInstock = this.props.removeInStock;
     let removeBorder = this.props.removeBorder;
+
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(this.props.product.price);
 
     return (
       <View
@@ -45,18 +51,16 @@ class ScheduledProductCell extends React.Component {
                 {this.props.product.description}
               </Text>
               <Text style={[styles.price, {marginLeft: 5, marginTop: -3}]} h4>
-                ${this.props.product.price}
+                {formattedNumber}
               </Text>
             </View>
           ) : (
             <>
-              <Text style={styles.description} h2>
+              <Text style={styles.description}>
                 {this.props.product.description}
               </Text>
-              <View style={styles.priceView}>
-                <Text style={styles.price} h4>
-                  ${this.props.product.price}
-                </Text>
+              <View style={[styles.priceView, {justifyContent: 'flex-start'}]}>
+                <Text style={[styles.price]}>{formattedNumber}</Text>
                 <Text style={styles.inStock}>{' In stock'}</Text>
               </View>
             </>
