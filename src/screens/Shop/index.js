@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
 import {
   APP_THEME_COLOR,
   DARKGRAY,
@@ -104,6 +105,7 @@ class Shop extends React.Component {
   componentDidMount() {
     AsyncStorage.setItem('formattedMobileNumber', '+918341469169');
     AsyncStorage.setItem('mobileNumber', '8341469169');
+    SplashScreen.hide();
   }
   _didSelectedProducts = selectedProduct => {
     if (isEmpty(this.state.selectedProducts)) {
@@ -523,7 +525,7 @@ class Shop extends React.Component {
           </TouchableOpacity>
           {!isEmpty(this.state.orderDetails) ? (
             <AwesomeAlert
-              show={this.state.orderDetails}
+              show={!isEmpty(this.state.orderDetails)}
               showProgress={false}
               customView={this.ResponseView(this.state.orderDetails)}
               closeOnTouchOutside={true}
