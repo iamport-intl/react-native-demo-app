@@ -365,14 +365,6 @@ class Checkout1 extends React.Component {
   afterCheckout = transactionDetails => {
     if (transactionDetails) {
       this.setState({orderDetails: transactionDetails});
-
-      // if (typeof transactionDetails === 'object') {
-      //   this.setState({orderDetails: transactionDetails});
-      // } else if (transactionDetails?.message === 'Modal closed') {
-      //   this.setState({orderDetails: transactionDetails});
-      // } else {
-      //   this.setState({orderDetails: JSON.parse(transactionDetails)});
-      // }
     }
   };
 
@@ -445,11 +437,17 @@ class Checkout1 extends React.Component {
           ) : orderDetails?.message === 'Modal closed' ? (
             <>
               <Image
-                style={{alignSelf: 'center', justifyContent: 'center'}}
+                style={{
+                  marginTop: 15,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                }}
                 source={require('../../../assets/failure.png')}
               />
-              <Text style={styles.successStyle}>Payment Failed</Text>
-              <View style={styles.containerView} />
+              <Text
+                style={[styles.successStyle, {marginTop: 5, marginBottom: 15}]}>
+                Transaction Failed
+              </Text>
             </>
           ) : (
             <Text>{JSON.stringify(orderDetails, null, 4)}</Text>
@@ -535,7 +533,10 @@ class Checkout1 extends React.Component {
             />
             <HorizontalTextStackView
               item={{
-                name: 'Amount Paid',
+                name:
+                  orderDetails?.message === 'Modal closed'
+                    ? 'Amount to be Paid'
+                    : 'Amount Paid',
                 value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
                 fontSize: 16,
                 fontWeight: '500',
@@ -1538,80 +1539,6 @@ class Checkout1 extends React.Component {
         <Text style={{fontSize: 12}}>Safe and Secure Payments</Text>
       </View>
     );
-  };
-
-  getDefaultConfig = () => {
-    let payload = {
-      chaipay_key: 'lzrYFPfyMLROallZ',
-      merchant_details: {
-        name: 'Downy',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
-        back_url: 'https://demo.chaipay.io/checkout.html',
-        promo_code: 'Downy350',
-        promo_discount: 35000,
-        shipping_charges: 0.0,
-      },
-      merchant_order_id: 'MERCHANT' + new Date().getTime(),
-      signature_hash: 'flDFcPNx4pASRWonw52s0Sec3ee1PJQrdTklDrZGjq0=',
-      amount: 365000,
-      currency: 'VND',
-      country_code: 'VN',
-      billing_details: {
-        billing_name: 'Test mark',
-        billing_email: 'markweins@gmail.com',
-        billing_phone: '9998878788',
-        billing_address: {
-          city: 'VND',
-          country_code: 'VN',
-          locale: 'en',
-          line_1: 'address',
-          line_2: 'address_2',
-          postal_code: '400202',
-          state: 'Mah',
-        },
-      },
-      shipping_details: {
-        shipping_name: 'xyz',
-        shipping_email: 'xyz@gmail.com',
-        shipping_phone: '1234567890',
-        shipping_address: {
-          city: 'abc',
-          country_code: 'VN',
-          locale: 'en',
-          line_1: 'address_1',
-          line_2: 'address_2',
-          postal_code: '400202',
-          state: 'Mah',
-        },
-      },
-      order_details: [
-        {
-          id: '1',
-          price: 200000,
-          name: 'Stubborn Attachments',
-          quantity: 1,
-          image: 'https://www.demo.chaipay.io/images/bella-toes.jpg',
-        },
-        {
-          id: '2',
-          price: 200000,
-          name: 'Stubborn Attachments',
-          quantity: 1,
-          image: 'https://www.demo.chaipay.io/images/bella-toes.jpg',
-        },
-      ],
-      success_url: 'chaipay://checkout',
-      failure_url: 'chaipay://checkout',
-      redirect_url: 'chaipay://checkout',
-      expiry_hours: 2,
-      source: 'api',
-      description: 'test desc',
-      show_shipping_details: true,
-      show_back_button: true,
-      default_guest_checkout: false,
-      is_checkout_embed: false,
-    };
-    return payload;
   };
 
   hideOrderDetailsAlert = () => {
