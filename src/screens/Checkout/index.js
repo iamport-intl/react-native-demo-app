@@ -62,6 +62,7 @@ import {
 } from 'accordion-collapse-react-native';
 import CreditCardForm from '../../helpers/CreditcardForm';
 import {Checkout, helpers} from '../../../paymentSDK';
+import SmsListener from 'react-native-android-sms-listener';
 
 const {width, height} = Dimensions.get('screen');
 const deliveryAmount = 0;
@@ -301,6 +302,44 @@ class Checkout1 extends React.Component {
     this.checkout = React.createRef();
   }
 
+  async requestReadSmsPermission() {
+    try {
+      var granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_SMS,
+        {
+          title: 'Auto Verification OTP',
+          message: 'need access to read sms, to verify OTP',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('READ_SMS permissions granted', granted);
+        granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+          {
+            title: 'Receive SMS',
+            message: 'Need access to receive sms, to verify OTP',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('RECEIVE_SMS permissions granted', granted);
+          SmsListener.addListener(message => {
+            console.log('Message', message);
+            var numb = message.body.match(/\d/g);
+            numb = numb.join('');
+            this.setState({OTP: numb});
+            console.log(numb);
+          });
+        } else {
+          console.log('RECEIVE_SMS permissions denied');
+        }
+      } else {
+        console.log('READ_SMS permissions denied');
+      }
+    } catch (err) {
+      alert(err);
+    }
+  }
+
   componentDidMount() {
     AsyncStorage.getItem('formattedMobileNumber').then(value => {
       this.setState({formattedText: value});
@@ -311,7 +350,7 @@ class Checkout1 extends React.Component {
     });
 
     // AsyncStorage.setItem('SavedCardsData', JSON.stringify({}));
-
+    this.requestReadSmsPermission();
     AsyncStorage.getItem('SavedCardsData').then(value => {
       let data = JSON.parse(value);
       this.setState({savedCardsData: data});
