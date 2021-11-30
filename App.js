@@ -15,6 +15,7 @@ import {createMaterialBottomTabNavigator} from '@react-navigation/material-botto
 import HomeScreen from './src/screens/Home';
 import ShopScreen from './src/screens/Shop';
 import PaymentScreen from './src/screens/Payment';
+import LanguageScreen from './src/screens/LanguageScreen';
 import Profile from './src/screens/Profile';
 import More from './src/screens/More';
 import CheckoutScreen from './src/screens/Checkout';
@@ -22,16 +23,23 @@ import {
   APP_THEME_COLOR,
   BOLD,
   IMAGE_BACKGROUND_COLOR,
+  strings,
   WHITE_COLOR,
 } from './src/constants';
 import {LogBox} from 'react-native';
-import {platform} from 'os';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {localizeString} from './src/helpers/LocalizeString';
+
 LogBox.ignoreAllLogs();
 console.reportErrorsAsExceptions = false;
 
 const Tab = createMaterialBottomTabNavigator();
 
 const HomeTabs = () => {
+  AsyncStorage.getItem('selectedLanguage').then(data => {
+    strings.setLanguage(data);
+  });
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -40,21 +48,23 @@ const HomeTabs = () => {
       <Tab.Screen
         name="Home"
         component={ShopScreen}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({color, size}) => (
-            <Image
-              style={{width: 15, height: 15, resizeMode: 'contain'}}
-              source={require('./assets/home.png')}
-            />
-          ),
+        options={() => {
+          return {
+            tabBarLabel: strings.home,
+            tabBarIcon: ({color, size}) => (
+              <Image
+                style={{width: 15, height: 15, resizeMode: 'contain'}}
+                source={require('./assets/home.png')}
+              />
+            ),
+          };
         }}
       />
       <Tab.Screen
         name="Profile"
         component={Profile}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: strings.profile,
           tabBarIcon: ({color, size}) => (
             <Image
               style={{width: 15, height: 15, resizeMode: 'contain'}}
@@ -67,7 +77,7 @@ const HomeTabs = () => {
         name="More"
         component={More}
         options={{
-          tabBarLabel: 'More',
+          tabBarLabel: strings.action_settings,
           tabBarIcon: ({color, size}) => (
             <Image
               style={{width: 15, height: 15, resizeMode: 'contain'}}
@@ -107,7 +117,7 @@ const App = () => {
 
       <RootStack.Navigator screenOptions={{headerLargeTitle: true}}>
         <RootStack.Screen
-          name="Home"
+          name="Home Tabs"
           component={HomeTabs}
           options={({route, navigation}) => ({
             title: '',
@@ -168,6 +178,40 @@ const App = () => {
         <RootStack.Screen
           name="Payment"
           component={PaymentScreen}
+          options={({route, navigation}) => ({
+            title: '',
+            headerStyle: {
+              backgroundColor: WHITE_COLOR,
+              shadowRadius: 0,
+              shadowOffset: {
+                height: 0,
+              },
+            },
+            headerLeft: () => (
+              <>
+                <TouchableOpacity
+                  style={{marginLeft: 5, alignItems: 'center'}}
+                  activeOpacity={0.5}
+                  onPress={() => navigation.goBack()}>
+                  <Image
+                    source={require('./assets/leftArrow.png')}
+                    style={{
+                      alignSelf: 'center',
+                      width: 25,
+                      height: 25,
+                      resizeMode: 'stretch',
+                      marginTop: 0,
+                      marginLeft: 10,
+                    }}
+                  />
+                </TouchableOpacity>
+              </>
+            ),
+          })}
+        />
+        <RootStack.Screen
+          name="LanguageScreen"
+          component={LanguageScreen}
           options={({route, navigation}) => ({
             title: '',
             headerStyle: {

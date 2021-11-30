@@ -11,7 +11,7 @@ import {
   values,
 } from 'lodash';
 import React from 'react';
-import {Dimensions} from 'react-native';
+import {Dimensions, PermissionsAndroid} from 'react-native';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import 'intl';
 import 'intl/locale-data/jsonp/id';
@@ -32,6 +32,7 @@ import {
   APP_THEME_COLOR,
   BOLD,
   BORDERCOLOR,
+  CHAIPAY_KEY,
   currency,
   DARKBLACK,
   DARKGRAY,
@@ -41,6 +42,8 @@ import {
   HEDER_TITLES,
   IMAGE_BACKGROUND_COLOR,
   ORDERTEXT,
+  SECRET_KEY,
+  strings,
   SUCCESS_COLOR,
   TRANSPARENT,
   WHITE_COLOR,
@@ -48,10 +51,9 @@ import {
 import CheckboxView from '../../helpers/CheckboxView';
 import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
 import ScheduledProductCell from '../../screens/SelectedProductCell';
-import Checkout from '../../../paymentSDK';
-import OTPTextInput from 'react-native-otp-textinput';
+
+import OTPTextInput from '../../helpers/OTPTextView';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import PhoneInput from 'react-native-phone-number-input';
 import {
   Collapse,
   CollapseHeader,
@@ -59,9 +61,10 @@ import {
   AccordionList,
 } from 'accordion-collapse-react-native';
 import CreditCardForm from '../../helpers/CreditcardForm';
+import {Checkout, helpers} from '../../../paymentSDK';
 
 const {width, height} = Dimensions.get('screen');
-const deliveryAmount = 5000;
+const deliveryAmount = 0;
 const styles = StyleSheet.create({
   contentContainerStyle: {
     alignItems: 'center',
@@ -314,7 +317,7 @@ class Checkout1 extends React.Component {
       this.setState({savedCardsData: data});
     });
 
-    this.checkout.current
+    helpers
       .fetchAvailablePaymentGateway()
       .then(data => {
         this.setState({totalListOfPayments: data.data});
@@ -391,7 +394,7 @@ class Checkout1 extends React.Component {
         }}>
         <View>
           {orderDetails?.status_reason === 'SUCCESS' ||
-          orderDetails?.is_success === 'true' ||
+          orderDetails?.is_success === true ||
           orderDetails?.status === 'Success' ? (
             <>
               <Image
@@ -409,12 +412,21 @@ class Checkout1 extends React.Component {
                   paddingBottom: 15,
                 }}>
                 <Text style={styles.successStyle}>
-                  Your order is placed successfully!
+                  {strings.transaction_success}
                 </Text>
+                {orderDetails.message ? (
+                  <Text
+                    style={[
+                      styles.successStyle,
+                      {fontWeight: '500', fontSize: 15},
+                    ]}>
+                    {orderDetails.message}
+                  </Text>
+                ) : null}
               </View>
             </>
           ) : orderDetails?.status_reason === 'INVALID_TRANSACTION_ERROR' ||
-            orderDetails?.is_success === 'false' ||
+            orderDetails?.is_success === false ||
             orderDetails?.status === 'Failed' ? (
             <>
               <Image
@@ -431,7 +443,18 @@ class Checkout1 extends React.Component {
                   marginHorizontal: 10,
                   paddingBottom: 15,
                 }}>
-                <Text style={styles.successStyle}>Transaction Failed</Text>
+                <Text style={styles.successStyle}>
+                  {strings.transaction_failed}
+                </Text>
+                {orderDetails.message ? (
+                  <Text
+                    style={[
+                      styles.successStyle,
+                      {fontWeight: '500', fontSize: 15},
+                    ]}>
+                    {orderDetails.message}
+                  </Text>
+                ) : null}
               </View>
             </>
           ) : orderDetails?.message === 'Modal closed' ? (
@@ -446,8 +469,17 @@ class Checkout1 extends React.Component {
               />
               <Text
                 style={[styles.successStyle, {marginTop: 5, marginBottom: 15}]}>
-                Transaction Failed
+                {strings.transaction_failed}
               </Text>
+              {orderDetails.message ? (
+                <Text
+                  style={[
+                    styles.successStyle,
+                    {fontWeight: '500', fontSize: 15},
+                  ]}>
+                  {orderDetails.message}
+                </Text>
+              ) : null}
             </>
           ) : (
             <Text>{JSON.stringify(orderDetails, null, 4)}</Text>
@@ -481,11 +513,11 @@ class Checkout1 extends React.Component {
               paddingBottom: 8,
             }}>
             <Text style={[styles.paymentText, {fontSize: 18}]}>
-              Order details
+              {strings.price_details}
             </Text>
             <HorizontalTextStackView
               item={{
-                name: 'Merchant Order Ref:',
+                name: `${strings.merchant_order_ref}`,
                 value:
                   orderDetails.merchant_order_ref ||
                   '1zftaz66QhvcjRi07yhVMBsqqET',
@@ -498,7 +530,7 @@ class Checkout1 extends React.Component {
             />
             <HorizontalTextStackView
               item={{
-                name: 'Channel Order Ref:',
+                name: `${strings.channel_order_ref}`,
                 value:
                   orderDetails.channel_order_ref ||
                   'PAY-FylBOXjbTMmH52CCNI4OFw',
@@ -511,7 +543,7 @@ class Checkout1 extends React.Component {
             />
             <HorizontalTextStackView
               item={{
-                name: 'Order',
+                name: `${strings.order}`,
                 value: `${this.formatNumber(totalAmount)}`,
                 fontSize: 13,
                 fontWeight: '400',
@@ -522,7 +554,7 @@ class Checkout1 extends React.Component {
             />
             <HorizontalTextStackView
               item={{
-                name: 'Delivery',
+                name: `${strings.delivery}`,
                 value: `${this.formatNumber(deliveryAmount)}`,
                 fontSize: 13,
                 fontWeight: '400',
@@ -535,8 +567,8 @@ class Checkout1 extends React.Component {
               item={{
                 name:
                   orderDetails?.message === 'Modal closed'
-                    ? 'Amount to be Paid'
-                    : 'Amount Paid',
+                    ? `${strings.amount_toPaid}`
+                    : `${strings.amount_paid}`,
                 value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
                 fontSize: 16,
                 fontWeight: '500',
@@ -606,7 +638,7 @@ class Checkout1 extends React.Component {
                     marginLeft: 15,
                   },
                 ]}>
-                Shipping Address:
+                {strings.shipping_address}:
               </Text>
               <Text style={{marginLeft: 15, marginBottom: 15}}>
                 {'MIG I A7'} {'\n'}
@@ -653,10 +685,10 @@ class Checkout1 extends React.Component {
             backgroundColor: WHITE_COLOR,
             paddingTop: 10,
           }}>
-          <Text style={styles.paymentText}>Order details</Text>
+          <Text style={styles.paymentText}>{strings.price_details}</Text>
           <HorizontalTextStackView
             item={{
-              name: 'Order',
+              name: strings.order,
               value: `${this.formatNumber(totalAmount)}`,
               fontSize: 13,
               fontWeight: '400',
@@ -665,7 +697,7 @@ class Checkout1 extends React.Component {
           />
           <HorizontalTextStackView
             item={{
-              name: 'Delivery',
+              name: strings.delivery,
               value: `${this.formatNumber(deliveryAmount)}`,
               fontSize: 13,
               fontWeight: '400',
@@ -674,7 +706,7 @@ class Checkout1 extends React.Component {
           />
           <HorizontalTextStackView
             item={{
-              name: 'Summary',
+              name: strings.summary,
               value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
               fontSize: 16,
               fontWeight: '500',
@@ -708,7 +740,8 @@ class Checkout1 extends React.Component {
               marginHorizontal: 15,
             }}>
             <Text style={{fontSize: 16, fontWeight: '500'}}>
-              My cart ({listCount} {listCount === 1 ? 'item' : 'items'})
+              {strings.my_cart} ({listCount}{' '}
+              {listCount === 1 ? 'item' : 'items'})
             </Text>
 
             <TouchableOpacity
@@ -765,7 +798,7 @@ class Checkout1 extends React.Component {
     );
     let selectedItem = first(values(this.state.selectedItem));
     return {
-      chaipayKey: 'vzJeunCkacgDYxMk',
+      chaipayKey: CHAIPAY_KEY,
       paymentChannel: selectedItem?.payment_channel_key,
       paymentMethod: selectedItem?.payment_method_key,
       merchantOrderId: 'MERCHANT' + new Date().getTime(),
@@ -792,7 +825,7 @@ class Checkout1 extends React.Component {
         shipping_phone: '1234567890',
         shipping_address: {
           city: 'abc',
-          country_code: 'VN',
+          country_code: 'VNH',
           locale: 'en',
           line_1: 'address_1',
           line_2: 'address_2',
@@ -822,8 +855,7 @@ class Checkout1 extends React.Component {
     data.paymentChannel = cardType.payment_channel_key;
     data.paymentMethod = cardType.payment_method_key;
     data.merchantOrderId = 'MERCHANT' + new Date().getTime();
-    data.secretKey =
-      '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+    data.secretKey = SECRET_KEY;
 
     let response;
     if (fromSavedcards) {
@@ -832,6 +864,8 @@ class Checkout1 extends React.Component {
         data,
       );
     } else {
+      console.log('this.checkout.current', this.checkout);
+      console.log('this.checkout.current', this.checkout.current);
       response = await this.checkout.current.startPaymentWithNewCard(
         savedCard,
         data,
@@ -842,6 +876,8 @@ class Checkout1 extends React.Component {
 
     if (response.val.status === 200 || response.val.status === 201) {
       this.setState({orderDetails: response.val.data});
+    } else {
+      this.setState({orderDetails: response.val});
     }
     // AsyncStorage.setItem('USER_DATA', JSON.stringify(response.data));
     this.setState({userData: response.data});
@@ -910,7 +946,8 @@ class Checkout1 extends React.Component {
                         !this.state.showSavedCards) ||
                       this.state.shouldShowOTP
                     ) {
-                      let value = await this.checkout.current.fetchSavedCards(
+                      console.log('entered');
+                      let value = await helpers.fetchSavedCards(
                         this.state.formattedText,
                         this.state.OTP,
                         this.state.savedCardsData?.token,
@@ -937,7 +974,7 @@ class Checkout1 extends React.Component {
                         );
                         this.setState({savedCards: {}});
 
-                        let val = await this.checkout.current.getOTP(
+                        let val = await helpers.getOTP(
                           this.state.formattedText,
                         );
                         if (val.status === 200 || val.status === 201) {
@@ -952,7 +989,7 @@ class Checkout1 extends React.Component {
                         );
                         this.setState({savedCards: {}});
 
-                        let val = await this.checkout.current.getOTP(
+                        let val = await helpers.getOTP(
                           this.state.formattedText,
                         );
                         if (val.status === 200 || val.status === 201) {
@@ -966,7 +1003,7 @@ class Checkout1 extends React.Component {
                     });
                   }}>
                   <Text style={{fontSize: 16, fontWeight: '500'}}>
-                    Saved Payment Methods
+                    {strings.saved_payment_method}
                   </Text>
 
                   <View>
@@ -998,7 +1035,7 @@ class Checkout1 extends React.Component {
                               fontSize: 16,
                               textAlign: shouldShowOTP ? 'center' : 'left',
                             }}>
-                            {`Enter the authentication code sent on your ${this.state.mobileNumber}`}
+                            {`${strings.otp_has_been_sent} ${this.state.mobileNumber}`}
                           </Text>
                           <View style={{marginVertical: 15}}>
                             <OTPTextInput
@@ -1016,6 +1053,8 @@ class Checkout1 extends React.Component {
                                   borderBottomWidth: 1,
                                 },
                               ]}
+                              defaultValue={this.state.OTP}
+                              textContentType="oneTimeCode"
                               offTintColor={descriptionText}
                               tintColor={APP_THEME_COLOR}
                               inputCount={6}
@@ -1033,11 +1072,10 @@ class Checkout1 extends React.Component {
                             style={styles.nextButtonView}
                             onPress={async () => {
                               if (this.state.shouldShowOTP) {
-                                let value =
-                                  await this.checkout.current.fetchSavedCards(
-                                    this.state.formattedText,
-                                    this.state.OTP,
-                                  );
+                                let value = await helpers.fetchSavedCards(
+                                  this.state.formattedText,
+                                  this.state.OTP,
+                                );
 
                                 if (
                                   value?.status === 200 ||
@@ -1074,7 +1112,7 @@ class Checkout1 extends React.Component {
                                   );
                                   this.setState({savedCards: {}});
 
-                                  let val = await this.checkout.current.getOTP(
+                                  let val = await helpers.getOTP(
                                     this.state.formattedText,
                                   );
                                   if (
@@ -1087,7 +1125,7 @@ class Checkout1 extends React.Component {
                               }
                             }}>
                             <Text style={styles.nextTextView}>
-                              {shouldShowOTP ? 'Verify' : 'Next'}
+                              {shouldShowOTP ? strings.verify : strings.next}
                             </Text>
                           </TouchableOpacity>
                         ) : null}
@@ -1151,7 +1189,9 @@ class Checkout1 extends React.Component {
                     marginHorizontal: 15,
                   }}>
                   <Text style={{fontSize: 16, fontWeight: '500'}}>
-                    {showCardForm ? 'Other' : 'Payment'} Options
+                    {showCardForm
+                      ? strings.other_options
+                      : strings.other_payment_options}
                   </Text>
                 </View>
               </View>
@@ -1184,7 +1224,7 @@ class Checkout1 extends React.Component {
                               alignSelf: 'center',
                             },
                           ]}>
-                          WALLETS
+                          {strings.wallets}
                         </Text>
                       </View>
                       <View style={{flexDirection: 'row', marginRight: 0}}>
@@ -1304,13 +1344,15 @@ class Checkout1 extends React.Component {
                       }
                     : {},
                 ]}
-                onPress={() =>
+                onPress={() => {
+                  console.log('Presses');
+
                   this.setState({
                     creditCardClicked: !this.state.creditCardClicked,
                     otherPayments: false,
                     selectedItem: {},
-                  })
-                }>
+                  });
+                }}>
                 <View style={{flexDirection: 'row', paddingVertical: 12}}>
                   <Image
                     source={require('../../../assets/card.png')}
@@ -1329,7 +1371,7 @@ class Checkout1 extends React.Component {
                       styles.primaryHeadertext,
                       {fontSize: 13, alignSelf: 'center'},
                     ]}>
-                    CREDIT CARD
+                    {strings.credit_card}
                   </Text>
                 </View>
 
@@ -1471,13 +1513,13 @@ class Checkout1 extends React.Component {
                           alignSelf: 'center',
                         },
                       ]}>
-                      ATM CARD
+                      {strings.ATM_card}
                     </Text>
                   </View>
                 </TouchableOpacity>
               </View>
             ) : null}
-            {this.state.otherPayments ? (
+            {/* {this.state.otherPayments ? (
               <View
                 style={{
                   borderRadius: 10,
@@ -1510,7 +1552,7 @@ class Checkout1 extends React.Component {
                   keyExtractor={(item, index) => `${index}`}
                 />
               </View>
-            ) : null}
+            ) : null} */}
           </>
         </View>
       </View>
@@ -1536,7 +1578,7 @@ class Checkout1 extends React.Component {
             marginTop: 0,
           }}
         />
-        <Text style={{fontSize: 12}}>Safe and Secure Payments</Text>
+        <Text style={{fontSize: 12}}>{strings.safe_and_secure_payments}</Text>
       </View>
     );
   };
@@ -1594,7 +1636,7 @@ class Checkout1 extends React.Component {
                   color: descriptionText,
                   fontSize: 14,
                 }}>
-                Grand Total:
+                {strings.total}
               </Text>
               <Text
                 style={{
@@ -1609,8 +1651,7 @@ class Checkout1 extends React.Component {
           <TouchableOpacity
             style={[styles.payNowView, {flex: 0.5}]}
             onPress={() => {
-              this.setState({showLoader: true});
-
+              // this.setState({showLoader: true});
               const showCardForm = first(
                 this.state.paymentCardType,
               )?.tokenization_possible;
@@ -1624,8 +1665,7 @@ class Checkout1 extends React.Component {
                 newPayload.paymentMethod = selectedItem?.payment_method_key;
 
                 newPayload.amount = totalAmount;
-                newPayload.secretKey =
-                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+                newPayload.secretKey = SECRET_KEY;
 
                 var response =
                   this.checkout.current.startPaymentwithWallets(newPayload);
@@ -1644,8 +1684,7 @@ class Checkout1 extends React.Component {
                 newPayload.paymentMethod = selectedItem?.payment_method_key;
 
                 newPayload.amount = totalAmount;
-                newPayload.secretKey =
-                  '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+                newPayload.secretKey = SECRET_KEY;
 
                 var response =
                   this.checkout.current.startPaymentwithWallets(newPayload);
@@ -1687,8 +1726,7 @@ class Checkout1 extends React.Component {
                       : selectedItem?.payment_method_key;
 
                   newPayload.amount = totalAmount + deliveryAmount;
-                  newPayload.secretKey =
-                    '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+                  newPayload.secretKey = SECRET_KEY;
                   var response =
                     this.checkout.current.startPaymentwithWallets(newPayload);
                   this.setState({showLoader: false});
@@ -1697,7 +1735,7 @@ class Checkout1 extends React.Component {
                 }
               }
             }}>
-            <Text style={styles.payNowTextView}>Pay Now</Text>
+            <Text style={styles.payNowTextView}>{strings.pay_now}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1761,7 +1799,7 @@ class Checkout1 extends React.Component {
                   width: width - 60,
                   backgroundColor:
                     orderDetails?.status_reason === 'SUCCESS' ||
-                    orderDetails.is_success === 'true'
+                    orderDetails.is_success === true
                       ? SUCCESS_COLOR
                       : APP_THEME_COLOR,
                   shadowColor: '#000000',
@@ -1778,7 +1816,7 @@ class Checkout1 extends React.Component {
               onPress={() => {
                 if (
                   orderDetails?.status_reason === 'SUCCESS' ||
-                  orderDetails.is_success === 'true'
+                  orderDetails.is_success === true
                 ) {
                   this.props.navigation.goBack();
                 } else {
@@ -1791,7 +1829,7 @@ class Checkout1 extends React.Component {
         ) : (
           <>
             <View style={[styles.headerView]}>
-              <Text style={styles.featuredText}>Checkout </Text>
+              <Text style={styles.featuredText}>{strings.checkout} </Text>
             </View>
             <>
               <KeyboardAvoidingView
@@ -1815,21 +1853,13 @@ class Checkout1 extends React.Component {
             </>
           </>
         )}
-        {this.state.showLoader ? (
-          <View style={styles.indicatorView}>
-            <ActivityIndicator color={APP_THEME_COLOR} size={'large'} />
-          </View>
-        ) : null}
-
         <Checkout
           ref={this.checkout}
-          env={'staging'}
+          env={'dev'}
           callbackFunction={this.afterCheckout}
           redirectUrl={'chaipay://checkout'}
-          secretKey={
-            '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11'
-          }
-          chaipayKey={'vzJeunCkacgDYxMk'}
+          secretKey={SECRET_KEY}
+          chaipayKey={CHAIPAY_KEY}
         />
       </View>
     );

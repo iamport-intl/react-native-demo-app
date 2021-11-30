@@ -25,6 +25,12 @@ import {
   TRANSPARENT,
   currency,
   SUCCESS_COLOR,
+  CHAIPAY_KEY,
+  SECRET_KEY,
+  JWTToken,
+  ORDERTEXT,
+  IMAGE_BACKGROUND_COLOR,
+  strings,
 } from '../../constants';
 import Product from '../Product';
 import {
@@ -38,9 +44,12 @@ import {
   sumBy,
   values,
 } from 'lodash';
-import Checkout from '../../../paymentSDK';
+
+import {Checkout} from 'chaipay-sdk';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
+import ScheduledProductCell from '../SelectedProductCell';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -163,7 +172,7 @@ class Shop extends React.Component {
     // Todo: Have to modify the structure for selectedproducts
     //chaipayKey: 'lzrYFPfyMLROallZ',
     let payload = {
-      chaipayKey: 'aiHKafKIbsdUJDOb',
+      chaipayKey: CHAIPAY_KEY,
       merchantDetails: {
         name: 'Chaipay',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
@@ -206,8 +215,8 @@ class Shop extends React.Component {
         },
       },
       orderDetails: orderDetails,
-      successUrl: 'chaipay://checkout',
-      failureUrl: 'chaipay://checkout',
+      successUrl: 'https://test-checkout.chaipay.io/success.html',
+      failureUrl: 'https://test-checkout.chaipay.io/failure.html',
       mobileRedirectUrl: 'chaipay://checkout',
       expiryHours: 2,
       source: 'api',
@@ -239,152 +248,262 @@ class Shop extends React.Component {
 
   hideOrderDetailsAlert = () => {
     this.setState({orderDetails: undefined});
-    console.log('OrderDetails', this.state.orderDetails);
   };
-  ResponseView = orderDetails => {
-    let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
 
+  formatNumber = number => {
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(number);
+    return formattedNumber;
+  };
+
+  ResponseView = ({orderDetails}) => {
+    let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
+    let selectedItems = values(this.state.selectedProducts);
+    let deliveryAmount = 0;
     return (
-      <View>
+      <View
+        style={{
+          margin: 20,
+          backgroundColor: IMAGE_BACKGROUND_COLOR,
+          borderRadius: 10,
+          paddingBottom: 5,
+          marginTop: 4,
+        }}>
         <View>
           {orderDetails?.status_reason === 'SUCCESS' ||
-          orderDetails?.is_success === 'true' ||
-          orderDetails.status === 'Success' ? (
+          orderDetails?.is_success === true ||
+          orderDetails?.status === 'Success' ? (
             <>
               <Image
-                style={{alignSelf: 'center', justifyContent: 'center'}}
+                style={{
+                  marginTop: 25,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                }}
                 source={require('../../../assets/Success.png')}
               />
               <View
                 style={{
-                  marginTop: 15,
+                  marginTop: 0,
                   marginHorizontal: 10,
                   paddingBottom: 15,
                 }}>
                 <Text style={styles.successStyle}>
-                  Yay! Your order has been successfully placed
+                  Your order is placed successfully!
                 </Text>
-                <View style={styles.containerView}>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>
-                      Merchant Order Ref:{' '}
-                    </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.merchant_order_ref}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>
-                      Channel Order Ref:{' '}
-                    </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.channel_order_ref}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>Amount Paid: </Text>
-                    <Text style={styles.rightStackText}>
-                      {`${currency} ${totalAmount}`}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>Status: </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.status || 'SUCCESS'}
-                    </Text>
-                  </View>
-                </View>
               </View>
             </>
           ) : orderDetails?.status_reason === 'INVALID_TRANSACTION_ERROR' ||
-            orderDetails?.is_success === 'false' ||
-            orderDetails.status === 'Failed' ? (
+            orderDetails?.is_success === false ||
+            orderDetails?.status === 'Failed' ? (
             <>
               <Image
-                style={{alignSelf: 'center', justifyContent: 'center'}}
+                style={{
+                  marginTop: 25,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                }}
                 source={require('../../../assets/failure.png')}
               />
               <View
                 style={{
-                  marginTop: 15,
-                  marginHorizontal: 20,
+                  marginTop: 0,
+                  marginHorizontal: 10,
                   paddingBottom: 15,
-                  shadowColor: '#000000',
-                  shadowOffset: {
-                    width: 0,
-                    height: 3,
-                  },
-                  shadowRadius: 2,
-                  shadowOpacity: 0.3,
-                  backgroundColor: WHITE_COLOR,
-                  borderRadius: 5,
                 }}>
                 <Text style={styles.successStyle}>Transaction Failed</Text>
-                <View style={styles.containerView}>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>
-                      Merchant Order Ref:{' '}
-                    </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.merchant_order_ref}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>
-                      Channel Order Ref:{' '}
-                    </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.channel_order_ref}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>Amount: </Text>
-                    <Text style={styles.rightStackText}>
-                      {`${currency} ${totalAmount}`}
-                    </Text>
-                  </View>
-                  <View style={styles.stackView}>
-                    <Text style={styles.leftStackText}>Status: </Text>
-                    <Text style={styles.rightStackText}>
-                      {orderDetails.status || 'FAILED'}
-                    </Text>
-                  </View>
-                </View>
               </View>
             </>
           ) : orderDetails?.message === 'Modal closed' ? (
             <>
               <Image
-                style={{alignSelf: 'center', justifyContent: 'center'}}
+                style={{
+                  marginTop: 15,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                }}
                 source={require('../../../assets/failure.png')}
               />
-              <Text style={styles.successStyle}>Payment Not Done</Text>
-              <View style={styles.containerView}>
-                <Text style={styles.modalDismissText}>Please try again</Text>
-              </View>
+              <Text
+                style={[styles.successStyle, {marginTop: 5, marginBottom: 15}]}>
+                Transaction Failed
+              </Text>
             </>
           ) : (
             <Text>{JSON.stringify(orderDetails, null, 4)}</Text>
           )}
-          {/* <TouchableOpacity
-            style={[
-              styles.payNowView,
-              {
-                marginBottom: 50,
-                backgroundColor:
-                  orderDetails?.status_reason === 'SUCCESS' ||
-                  orderDetails.is_success === 'true'
-                    ? SUCCESS_COLOR
-                    : APP_THEME_COLOR,
-              },
-            ]}
-            disabled={false}
-            onPress={() => {
-              this.setState({orderDetails: undefined});
-            }}>
-            <Text style={styles.payNowTextView}>Go Back</Text>
-          </TouchableOpacity> */}
         </View>
+        <View
+          style={{
+            width: width - 60,
+            alignItems: 'center',
+            backgroundColor: IMAGE_BACKGROUND_COLOR,
+            borderRadius: 10,
+          }}>
+          <View
+            style={{
+              marginVertical: 0,
+              width: width - 70,
+              marginLeft: 20,
+              marginBottom: 9,
+              paddingHorizontal: 30,
+              backgroundColor: WHITE_COLOR,
+              paddingTop: 10,
+              shadowColor: '#000000',
+              shadowOffset: {
+                width: 1,
+                height: 3,
+              },
+              shadowRadius: 5,
+              shadowOpacity: 0.2,
+              elevation: 4,
+              borderRadius: 10,
+              paddingBottom: 8,
+            }}>
+            <Text style={[styles.paymentText, {fontSize: 18}]}>
+              {strings.price_details}
+            </Text>
+            <HorizontalTextStackView
+              item={{
+                name: `${strings.merchant_order_ref}:`,
+                value:
+                  orderDetails.merchant_order_ref ||
+                  '1zftaz66QhvcjRi07yhVMBsqqET',
+                fontSize: 13,
+                fontWeight: '400',
+                rightFontWeight: '500',
+                color: ORDERTEXT,
+                textAlign: 'right',
+              }}
+            />
+            <HorizontalTextStackView
+              item={{
+                name: `${strings.channel_order_ref}`,
+                value:
+                  orderDetails.channel_order_ref ||
+                  'PAY-FylBOXjbTMmH52CCNI4OFw',
+                fontSize: 13,
+                fontWeight: '400',
+                rightFontWeight: '500',
+                color: ORDERTEXT,
+                textAlign: 'left',
+              }}
+            />
+            <HorizontalTextStackView
+              item={{
+                name: `${strings.order}`,
+                value: `${this.formatNumber(totalAmount)}`,
+                fontSize: 13,
+                fontWeight: '400',
+                rightFontWeight: '500',
+                color: ORDERTEXT,
+                textAlign: 'right',
+              }}
+            />
+            <HorizontalTextStackView
+              item={{
+                name: `${strings.delivery}`,
+                value: `${this.formatNumber(deliveryAmount)}`,
+                fontSize: 13,
+                fontWeight: '400',
+                color: ORDERTEXT,
+                rightFontWeight: '500',
+                textAlign: 'right',
+              }}
+            />
+            <HorizontalTextStackView
+              item={{
+                name:
+                  orderDetails?.message === 'Modal closed'
+                    ? `${strings.amount_toPaid}`
+                    : `${strings.amount_paid}`,
+                value: `${this.formatNumber(totalAmount + deliveryAmount)}`,
+                fontSize: 16,
+                fontWeight: '500',
+                color: ORDERTEXT,
+                rightFontWeight: '500',
+                textAlign: 'right',
+              }}
+            />
+          </View>
+        </View>
+        <>
+          <View
+            style={{
+              width: width - 40,
+              alignItems: 'center',
+              backgroundColor: IMAGE_BACKGROUND_COLOR,
+            }}>
+            <View
+              style={{
+                borderRadius: 10,
+                marginTop: 5,
+                backgroundColor: WHITE_COLOR,
+                width: width - 70,
+                shadowColor: '#000000',
+                shadowOffset: {
+                  width: 1,
+                  height: 3,
+                },
+                shadowRadius: 5,
+                shadowOpacity: 0.2,
+                elevation: 4,
+              }}>
+              {map(selectedItems, product => {
+                return (
+                  <ScheduledProductCell
+                    product={product}
+                    removeInStock={true}
+                    removeBorder={true}
+                    key={product.name}
+                  />
+                );
+              })}
+            </View>
+            <View
+              style={{
+                backgroundColor: WHITE_COLOR,
+                width: width - 70,
+                borderRadius: 10,
+                marginTop: 15,
+                shadowColor: '#000000',
+                shadowOffset: {
+                  width: 1,
+                  height: 3,
+                },
+                shadowRadius: 5,
+                shadowOpacity: 0.2,
+                elevation: 4,
+
+                marginBottom: 10,
+              }}>
+              <Text
+                style={[
+                  styles.paymentText,
+                  {
+                    fontSize: 18,
+                    marginTop: 15,
+                    marginBottom: 5,
+                    marginLeft: 15,
+                  },
+                ]}>
+                {strings.shipping_address}:
+              </Text>
+              <Text style={{marginLeft: 15, marginBottom: 15}}>
+                {'MIG I A7'} {'\n'}
+                {'Sujatha Nagar, Pendurthy'}
+                {'\n'}
+                {'Visakhanpatnam'}
+                {'\n'}
+                {'Andhra pradesh, 530051'}
+                {'\n'}
+                {'INDIA'}
+              </Text>
+            </View>
+          </View>
+        </>
       </View>
     );
   };
@@ -395,216 +514,244 @@ class Shop extends React.Component {
         style={{
           flex: 1,
         }}>
-        <FlatList
-          style={{
-            flex: 1,
-            paddingHorizontal: 10,
-            paddingTop: 0,
-            paddingVertical: 15,
-            backgroundColor: WHITE_COLOR,
-          }}
-          data={this.state.allProducts}
-          numColumns={2}
-          keyExtractor={item => item.key}
-          renderItem={product => {
-            let didSelectedItem = !isEmpty(
-              this.state.selectedProducts[product.item.key],
-            );
-            return (
-              <Product
-                key={product.key}
-                data={{
-                  ...product,
-                  didSelected: didSelectedItem,
-                }}
-                navigation={this.props.navigation}
-                onSelectProduct={this._didSelectedProducts}
-              />
-            );
-          }}
-          ListHeaderComponent={() => {
-            return (
-              <View style={styles.headerContainerView}>
-                <View
-                  style={[
-                    styles.headerView,
-                    Platform.OS === 'ios' ? {margiTop: 5} : {marginTop: 30},
-                  ]}>
-                  <Text style={styles.featuredText}>Shoe Mart</Text>
-                  <View style={styles.headerButtonView}>
-                    <Text
-                      style={
-                        styles.numberOfItemsText
-                      }>{`${products.length} items listed`}</Text>
+        {!isEmpty(this.state.orderDetails) ? (
+          <>
+            <ScrollView>
+              <this.ResponseView orderDetails={this.state.orderDetails} />
+            </ScrollView>
+            <TouchableOpacity
+              style={[
+                styles.payNowView,
+                {
+                  marginTop: 10,
+                  marginBottom: 15,
+                  width: width - 60,
+                  backgroundColor:
+                    this.state.orderDetails?.status_reason === 'SUCCESS' ||
+                    this.state.orderDetails?.status === 'Success' ||
+                    this.state.orderDetails.is_success === true
+                      ? SUCCESS_COLOR
+                      : APP_THEME_COLOR,
+                  shadowColor: '#000000',
+                  shadowOffset: {
+                    width: 1,
+                    height: 3,
+                  },
+                  shadowRadius: 5,
+                  shadowOpacity: 0.2,
+                  elevation: 6,
+                },
+              ]}
+              disabled={false}
+              onPress={() => {
+                if (
+                  this.state.orderDetails?.status_reason === 'SUCCESS' ||
+                  this.state.orderDetails.is_success === true
+                ) {
+                  this.setState({orderDetails: undefined});
+                } else {
+                  this.setState({orderDetails: undefined});
+                }
+              }}>
+              <Text style={styles.payNowTextView}>Go Back</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <FlatList
+              style={{
+                flex: 1,
+                paddingHorizontal: 10,
+                paddingTop: 0,
+                paddingVertical: 15,
+                backgroundColor: WHITE_COLOR,
+              }}
+              data={this.state.allProducts}
+              numColumns={2}
+              keyExtractor={item => item.key}
+              renderItem={product => {
+                let didSelectedItem = !isEmpty(
+                  this.state.selectedProducts[product.item.key],
+                );
+                return (
+                  <Product
+                    key={product.key}
+                    data={{
+                      ...product,
+                      didSelected: didSelectedItem,
+                    }}
+                    navigation={this.props.navigation}
+                    onSelectProduct={this._didSelectedProducts}
+                  />
+                );
+              }}
+              ListHeaderComponent={() => {
+                return (
+                  <View style={styles.headerContainerView}>
                     <View
-                      style={{
-                        flexDirection: 'row',
-                        flex: 1,
-                        justifyContent: 'flex-end',
-                      }}>
-                      <TouchableOpacity
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          marginLeft: 5,
-                          marginRight: 5,
-                        }}
-                        onPress={() => {
-                          this.setState({
-                            ascendingSort: this.state.ascendingSort
-                              ? false
-                              : true,
-                          });
-                          let orderType = this.state.ascendingSort
-                            ? 'asc'
-                            : 'desc';
-                          let filterProducts = orderBy(
-                            this.state.allProducts,
-                            'price',
-                            orderType,
-                          );
-                          this.setState({allProducts: filterProducts});
-                        }}>
-                        <Image
-                          style={{
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            width: 12,
-                            height: 12,
-                            alignContent: 'center',
-                          }}
-                          source={
-                            this.state.ascendingSort
-                              ? require('../../../assets/ascendingSort.png')
-                              : require('../../../assets/descendingSort.png')
-                          }
-                        />
+                      style={[
+                        styles.headerView,
+                        Platform.OS === 'ios' ? {margiTop: 5} : {marginTop: 30},
+                      ]}>
+                      <Text style={styles.featuredText}>
+                        {strings.app_name}
+                      </Text>
+                      <View style={styles.headerButtonView}>
                         <Text
+                          style={
+                            styles.numberOfItemsText
+                          }>{`${products.length} ${strings.items_listed}`}</Text>
+                        <View
                           style={{
-                            color: BLACK,
-                            fontSize: 12,
-                            marginLeft: 5,
+                            flexDirection: 'row',
+                            flex: 1,
+                            justifyContent: 'flex-end',
                           }}>
-                          Sort
-                        </Text>
-                      </TouchableOpacity>
+                          <TouchableOpacity
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              marginLeft: 5,
+                              marginRight: 5,
+                            }}
+                            onPress={() => {
+                              this.setState({
+                                ascendingSort: this.state.ascendingSort
+                                  ? false
+                                  : true,
+                              });
+                              let orderType = this.state.ascendingSort
+                                ? 'asc'
+                                : 'desc';
+                              let filterProducts = orderBy(
+                                this.state.allProducts,
+                                'price',
+                                orderType,
+                              );
+                              this.setState({allProducts: filterProducts});
+                            }}>
+                            <Image
+                              style={{
+                                alignSelf: 'center',
+                                justifyContent: 'center',
+                                width: 12,
+                                height: 12,
+                                alignContent: 'center',
+                              }}
+                              source={
+                                this.state.ascendingSort
+                                  ? require('../../../assets/ascendingSort.png')
+                                  : require('../../../assets/descendingSort.png')
+                              }
+                            />
+                            <Text
+                              style={{
+                                color: BLACK,
+                                fontSize: 12,
+                                marginLeft: 5,
+                              }}>
+                              {strings.sort}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </View>
-            );
-          }}
-          stickyHeaderIndices={[0]}
-          ListFooterComponent={() => {
-            return <View style={styles.footerView} />;
-          }}
-        />
-        <View style={styles.buyNowContainerView}>
-          <TouchableOpacity
-            style={[
-              styles.buyNowView,
-              isEmpty(this.state.selectedProducts)
-                ? {
-                    backgroundColor: descriptionText,
-                  }
-                : {
-                    backgroundColor: APP_THEME_COLOR,
-                  },
-            ]}
-            disabled={isEmpty(this.state.selectedProducts)}
-            onPress={() => {
-              // this.setState({showUIPopUp: true});
-              this.props.navigation.navigate('Checkout', {
-                price: '2345',
-                selectedProducts: this.state.selectedProducts,
-              });
-            }}>
-            <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
-              Buy Now
-            </Text>
-          </TouchableOpacity>
-          {!isEmpty(this.state.orderDetails) ? (
-            <AwesomeAlert
-              show={!isEmpty(this.state.orderDetails)}
-              showProgress={false}
-              customView={this.ResponseView(this.state.orderDetails)}
-              closeOnTouchOutside={true}
-              closeOnHardwareBackPress={false}
-              showCancelButton={false}
-              showConfirmButton={true}
-              confirmText={
-                this.state.orderDetails?.is_success
-                  ? 'Continue Shopping'
-                  : this.state.orderDetails.message === 'Modal closed'
-                  ? 'Dismiss'
-                  : 'Continue Shopping'
-              }
-              onDismiss={() => this.setState({orderDetails: undefined})}
-              confirmButtonColor={
-                this.state.orderDetails?.message === 'Modal closed'
-                  ? APP_THEME_COLOR
-                  : this.state.orderDetails?.is_success ||
-                    this.state.orderDetails.status !== 'Failed'
-                  ? SUCCESS_COLOR
-                  : APP_THEME_COLOR
-              }
-              confirmButtonTextStyle={{paddingHorizontal: 15}}
-              onConfirmPressed={() => {
-                this.hideOrderDetailsAlert();
+                );
+              }}
+              stickyHeaderIndices={[0]}
+              ListFooterComponent={() => {
+                return <View style={styles.footerView} />;
               }}
             />
-          ) : null}
-          {this.state.showUIPopUp ? (
-            <AwesomeAlert
-              show={this.state.showUIPopUp}
-              showProgress={false}
-              title=""
-              message="Please choose one of the below option to proceed further"
-              messageStyle={{textAlign: 'center'}}
-              closeOnTouchOutside={true}
-              closeOnHardwareBackPress={false}
-              showCancelButton={true}
-              showConfirmButton={true}
-              cancelButtonTextStyle={{fontSize: 10}}
-              confirmButtonTextStyle={{fontSize: 10}}
-              cancelText="Chaipay Checkout UI"
-              confirmText="Custom Checkout UI"
-              cancelButtonColor={APP_THEME_COLOR}
-              confirmButtonColor={APP_THEME_COLOR}
-              onCancelPressed={() => {
-                let config = this.getDefaultConfig();
-                let jwtToken =
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoibHpyWUZQZnlNTFJPYWxsWiIsImlhdCI6MTYzMjM5MDkyMCwiZXhwIjoyNzMyMzkwOTIwfQ.IRgiM-zjAdJEVDuPSNfxmDszZQi_csE1q7xjVRvPvoc';
+            <View style={styles.buyNowContainerView}>
+              <TouchableOpacity
+                style={[
+                  styles.buyNowView,
+                  isEmpty(this.state.selectedProducts)
+                    ? {
+                        backgroundColor: descriptionText,
+                      }
+                    : {
+                        backgroundColor: APP_THEME_COLOR,
+                      },
+                ]}
+                disabled={isEmpty(this.state.selectedProducts)}
+                onPress={() => {
+                  this.setState({showUIPopUp: true});
+                }}>
+                <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
+                  {strings.buy_now}
+                </Text>
+              </TouchableOpacity>
+              {this.state.showUIPopUp ? (
+                <AwesomeAlert
+                  show={this.state.showUIPopUp}
+                  showProgress={false}
+                  title=""
+                  message={strings.alert_option}
+                  messageStyle={{textAlign: 'center'}}
+                  closeOnTouchOutside={true}
+                  closeOnHardwareBackPress={false}
+                  showCancelButton={true}
+                  showConfirmButton={true}
+                  cancelButtonTextStyle={{fontSize: 10}}
+                  confirmButtonTextStyle={{fontSize: 10}}
+                  cancelText={strings.web_checkout}
+                  confirmText={strings.custom_checkout}
+                  cancelButtonColor={APP_THEME_COLOR}
+                  confirmButtonColor={APP_THEME_COLOR}
+                  onCancelPressed={() => {
+                    let config = this.getDefaultConfig();
 
-                this.checkout.current.openCheckoutUI(config, jwtToken);
-                this.onClose();
-              }}
-              onConfirmPressed={() => {
-                this.props.navigation.navigate('Checkout', {
-                  price: '2345',
-                  selectedProducts: this.state.selectedProducts,
-                });
-                this.onClose();
-              }}
-            />
-          ) : null}
-          <Checkout
-            ref={this.checkout}
-            env={'staging'}
-            callbackFunction={this.afterCheckout}
-            redirectUrl={'chaipay://checkout'}
-            secretKey={
-              '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c'
-            }
-            chaipayKey={'xFgseojiprOhkgPa'}
-          />
-        </View>
+                    let jwtToken = JWTToken;
+                    this.checkout.current.openCheckoutUI(config, jwtToken);
+
+                    this.onClose();
+                  }}
+                  onConfirmPressed={() => {
+                    this.props.navigation.navigate('Checkout', {
+                      price: '2345',
+                      selectedProducts: this.state.selectedProducts,
+                    });
+                    this.onClose();
+                  }}
+                />
+              ) : null}
+              <Checkout
+                ref={this.checkout}
+                env={'dev'}
+                callbackFunction={this.afterCheckout}
+                redirectUrl={'chaipay://checkout'}
+                secretKey={SECRET_KEY}
+                chaipayKey={CHAIPAY_KEY}
+              />
+            </View>
+          </>
+        )}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  payNowView: {
+    height: 50,
+    alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 5,
+    paddingVertical: 15,
+    alignSelf: 'center',
+    backgroundColor: APP_THEME_COLOR,
+  },
+  payNowTextView: {
+    alignSelf: 'center',
+    textAlign: 'center',
+    alignItems: 'center',
+    color: WHITE_COLOR,
+    fontWeight: BOLD,
+    fontSize: 16,
+  },
   row: {
     flex: 1,
     flexDirection: 'row',

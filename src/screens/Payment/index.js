@@ -6,6 +6,7 @@ import {View, Text, ScrollView, StyleSheet} from 'react-native';
 //const client = require('chaipay')
 import axios from 'axios';
 import {useFocusEffect} from '@react-navigation/native';
+import {strings} from '../../constants';
 
 // TODO
 // 1. Add env variable which can have 3 values "dev","staging","prod" using this we should use the respective domain for API requests
@@ -148,13 +149,13 @@ const Payment = ({route}) => {
           </Text>
           <View style={containerView}>
             <View style={stackView}>
-              <Text style={leftStackText}>Merchant Order Ref: </Text>
+              <Text style={leftStackText}>{strings.merchant_order_ref} </Text>
               <Text style={rightStackText}>
                 {orderDetails.merchant_order_ref}
               </Text>
             </View>
             <View style={stackView}>
-              <Text style={leftStackText}>Channel Order Ref: </Text>
+              <Text style={leftStackText}>{strings.channel_order_ref} </Text>
               <Text style={rightStackText}>
                 {orderDetails.channel_order_ref}
               </Text>

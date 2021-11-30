@@ -15,7 +15,9 @@ class CheckboxView extends Component {
         }}
         onPress={() => {
           this.props.didSelected(
-            omit(this.props.item, ['name', 'description']),
+            this.props?.item?.fromLanguage
+              ? this.props.item
+              : omit(this.props.item, ['name', 'description']),
             this.props.fromSavedCards,
           );
         }}>

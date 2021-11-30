@@ -12,6 +12,7 @@ import {
   BOLD,
   descriptionText,
   HEADERBLACK,
+  strings,
   TRANSPARENT,
   WHITE_COLOR,
 } from '../constants';
@@ -68,7 +69,6 @@ class CreditCardForm extends Component {
     }
 
     var numberValidation = valid.number(text);
-    console.log(numberValidation);
     this.setState({cardValidation: numberValidation});
     if (text.length > 13) {
       this.setState({cardNumberError: !numberValidation.isValid});
@@ -155,9 +155,9 @@ class CreditCardForm extends Component {
           }}>
           <this.TextField
             style={styles.textField}
-            label="Cardholder Name"
+            label={strings.card_holder_name}
             value={this.state.name}
-            defaultPlaceholder={'Name'}
+            defaultPlaceholder={strings.card_holder_name}
             onChangeText={text => {
               this.setState({name: text});
               this.props.newCardData({
@@ -172,7 +172,7 @@ class CreditCardForm extends Component {
           />
           <this.TextField
             style={styles.textField}
-            label="Card Number"
+            label={strings.card_number}
             defaultPlaceholder={'1234 1234 1234 1234'}
             value={this.state.cardNumber}
             keyboardType="numeric"
@@ -189,7 +189,7 @@ class CreditCardForm extends Component {
                 marginHorizontal: 5,
                 width: (width - 80) / 2,
               }}
-              label="Expiration Date"
+              label={strings.exp_date}
               defaultPlaceholder={'MM/YYYY'}
               value={this.state.expiration}
               keyboardType="numeric"
@@ -205,7 +205,7 @@ class CreditCardForm extends Component {
                 marginHorizontal: 15,
                 width: (width - 100) / 2,
               }}
-              label="Security Code"
+              label={strings.cvv}
               value={this.state.cvv}
               defaultPlaceholder={'X X X'}
               keyboardType="numeric"
