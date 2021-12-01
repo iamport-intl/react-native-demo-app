@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Dimensions,
@@ -11,8 +10,11 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  PermissionsAndroid,
 } from 'react-native';
-import WebView from 'react-native-webview';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import {WebView} from 'react-native-webview';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
@@ -26,7 +28,11 @@ import {
 } from './constants';
 import {HmacSHA256} from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
-import {last} from 'lodash';
+import {isEmpty, last} from 'lodash';
+import SmsListener from 'react-native-android-sms-listener';
+import {helpers, _prepareRequestBody, axiosMethods} from './helper';
+
+var SendIntentAndroid = require('react-native-send-intent');
 
 class Checkout extends React.Component {
   constructor(props) {
@@ -39,14 +45,85 @@ class Checkout extends React.Component {
       pageLoading: true,
       messageFromWebView: '',
       secretHash: '',
-      originList: ['momo://*', 'zalopay://*', 'chaipay://*', 'intent://*'],
-      env: 'prod',
+      originList: ['momo://', 'zalopay://', 'intent://', 'toppay://'],
+      env: props.env,
       data: {},
       webUrl: '',
-      clientKey: 'vzJeunCkacgDYxMk',
-      secretKey:
-        '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11',
+      webViewRef: null,
     };
+
+    this.paymentLinkWebView = React.createRef();
+  }
+  webview = null;
+
+  injectWebViewData = numb => {
+    console.log('OTP recieces', numb);
+
+    let injectedData = numb
+      ? `
+          document.getElementById('otp1').value = '${numb.substring(0, 1)}';
+          document.getElementById('otp2').value = '${numb.substring(1, 2)}';
+          document.getElementById('otp3').value = '${numb.substring(2, 3)}';
+          document.getElementById('otp4').value = '${numb.substring(3, 4)}';
+          document.getElementById('otp5').value = '${numb.substring(4, 5)}';
+          document.getElementById('otp6').value = '${numb.substring(5, 6)}';
+        `
+      : `
+      document.getElementById('Mobilephoneno').value = '8341469169';
+    `;
+
+    return injectedData.toString();
+  };
+
+  setWebState = ref => {
+    if (ref !== null) {
+      this.webview = ref;
+      if (isEmpty(this.state.webViewRef)) {
+        this.setState({webViewRef: ref});
+      }
+    }
+  };
+
+  async requestReadSmsPermission() {
+    if (isEmpty(this.state.webViewRef)) {
+      if (!isEmpty(this.webview)) {
+        this.setState({webViewRef: this.webview});
+      }
+    }
+    try {
+      var granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_SMS,
+        {
+          title: 'Auto Verification OTP',
+          message: 'need access to read sms, to verify OTP',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+          {
+            title: 'Receive SMS',
+            message: 'Need access to receive sms, to verify OTP',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          SmsListener.addListener(message => {
+            var numb = message.body.match(/\d/g);
+            numb = numb.join('');
+
+            this.setState({receivedOTP: numb});
+
+            let x = this.injectWebViewData(numb);
+            this.webview?.injectJavaScript(x);
+          });
+        } else {
+        }
+      } else {
+        console.log('READ_SMS permissions denied');
+      }
+    } catch (err) {
+      alert(err);
+    }
   }
 
   setPageLoading = (val, callback = undefined) => {
@@ -62,307 +139,64 @@ class Checkout extends React.Component {
     );
   };
 
-  _createHash = (data, secretKey) => {
-    let message = '';
-    message =
-      'amount=' +
-      encodeURIComponent(data.amount) +
-      '&currency=' +
-      encodeURIComponent(data.currency) +
-      '&failure_url=' +
-      encodeURIComponent(data.failure_url) +
-      '&merchant_order_id=' +
-      encodeURIComponent(data.merchant_order_id) +
-      '&pmt_channel=' +
-      encodeURIComponent(data.pmt_channel) +
-      '&pmt_method=' +
-      encodeURIComponent(data.pmt_method) +
-      '&success_url=' +
-      encodeURIComponent(data.success_url);
-
-    let hash = HmacSHA256(message, this.props.secretKey);
-    let signatureHash = Base64.stringify(hash);
-    return signatureHash;
-  };
-
-  createHash = (
-    key,
-    amount,
-    currency,
-    failureUrl,
-    merchantOrderId,
-    successUrl,
-  ) => {
-    let mainParams =
-      'amount=' +
-      encodeURIComponent(amount) +
-      '&client_key=' +
-      encodeURIComponent(key) +
-      '&currency=' +
-      encodeURIComponent(currency) +
-      '&failure_url=' +
-      encodeURIComponent(failureUrl) +
-      '&merchant_order_id=' +
-      encodeURIComponent(merchantOrderId) +
-      '&success_url=' +
-      encodeURIComponent(successUrl);
-
-    // const secretKey =
-    //   '0e94b3232e1bf9ec0e378a58bc27067a86459fc8f94d19f146ea8249455bf242';
-    const secretKey = this.props.secretKey;
-
-    let hash = HmacSHA256(mainParams, secretKey);
-    let signatureHash = Base64.stringify(hash);
-
-    return signatureHash;
-  };
-  _fetchHash = async props => {
-    this.setPageLoading(true);
-    let secretHash = '';
-    const {
-      paymentChannel,
-      paymentMethod,
-      failureUrl,
-      successUrl,
-      chaipayKey,
-      amount,
-      currency,
-      fetchHashUrl,
-      merchantOrderId,
-      secretKey,
-      callbackFunction,
-    } = props;
-    let data = {
-      key: chaipayKey,
-      pmt_channel: paymentChannel,
-      pmt_method: paymentMethod,
-      merchant_order_id: merchantOrderId,
-      amount: amount,
-      currency: currency,
-      success_url: successUrl,
-      failure_url: failureUrl,
-    };
-    if (!fetchHashUrl && !secretKey) {
-      return secretHash;
-    } else if (fetchHashUrl == undefined) {
-      secretHash = this._createHash(data, secretKey);
-    } else {
-      let url = fetchHashUrl;
-      let body = data;
-
-      let requestConfig = {
-        timeout: 30000,
-        headers: {
-          Accept: '*/*',
-          'Content-Type': 'application/json',
-        },
-      };
-      try {
-        let response = await axios.post(url, body, requestConfig);
-        secretHash = response.data.hash;
-      } catch (err) {
-        callbackFunction({
-          status: 'failure',
-          message: err,
-        });
-      }
-    }
-    this.setPageLoading(false);
-    return secretHash;
-  };
-
-  getOTP = async mobileNumber => {
-    // var number = this.props["billingAddress"]?.billing_phone;
-    let config = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    return await this._callPostMethod(
-      initiateURL[this.getEnv()] + 'verification/generateOTP/' + mobileNumber,
-      {},
-      config,
-    );
-  };
-
-  fetchSavedCards = async (number, otp, token) => {
-    console.log(token);
-    var url =
-      initiateURL[this.getEnv()] +
-      'user/' +
-      number +
-      '/savedCard' +
-      `${token ? '' : `?otp=${otp}`}`;
-
-    let requestConfig = {
-      headers:
-        token !== undefined
-          ? {
-              Authorization: `Bearer ${token}`,
-              'X-Chaipay-Client-Key': this.props.chaipayKey,
-            }
-          : {'X-Chaipay-Client-Key': this.props.chaipayKey},
-    };
-    return await this._callGetMethod(url, requestConfig);
-  };
-
-  fetchAvailablePaymentGateway = async () => {
-    let url =
-      fetchMerchantsURL[this.getEnv()] +
-      `merchants/${this.props.chaipayKey}/paymethodsbyKey`;
-
-    let val = await this._callGetMethod(url);
-    return val;
-  };
-
-  _callGetMethod = async (url, requestConfig) => {
-    return new Promise((resolve, reject) => {
-      console.warn(`url : ${url}`);
-      axios
-        .get(url, requestConfig)
-        .then(response => {
-          resolve(response);
-        })
-        .catch(error => {
-          console.log('error', error);
-          resolve(error);
-        });
-    });
-  };
-  _callPostMethod = async (url, bodyPart, config) => {
-    return new Promise((resolve, reject) => {
-      let body = JSON.stringify(bodyPart);
-      let requestConfig = config;
-      console.warn(
-        `url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
-          requestConfig,
-        )}`,
-      );
-      axios
-        .post(url, body, requestConfig)
-        .then(response => {
-          console.warn('Response : ' + JSON.stringify(response, null, 4));
-          resolve(response);
-        })
-        .catch(error => {
-          console.warn('ERROR: ' + JSON.stringify(error, null, 4));
-          resolve(error);
-        });
-    });
-  };
-
-  getToken = async cardDetails => {
-    let url =
-      'https://pci.channex.io/api/v1/cards?api_key=0591dde04c764d8b976b05ef109ecf1a';
-
-    let body = {
-      card: {
-        card_number: cardDetails.card_number,
-        cardholder_name: cardDetails.card_holder_name,
-        service_code: cardDetails.cvv,
-        expiration_month: cardDetails.expiry_month,
-        expiration_year: cardDetails.expiry_year,
-      },
-    };
-    console.log('Token Response', body);
-
-    let requestConfig = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-
-    let response = await this._callPostMethod(url, body, requestConfig);
-    console.log('Token Response', response);
-    return response;
-  };
-
   startPaymentWithNewCard = async (savedTokenRes, data) => {
-    return await this.startPayment(false, savedTokenRes, data);
+    console.log('ENTERED !$#');
+    return await helpers.startPayment(false, savedTokenRes, data);
   };
 
   startPaymentWithSavedCard = async (savedTokenRes, data) => {
-    return await this.startPayment(true, savedTokenRes, data);
+    return await helpers.startPayment(true, savedTokenRes, data);
   };
 
-  startPayment = async (isSavedCards, savedTokenRes, data) => {
-    var token = '';
-    var partial_card_number = '';
-    var expiry_year = '';
-    var expiry_month = '';
-    var cardType = '';
+  // startPayment = async (isSavedCards, savedTokenRes, data) => {
+  //   var token = '';
+  //   var partial_card_number = '';
+  //   var expiry_year = '';
+  //   var expiry_month = '';
+  //   var cardType = '';
 
-    let {body, missingParams} = await this._prepareRequestBody(data);
+  //   let {body, missingParams} = await _prepareRequestBody(data);
 
-    if (isSavedCards) {
-      token = savedTokenRes.token;
-      partial_card_number = savedTokenRes.partial_card_number;
-      expiry_month = savedTokenRes.expiry_month;
-      expiry_year = savedTokenRes.expiry_year;
-      cardType = savedTokenRes.type;
-    } else {
-      var tokenRes = await this.getToken(savedTokenRes);
-      var attributes = tokenRes.data?.data?.attributes;
-      token = attributes?.card_token;
-      partial_card_number = attributes?.card_number;
-      expiry_month = attributes?.expiration_month;
-      expiry_year = attributes?.expiration_year;
-      cardType = attributes?.card_type;
-    }
+  //   if (isSavedCards) {
+  //     token = savedTokenRes.token;
+  //     partial_card_number = savedTokenRes.partial_card_number;
+  //     expiry_month = savedTokenRes.expiry_month;
+  //     expiry_year = savedTokenRes.expiry_year;
+  //     cardType = savedTokenRes.type;
+  //   } else {
+  //     var tokenRes = await this.getToken(savedTokenRes);
+  //     var attributes = tokenRes.data?.data?.attributes;
+  //     token = attributes?.card_token;
+  //     partial_card_number = attributes?.card_number;
+  //     expiry_month = attributes?.expiration_month;
+  //     expiry_year = attributes?.expiration_year;
+  //     cardType = attributes?.card_type;
+  //   }
 
-    data = {
-      ...body,
-      token_params: {
-        token: token,
-        partial_card_number: partial_card_number,
-        expiry_month: expiry_month,
-        expiry_year: expiry_year,
-        type: cardType,
-      },
-    };
+  //   data = {
+  //     ...body,
+  //     token_params: {
+  //       token: token,
+  //       partial_card_number: partial_card_number,
+  //       expiry_month: expiry_month,
+  //       expiry_year: expiry_year,
+  //       type: cardType,
+  //     },
+  //   };
 
-    let requestConfig = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
+  //   let requestConfig = {
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //   };
 
-    let val = await this._callPostMethod(
-      initiateURL[this.getEnv()] + 'initiatePayment',
-      data,
-      requestConfig,
-    );
-    return {val: val, data: data};
-  };
-
-  _prepareRequestBody = async props => {
-    let body = {};
-    props = {...props};
-    props.signatureHash = await this._fetchHash({...props});
-    console.warn('Signature hash value : ', props.signatureHash);
-    let missingParams = requiredParams.filter(item => {
-      let output = false;
-      if (item.includes('/')) {
-        let keyMissing = item
-          .split('/')
-          .filter(
-            key => Object.keys(props).includes(key) == false || !props[key],
-          );
-        output = keyMissing.length === item.split('/').length;
-      } else {
-        output = Object.keys(props).includes(item) == false || !props[item];
-      }
-      return output;
-    });
-
-    if (missingParams.length == 0) {
-      requiredParams.forEach(param => {
-        body[bodyParams[param]] = props[param];
-      });
-      body[bodyParams.signatureHash] = props.signatureHash;
-    }
-    return {body, missingParams};
-  };
+  //   let val = await axiosMethods._callPostMethod(
+  //     initiateURL[this.getEnv()] + 'initiatePayment',
+  //     data,
+  //     requestConfig,
+  //   );
+  //   return {val: val, data: data};
+  // };
 
   prepareWebRequestBody = async props => {
     let body = {};
@@ -378,7 +212,7 @@ class Checkout extends React.Component {
   };
 
   initiatePayment = async data => {
-    let {body, missingParams} = await this._prepareRequestBody(data);
+    let {body, missingParams} = await _prepareRequestBody(data);
     let {callbackFunction} = this.props;
     let env = this.getEnv();
     if (missingParams.length === 0) {
@@ -449,39 +283,56 @@ class Checkout extends React.Component {
     }
   };
 
+  // _handleInvalidUrl = event => {
+  //   const {redirectUrl} = this.props;
+  //   const {originList} = this.state;
+  //   let url = event.url;
+  //   let externalUrlFor = originList.filter(origin => url.startsWith(origin));
+  //   let openUrlInternally =
+  //     url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
+  //   console.log('openUrl', url, 'RedirectUrl', redirectUrl);
+  //   if (!openUrlInternally) {
+  //     Linking.openURL(url).catch(error => {
+  //       this._handleError(error);
+  //     });
+  //   }
+  //   return openUrlInternally;
+  // };
+
   _handleInvalidUrl = event => {
     const {redirectUrl} = this.props;
     const {originList} = this.state;
     let url = event.url;
-    let externalUrlFor = originList.filter(origin => {
-      let splitOrigin = origin.split('*')[0];
-      console.log('splitOrigin', splitOrigin);
+    // let externalUrlFor = originList.filter(origin => {
+    //   let splitOrigin = origin.split('*')[0];
+    //   console.log('splitOrigin', splitOrigin);
 
-      return url.startsWith(splitOrigin);
-    });
-    console.log('externalUrlFor', externalUrlFor);
+    //   return url.startsWith(splitOrigin);
+    // });
+    let externalUrlFor = originList.filter(origin => url.startsWith(origin));
 
     let openUrlInternally =
       url.startsWith(redirectUrl) === false && externalUrlFor.length === 0;
-    console.log(
-      'openUrl',
-      url,
-      'RedirectUrl',
-      redirectUrl,
-      'openUrlInternally',
-      openUrlInternally,
-    );
-    console.log('esha12', url);
 
     if (!openUrlInternally) {
       if (url.startsWith('http') || url.startsWith('https')) {
-        console.log('esha', url);
-
         this.setState({paymentURL: url});
       } else {
-        Linking.openURL(url).catch(error => {
-          this._handleError(error);
-        });
+        //url.startsWith('intent://') && Platform.OS === 'android';
+
+        if (false) {
+          console.log('490');
+
+          SendIntentAndroid.openChromeIntent(url);
+        } else {
+          console.log('590');
+
+          this.setState({paymentURL: ''});
+
+          Linking.openURL(url).catch(error => {
+            this._handleError(error);
+          });
+        }
       }
     }
     return openUrlInternally;
@@ -558,45 +409,6 @@ class Checkout extends React.Component {
     return this.props.env || 'prod';
   };
 
-  _afterResponseFromGateway = (payChannel = '', queryString = '') => {
-    var {paymentChannel} = this.state.data;
-    var {chaipayKey} = this.props;
-    paymentChannel = payChannel;
-    let url =
-      initiateURL[this.getEnv()] +
-      'handleShopperRedirect/' +
-      paymentChannel +
-      '?chaiMobileSDK=true&' +
-      queryString;
-    console.warn('URL after payment Gateway : ', url);
-    let requestConfig = {
-      timeout: 30000,
-      headers: {
-        Authorization: `Bearer ${chaipayKey}`,
-        Accept: '*/*',
-        'Content-Type': 'application/json',
-      },
-    };
-    return new Promise((resolve, reject) => {
-      axios
-        .get(url, requestConfig)
-        .then(response => {
-          console.warn('Response after callback : ' + JSON.stringify(response));
-          resolve(response.data);
-        })
-        .catch(error => {
-          if (error.response) {
-            reject(error.response.data);
-          } else {
-            reject({
-              message: 'Something went wrong, please contact administrator',
-              is_success: false,
-            });
-          }
-        });
-    });
-  };
-
   startPaymentwithWallets = data => {
     this.setState({data: data});
     let {callbackFunction} = this.props;
@@ -624,29 +436,27 @@ class Checkout extends React.Component {
 
   openCheckoutUI = async (data, jwtToken = '') => {
     this.setState({data: data});
-
     let {body} = await this.prepareWebRequestBody(data);
 
     this.checkoutUI(body, jwtToken);
   };
 
   checkoutUI = async (data, JWTToken) => {
-    let url = 'https://dev-api.chaipay.io/api/paymentLink';
+    let url = initiateURL[this.getEnv()] + 'paymentLink';
     // TODO: Change
     //let url = initiateURL[this.state.env] + 'paymentLink';
 
     let config = {...data};
 
-    config.signature_hash = this.createHash(
+    config.signature_hash = helpers.createHash(
       config.chaipay_key,
       config.amount,
       config.currency,
       config.failure_url,
       config.merchant_order_id,
       config.success_url,
+      this.props.secretKey,
     );
-
-    console.log('Signature', config.signature_hash);
 
     var body = config;
     let requestConfig = {
@@ -659,21 +469,27 @@ class Checkout extends React.Component {
       },
     };
 
-    let response = await this._callPostMethod(url, body, requestConfig);
+    let response = await axiosMethods._callPostMethod(url, body, requestConfig);
 
+    console.log('::::::::::,', this.webview);
+
+    //TODO:
     if (response.status === 200 || response.status === 201) {
       this.setState({
         showPaymentModal: true,
         webUrl: response.data.payment_link,
       });
+    } else {
     }
   };
 
   componentDidMount() {
     const {redirectUrl, callbackFunction} = this.props;
+    AsyncStorage.setItem('DATA', JSON.stringify(this.props));
+
     Linking.removeAllListeners('url');
     Linking.addEventListener('url', async event => {
-      this.setPageLoading(true);
+      //this.setPageLoading(true);
       try {
         let url = event?.url ?? 'none';
         console.warn('Hey there I am called ', redirectUrl, '\nURL::::', url);
@@ -682,6 +498,7 @@ class Checkout extends React.Component {
 
           let firstPart = url.split('?')[0];
           let paymentChannel = last(firstPart.split('/'));
+
           console.log('URL ka first aprt', firstPart, paymentChannel);
 
           let dataFromLink = url.split('?')[1];
@@ -697,11 +514,16 @@ class Checkout extends React.Component {
             let token = params.tokenization_possible;
 
             if (token) {
+              console.log('Token');
+              console.log(params);
+
               callbackFunction(params);
             } else {
-              let dataToBeSaved = await this._afterResponseFromGateway(
+              let dataToBeSaved = await helpers._afterResponseFromGateway(
                 paymentChannel,
                 dataFromLink,
+                this.state.data.paymentChannel,
+                this.props.chaipayKey,
               );
               console.warn('Response after callback : ', dataToBeSaved);
               callbackFunction(dataToBeSaved);
@@ -719,9 +541,9 @@ class Checkout extends React.Component {
     };
   }
 
-  componentWillUnmount() {
-    Linking.removeAllListeners('url');
-  }
+  // componentWillUnmount() {
+  //   Linking.removeAllListeners('url');
+  // }
 
   render() {
     const {
@@ -786,8 +608,14 @@ class Checkout extends React.Component {
             </View>
             {paymentURL ? (
               <WebView
-                originWhitelist={[...originList, 'http://', 'https://']}
+                originWhitelist={[
+                  ...originList,
+                  'http://',
+                  'https://',
+                  'intent://',
+                ]}
                 onShouldStartLoadWithRequest={this._handleInvalidUrl}
+                onNavigationStateChange={this._handleInvalidUrl}
                 onLoadStart={() => {
                   this.setState({
                     pageLoading: true,
@@ -805,18 +633,23 @@ class Checkout extends React.Component {
                 onMessage={this._onMessage}
                 startInLoadingState={false}
                 style={checkoutWebView}
-                renderLoading={() => (
-                  <ActivityIndicator color={'#6464e7'} size={'large'} />
-                )}
+                renderLoading={() => () => {
+                  return this.state.pageLoading ? null : null;
+                }}
                 javaScriptEnabled={true}
                 source={{uri: paymentURL}}
               />
             ) : null}
-            {webUrl ? (
+            {webUrl || this.state.otpReceived ? (
               <WebView
+                ref={ref => {
+                  this.setWebState(ref);
+                }}
+                useWebkit={true}
                 onShouldStartLoadWithRequest={this._handleInvalidUrl}
                 originWhitelist={[...originList, 'http://', 'https://']}
                 onLoadStart={() => {
+                  this.requestReadSmsPermission();
                   this.setState({
                     pageLoading: true,
                   });
@@ -826,17 +659,30 @@ class Checkout extends React.Component {
                     pageLoading: false,
                   });
                 }}
+                javaScriptEnabledAndroid={true}
+                onNavigationStateChange={this.navigationChanged}
+                injectedJavaScript={this.injectWebViewData(
+                  this.state.receivedOTP,
+                )}
+                injectJavaScript={this.injectWebViewData(
+                  this.state.receivedOTP,
+                )}
+                injectedJavaScriptForMainFrameOnly={false}
+                onMessage={event => {
+                  alert(event);
+                  console.log('event: ', event);
+                }}
                 scalesPageToFit
-                cacheEnabled={false}
+                cacheEnabled={true}
                 javaScriptEnabled={true}
                 source={{uri: webUrl}}
               />
             ) : null}
-            {this.state.pageLoading ? (
+            {/* {this.state.pageLoading ? (
               <View style={indicatorView}>
                 <ActivityIndicator color={'#6464e7'} size={'large'} />
               </View>
-            ) : null}
+            ) : null} */}
           </SafeAreaView>
         </Modal>
       </View>

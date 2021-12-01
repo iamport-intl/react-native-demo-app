@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">ReactNativeDemoShoppingApp</string>
+
+    <string name="payout">Payout</string>
+    <string name="payout_status">Payout Status</string>
+    <string name="momopay" translatable="false">MOMOPAY</string>
+    <string name="zalopay" translatable="false">ZALOPAY</string>
+    <string name="vnpay" translatable="false">VNPAY</string>
+    <string name="ninepay" translatable="false">9Pay</string>
+    <string name="payment_type">Payment Type</string>
+    <string name="onepay" translatable="false">OnePay</string>
+    <string name="shopeePay" translatable="false">ShopeePay</string>
+    <string name="epay" translatable="false">Epay</string>
+    <string name="omise" translatable="false">OMISE</string>
+    <string name="asiapay" translatable="false">AsiaPay</string>
+    <string name="adyen" translatable="false">Adyen</string>
 </resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="buttonPayout" type="id" />
+    <item name="tvPaymentStatus" type="id" />
+    <item name="tvPaymentType" type="id" />
+    <item name="btnMomopay" type="id" />
+    <item name="btnZalopay" type="id" />
+    <item name="btnVnpay" type="id" />
+    <item name="btn9pay" type="id" />
+    <item name="btnOnepay" type="id" />
+    <item name="btnShoppeePay" type="id" />
+    <item name="radioGroup1" type="id" />
+    <item name="radioGroup2" type="id" />
+    <item name="btnEpay" type="id" />
+    <item name="btnOMISE" type="id" />
+    <item name="btnAsiaPay" type="id" />
+    <item name="btnAdyen" type="id" />
+</resources>

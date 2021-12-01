@@ -7,9 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.15.9",
     "axios": "^0.21.1",
-    "prop-types": "^15.7.2",
     "crypto-js": "^4.1.1",
+    "prop-types": "^15.7.2",
+    "react-native-raw-bottom-sheet": "^2.2.0",
     "react-native-webview": "^11.13.0"
   },
   "devDependencies": {

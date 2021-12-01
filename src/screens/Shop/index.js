@@ -45,7 +45,7 @@ import {
   values,
 } from 'lodash';
 
-import {Checkout} from 'chaipay-sdk';
+import {Checkout, WalletView} from 'chaipay-sdk';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
@@ -107,6 +107,8 @@ class Shop extends React.Component {
       showUIPopUp: false,
       orderDetails: {},
       ascendingSort: true,
+
+      showWallet: false,
     };
     this.checkout = React.createRef();
   }
@@ -678,7 +680,8 @@ class Shop extends React.Component {
                 ]}
                 disabled={isEmpty(this.state.selectedProducts)}
                 onPress={() => {
-                  this.setState({showUIPopUp: true});
+                  //this.setState({showUIPopUp: true});
+                  this.setState({showWallet: true});
                 }}>
                 <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
                   {strings.buy_now}
@@ -718,6 +721,7 @@ class Shop extends React.Component {
                   }}
                 />
               ) : null}
+              {this.state.showWallet ? <WalletView /> : null}
               <Checkout
                 ref={this.checkout}
                 env={'dev'}
