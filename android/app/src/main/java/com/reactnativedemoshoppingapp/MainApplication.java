@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.proyecto26.inappbrowser.RNInAppBrowserPackage;
+import com.proyecto26.inappbrowser.RNInAppBrowserPackage;
 import com.centaurwarchief.smslistener.SmsListenerPackage;
 import com.centaurwarchief.smslistener.SmsListenerPackage;
 import com.burnweb.rnsendintent.RNSendIntentPackage;
