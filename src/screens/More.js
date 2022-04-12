@@ -173,6 +173,33 @@ class More extends React.Component {
           <Text style={{padding: 15}}>Change Language</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={{
+            backgroundColor: WHITE_COLOR,
+            marginHorizontal: 15,
+            borderRadius: 6,
+            marginTop: 15,
+            shadowColor: '#000000',
+            shadowOffset: {
+              width: 1,
+              height: 3,
+            },
+            shadowRadius: 5,
+            shadowOpacity: 0.2,
+            elevation: 6,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+          onPress={() => {
+            this.props.navigation.navigate('ChangeToCustomStyles');
+          }}>
+          <Image
+            style={{width: 20, height: 20, marginLeft: 15}}
+            source={require('../../assets/privacy.png')}
+          />
+          <Text style={{padding: 15}}>Custom styles</Text>
+        </TouchableOpacity>
+
         <View
           style={{
             backgroundColor: WHITE_COLOR,

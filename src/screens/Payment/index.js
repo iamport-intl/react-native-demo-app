@@ -132,7 +132,7 @@ const Payment = ({route}) => {
     if (transactionDetails) {
       if (typeof transactionDetails === 'object') {
         setOrderDetails(transactionDetails);
-      } else if (transactionDetails == 'Modal closed') {
+      } else if (transactionDetails === 'Modal closed') {
         setOrderDetails(transactionDetails);
       } else {
         setOrderDetails(JSON.parse(transactionDetails));

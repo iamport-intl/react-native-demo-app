@@ -59,7 +59,7 @@ class OTPTextView extends Component {
         otpText: getOTPTextChucks(inputCount, inputCellLength, defaultValue),
       });
     }
-    console.log('change', this.state.otpText);
+
     let otpText = filter(this.state.otpText, val => val !== '');
 
     if (
@@ -74,8 +74,6 @@ class OTPTextView extends Component {
         let {otpText} = prevState;
 
         let x = [...text];
-        console.log('Previous Text 65', x);
-        console.log('Previous Text 65 length', x.length);
         if (x.length === 6) {
           otpText = x;
         } else if (x.length <= 6) {
@@ -87,10 +85,8 @@ class OTPTextView extends Component {
         };
       },
       () => {
-        console.log('Previous Text 72', this.state.otpText);
-
         handleTextChange(this.state.otpText.join(''));
-        console.log('text');
+
         if (text.length === inputCellLength && i !== inputCount - 1) {
           this.inputs[i + 1].focus();
         }
@@ -153,10 +149,8 @@ class OTPTextView extends Component {
   setValue = value => {
     const {inputCount, inputCellLength} = this.props;
 
-    console.log('Value', value);
     const updatedFocusInput = value.length - 1;
 
-    console.log('Yoooo', getOTPTextChucks(inputCount, inputCellLength, value));
     this.setState(
       {
         otpText: getOTPTextChucks(inputCount, inputCellLength, value),
@@ -187,7 +181,6 @@ class OTPTextView extends Component {
       ...textInputProps
     } = this.props;
 
-    console.log('DEFAULT VALUE', defaultValue);
     const {focusedInput, otpText} = this.state;
     let val = getOTPTextChucks(inputCount, inputCellLength, defaultValue);
 

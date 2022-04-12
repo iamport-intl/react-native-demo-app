@@ -33,7 +33,10 @@ const getLanguagePref = async () => {
 
 const setI18nConfig = async () => {
   const languagePref = await getLanguagePref();
-  strings.setLanguage(languagePref);
+  console.log('211111');
+  if (languagePref) {
+    strings.setLanguage(languagePref);
+  }
 
   // const customTag = {languageTag: `${languagePref}`, isRTL: false};
 

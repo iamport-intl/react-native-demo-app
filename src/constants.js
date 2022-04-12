@@ -43,22 +43,29 @@ export const BOLD = 'bold';
 
 //Currency
 export const currency = '₫';
-
+export const ENVIRONMENT = 'live';
 // DEV //
 
 // SIRI dev
-// export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
-// export const SECRET_KEY =
-//   '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
-// export const JWTToken =
-//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
+export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
+export const SECRET_KEY =
+  '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
+export const JWTToken =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Dev Aagam
-export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
-export const SECRET_KEY =
-  '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
-export const JWTToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYWlIS2FmS0lic2RVSkRPYiIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.B1Xz5Lny1TJvDsO9YzMdve4Uidp5f0bcNmh9NqWqFuI';
+// export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
+// export const SECRET_KEY =
+//   '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYWlIS2FmS0lic2RVSkRPYiIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.B1Xz5Lny1TJvDsO9YzMdve4Uidp5f0bcNmh9NqWqFuI';
+
+// Dev Payalsandbox
+// export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';
+// export const SECRET_KEY =
+//   'd2a387a4bf3f10eb0704af93493248e6e435a64d006fb69b1463a588ec447b1e';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoiamlRUGJqUHRuVGJycFBQbCIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTY0NjkwNTcxMSwiZXhwIjoxOTQ2OTA1NzExfQ.A7tdHJrRjk56umfLwVgQ5CA7cxxRJt3OIfsDqFAdBtg';
 
 // Dev testMerchant;
 

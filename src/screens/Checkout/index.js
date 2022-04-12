@@ -12,6 +12,7 @@ import {
 } from 'lodash';
 import React from 'react';
 import {Dimensions, PermissionsAndroid} from 'react-native';
+import Logo from '../../../assets/mobile.svg';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import 'intl';
 import 'intl/locale-data/jsonp/id';
@@ -33,6 +34,7 @@ import {
   BOLD,
   BORDERCOLOR,
   CHAIPAY_KEY,
+  ENVIRONMENT,
   currency,
   DARKBLACK,
   DARKGRAY,
@@ -61,8 +63,22 @@ import {
   AccordionList,
 } from 'accordion-collapse-react-native';
 import CreditCardForm from '../../helpers/CreditcardForm';
-import {Checkout, helpers} from '../../../paymentSDK';
+import {
+  Checkout,
+  helpers,
+  CheckoutUI,
+  PayNowButton,
+  PaymentMethods,
+  CartDetails,
+  TransactionStatusView,
+  CartSummary,
+  CheckoutInstance,
+  CheckoutUI2,
+} from '@iamport-intl/chaipay-sdk';
+
 import SmsListener from 'react-native-android-sms-listener';
+// import CheckoutUI from '../CheckoutUI';
+//import CheckoutUI2 from '../CheckoutUI2';
 
 const {width, height} = Dimensions.get('screen');
 const deliveryAmount = 0;
@@ -341,6 +357,8 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
+    console.log('this,props', this.props.route);
+
     AsyncStorage.getItem('formattedMobileNumber').then(value => {
       this.setState({formattedText: value});
     });
@@ -354,6 +372,24 @@ class Checkout1 extends React.Component {
     AsyncStorage.getItem('SavedCardsData').then(value => {
       let data = JSON.parse(value);
       this.setState({savedCardsData: data});
+    });
+
+    AsyncStorage.getItem('fontWeight').then(value => {
+      this.setState({fontWeight: value || '400'});
+    });
+    AsyncStorage.getItem('fontSize').then(data => {
+      let value = JSON.parse(data);
+
+      this.setState({fontSize: value || 14});
+    });
+
+    AsyncStorage.getItem('color').then(value => {
+      this.setState({color: value});
+    });
+
+    AsyncStorage.getItem('borderRadius').then(data => {
+      let value = JSON.parse(data);
+      this.setState({borderRadius: value || 15});
     });
 
     helpers
@@ -838,6 +874,7 @@ class Checkout1 extends React.Component {
     let selectedItem = first(values(this.state.selectedItem));
     return {
       chaipayKey: CHAIPAY_KEY,
+      environment: ENVIRONMENT,
       paymentChannel: selectedItem?.payment_channel_key,
       paymentMethod: selectedItem?.payment_method_key,
       merchantOrderId: 'MERCHANT' + new Date().getTime(),
@@ -1799,10 +1836,23 @@ class Checkout1 extends React.Component {
     let orderDetails = this.state.orderDetails;
 
     return (
-      <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
-        {orderDetails !== undefined ? (
+      <>
+        {true ? (
           <>
-            {/* <View
+            <CheckoutUI2
+              selectedProducts={this.props.route.params.selectedProducts}
+              themeColor={'red'}
+              onClose={() => {
+                console.log('this,props', this.props.route.params);
+                this.props?.navigation?.goBack();
+              }}
+            />
+          </>
+        ) : (
+          <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
+            {orderDetails !== undefined ? (
+              <>
+                {/* <View
               style={[
                 styles.headerView,
                 {
@@ -1826,81 +1876,75 @@ class Checkout1 extends React.Component {
                 Checkout{' '}
               </Text>
             </View> */}
-            <ScrollView>
-              <this.ResponseView orderDetails={orderDetails} />
-            </ScrollView>
-            <TouchableOpacity
-              style={[
-                styles.payNowView,
-                {
-                  marginTop: 10,
-                  marginBottom: 15,
-                  width: width - 60,
-                  backgroundColor:
-                    orderDetails?.status_reason === 'SUCCESS' ||
-                    orderDetails.is_success === true
-                      ? SUCCESS_COLOR
-                      : APP_THEME_COLOR,
-                  shadowColor: '#000000',
-                  shadowOffset: {
-                    width: 1,
-                    height: 3,
-                  },
-                  shadowRadius: 5,
-                  shadowOpacity: 0.2,
-                  elevation: 6,
-                },
-              ]}
-              disabled={false}
-              onPress={() => {
-                if (
-                  orderDetails?.status_reason === 'SUCCESS' ||
-                  orderDetails.is_success === true
-                ) {
-                  this.props.navigation.goBack();
-                } else {
-                  this.setState({orderDetails: undefined});
-                }
-              }}>
-              <Text style={styles.payNowTextView}>Go Back</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <View style={[styles.headerView]}>
-              <Text style={styles.featuredText}>{strings.checkout} </Text>
-            </View>
-            <>
-              <KeyboardAvoidingView
-                behavior="padding"
-                style={{flex: 1, marginBottom: 15}}>
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.contentContainerStyle}
-                  style={styles.container}>
-                  <this.ListOfItemsView />
-                  <this.PaymentOptionsView />
+                <ScrollView>
+                  <this.ResponseView orderDetails={orderDetails} />
                 </ScrollView>
-              </KeyboardAvoidingView>
-              <View>
-                {this.state.shouldShowOrderDetails ? (
-                  <this.OrderDetailsView totalAmount={totalAmount} />
-                ) : null}
-                <this.SafeAndsecureView />
-                <this.PayNowView image={image} totalAmount={totalAmount} />
-              </View>
-            </>
-          </>
+                <TouchableOpacity
+                  style={[
+                    styles.payNowView,
+                    {
+                      marginTop: 10,
+                      marginBottom: 15,
+                      width: width - 60,
+                      backgroundColor:
+                        orderDetails?.status_reason === 'SUCCESS' ||
+                        orderDetails.is_success === true
+                          ? SUCCESS_COLOR
+                          : APP_THEME_COLOR,
+                      shadowColor: '#000000',
+                      shadowOffset: {
+                        width: 1,
+                        height: 3,
+                      },
+                      shadowRadius: 5,
+                      shadowOpacity: 0.2,
+                      elevation: 6,
+                    },
+                  ]}
+                  disabled={false}
+                  onPress={() => {
+                    if (
+                      orderDetails?.status_reason === 'SUCCESS' ||
+                      orderDetails.is_success === true
+                    ) {
+                      this.props?.navigation.goBack();
+                    } else {
+                      this.setState({orderDetails: undefined});
+                    }
+                  }}>
+                  <Text style={styles.payNowTextView}>Go Back</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={[styles.headerView]}>
+                  <Text style={styles.featuredText}>{strings.checkout} </Text>
+                </View>
+                <>
+                  <KeyboardAvoidingView
+                    behavior="padding"
+                    style={{flex: 1, marginBottom: 15}}>
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={styles.contentContainerStyle}
+                      style={styles.container}>
+                      <this.ListOfItemsView />
+                      <this.PaymentOptionsView />
+                    </ScrollView>
+                  </KeyboardAvoidingView>
+                  <View>
+                    {this.state.shouldShowOrderDetails ? (
+                      <this.OrderDetailsView totalAmount={totalAmount} />
+                    ) : null}
+                    <this.SafeAndsecureView />
+                    <this.PayNowView image={image} totalAmount={totalAmount} />
+                  </View>
+                </>
+              </>
+            )}
+          </View>
         )}
-        <Checkout
-          ref={this.checkout}
-          env={'dev'}
-          callbackFunction={this.afterCheckout}
-          redirectUrl={'chaipay://checkout'}
-          secretKey={SECRET_KEY}
-          chaipayKey={CHAIPAY_KEY}
-        />
-      </View>
+      </>
     );
   }
 }

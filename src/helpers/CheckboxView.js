@@ -5,6 +5,7 @@ import {APP_THEME_COLOR, TRANSPARENT} from '../constants';
 
 class CheckboxView extends Component {
   render() {
+    console.log(this.props.item);
     return (
       <TouchableOpacity
         style={{
@@ -52,7 +53,9 @@ class CheckboxView extends Component {
           </View>
           <View>
             <Text style={{fontSize: 15, fontWeight: '400'}}>
-              {this.props.item.name}
+              {this.props.item.display_name
+                ? this.props.item.display_name
+                : this.props.item.name}
             </Text>
             {this.props.item.description ? (
               <Text style={{fontSize: 12, fontWeight: '200', marginTop: 3}}>

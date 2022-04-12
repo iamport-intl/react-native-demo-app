@@ -16,9 +16,13 @@ import HomeScreen from './src/screens/Home';
 import ShopScreen from './src/screens/Shop';
 import PaymentScreen from './src/screens/Payment';
 import LanguageScreen from './src/screens/LanguageScreen';
+import ChangeToCustomStyles from './src/screens/ChangeToCustomStyles';
+
 import Profile from './src/screens/Profile';
 import More from './src/screens/More';
 import CheckoutScreen from './src/screens/Checkout';
+import CheckoutUIScreen from './src/screens/CheckoutUI';
+import CheckoutUI2Screen from './src/screens/CheckoutUI2';
 import {
   APP_THEME_COLOR,
   BOLD,
@@ -37,7 +41,12 @@ const Tab = createMaterialBottomTabNavigator();
 
 const HomeTabs = () => {
   AsyncStorage.getItem('selectedLanguage').then(data => {
-    strings.setLanguage(data);
+    console.log('123', data);
+    if (data) {
+      console.log('1234', data);
+
+      strings.setLanguage(data);
+    }
   });
 
   return (
@@ -160,6 +169,76 @@ const App = () => {
                   activeOpacity={0.5}
                   onPress={() => navigation.goBack()}>
                   <Image
+                    source={require('./assets/close.png')}
+                    style={{
+                      alignSelf: 'center',
+                      width: 25,
+                      height: 25,
+                      resizeMode: 'stretch',
+                      marginTop: 0,
+                      marginLeft: 10,
+                    }}
+                  />
+                </TouchableOpacity>
+              </>
+            ),
+          })}
+        />
+
+        <RootStack.Screen
+          name="Checkout UI"
+          component={CheckoutUIScreen}
+          options={({route, navigation}) => ({
+            title: 'Chaiport Checkout',
+            headerStyle: {
+              backgroundColor: 'transparent',
+              shadowRadius: 0,
+              shadowOffset: {
+                height: 0,
+              },
+            },
+            headerLeft: () => (
+              <>
+                <TouchableOpacity
+                  style={{marginLeft: 5, alignItems: 'center'}}
+                  activeOpacity={0.5}
+                  onPress={() => navigation.goBack()}>
+                  <Image
+                    source={require('./assets/leftArrow.png')}
+                    style={{
+                      alignSelf: 'center',
+                      width: 25,
+                      height: 25,
+                      resizeMode: 'stretch',
+                      marginTop: 0,
+                      marginLeft: 10,
+                    }}
+                  />
+                </TouchableOpacity>
+              </>
+            ),
+          })}
+        />
+
+        <RootStack.Screen
+          name="Checkout UI 2"
+          component={CheckoutUI2Screen}
+          options={({route, navigation}) => ({
+            title: 'Chaiport Checkout',
+            headerStyle: {
+              backgroundColor: 'transparent',
+              shadowRadius: 0,
+              shadowOffset: {
+                height: 0,
+              },
+            },
+            headerLeft: () => (
+              <>
+                <TouchableOpacity
+                  style={{marginLeft: 5, alignItems: 'center'}}
+                  activeOpacity={0.5}
+                  onPress={() => navigation.goBack()}>
+                  <Image
                     source={require('./assets/leftArrow.png')}
                     style={{
                       alignSelf: 'center',
@@ -212,6 +291,41 @@ const App = () => {
         <RootStack.Screen
           name="LanguageScreen"
           component={LanguageScreen}
+          options={({route, navigation}) => ({
+            title: '',
+            headerStyle: {
+              backgroundColor: WHITE_COLOR,
+              shadowRadius: 0,
+              shadowOffset: {
+                height: 0,
+              },
+            },
+            headerLeft: () => (
+              <>
+                <TouchableOpacity
+                  style={{marginLeft: 5, alignItems: 'center'}}
+                  activeOpacity={0.5}
+                  onPress={() => navigation.goBack()}>
+                  <Image
+                    source={require('./assets/leftArrow.png')}
+                    style={{
+                      alignSelf: 'center',
+                      width: 25,
+                      height: 25,
+                      resizeMode: 'stretch',
+                      marginTop: 0,
+                      marginLeft: 10,
+                    }}
+                  />
+                </TouchableOpacity>
+              </>
+            ),
+          })}
+        />
+
+        <RootStack.Screen
+          name="ChangeToCustomStyles"
+          component={ChangeToCustomStyles}
           options={({route, navigation}) => ({
             title: '',
             headerStyle: {

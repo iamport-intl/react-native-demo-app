@@ -31,6 +31,7 @@ import {
   ORDERTEXT,
   IMAGE_BACKGROUND_COLOR,
   strings,
+  ENVIRONMENT,
 } from '../../constants';
 import Product from '../Product';
 import {
@@ -45,7 +46,13 @@ import {
   values,
 } from 'lodash';
 
-import {Checkout} from 'chaipay-sdk';
+import {
+  Checkout,
+  helpers,
+  WalletView,
+  CreditCardForm,
+  SavedCardsView,
+} from '@iamport-intl/chaipay-sdk';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
@@ -58,7 +65,7 @@ const products = [
     key: 1,
     name: 'Bella Toes',
     description: 'Premium quality',
-    price: 130000,
+    price: 10000,
     img: 'https://demo.chaipay.io/images/bella-toes.jpg',
   },
   {
@@ -107,6 +114,8 @@ class Shop extends React.Component {
       showUIPopUp: false,
       orderDetails: {},
       ascendingSort: true,
+      walletPaymentChannels: [],
+      hideWalletUI: true,
     };
     this.checkout = React.createRef();
   }
@@ -115,6 +124,11 @@ class Shop extends React.Component {
     AsyncStorage.setItem('formattedMobileNumber', '+918341469169');
     AsyncStorage.setItem('mobileNumber', '8341469169');
     SplashScreen.hide();
+    this.getAvailablePaymentChannels().then(data => {
+      this.setState({walletPaymentChannels: data});
+    });
+
+    console.log('WAletData', this.state.walletPaymentChannels);
   }
   _didSelectedProducts = selectedProduct => {
     if (isEmpty(this.state.selectedProducts)) {
@@ -140,6 +154,28 @@ class Shop extends React.Component {
         });
       }
     }
+  };
+
+  payNow = data => {
+    this.setState({hideWalletUI: true});
+    console.log(data);
+  };
+
+  onClosePressed = () => {
+    console.log('Closed');
+
+    this.setState({hideWalletUI: true});
+  };
+
+  onCreditCardClose = () => {
+    this.setState({showCreditCardUI: false});
+  };
+
+  saveForLater = data => {
+    console.log('Data', data);
+  };
+  newCardData = data => {
+    console.log('DATA', data);
   };
 
   generateJWTToken = () => {
@@ -189,7 +225,7 @@ class Shop extends React.Component {
       billingAddress: {
         billing_name: 'Test React native',
         billing_email: 'markweins@gmail.com',
-        billing_phone: '9998878788',
+        billing_phone: '+848959893980',
         billing_address: {
           city: 'VND',
           country_code: 'VN',
@@ -203,7 +239,7 @@ class Shop extends React.Component {
       shippingAddress: {
         shipping_name: 'xyz',
         shipping_email: 'xyz@gmail.com',
-        shipping_phone: '1234567890',
+        shipping_phone: '+848959893980',
         shipping_address: {
           city: 'abc',
           country_code: 'VN',
@@ -236,13 +272,13 @@ class Shop extends React.Component {
 
   afterCheckout = transactionDetails => {
     if (transactionDetails) {
-      if (typeof transactionDetails === 'object') {
-        this.setState({orderDetails: transactionDetails});
-      } else if (transactionDetails === 'Modal closed') {
-        this.setState({orderDetails: transactionDetails});
-      } else {
-        this.setState({orderDetails: JSON.parse(transactionDetails)});
-      }
+      // if (typeof transactionDetails === 'object') {
+      //   this.setState({orderDetails: transactionDetails});
+      // } else if (transactionDetails === 'Modal closed') {
+      //   this.setState({orderDetails: transactionDetails});
+      // } else {
+      //   this.setState({orderDetails: JSON.parse(transactionDetails)});
+      // }
     }
   };
 
@@ -258,6 +294,11 @@ class Shop extends React.Component {
     return formattedNumber;
   };
 
+  getAvailablePaymentChannels = async () => {
+    let x = await helpers.fetchAvailablePaymentGateway();
+
+    return x.data.WALLET;
+  };
   ResponseView = ({orderDetails}) => {
     let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
     let selectedItems = values(this.state.selectedProducts);
@@ -368,9 +409,7 @@ class Shop extends React.Component {
             <HorizontalTextStackView
               item={{
                 name: `${strings.merchant_order_ref}:`,
-                value:
-                  orderDetails.merchant_order_ref ||
-                  '1zftaz66QhvcjRi07yhVMBsqqET',
+                value: orderDetails.merchant_order_ref,
                 fontSize: 13,
                 fontWeight: '400',
                 rightFontWeight: '500',
@@ -615,20 +654,25 @@ class Shop extends React.Component {
                               marginRight: 5,
                             }}
                             onPress={() => {
-                              this.setState({
-                                ascendingSort: this.state.ascendingSort
-                                  ? false
-                                  : true,
+                              console.log('Sort CLICKED');
+                              this.setState({showCreditCardUI: false}, () => {
+                                this.setState({showCreditCardUI: true});
                               });
-                              let orderType = this.state.ascendingSort
-                                ? 'asc'
-                                : 'desc';
-                              let filterProducts = orderBy(
-                                this.state.allProducts,
-                                'price',
-                                orderType,
-                              );
-                              this.setState({allProducts: filterProducts});
+
+                              // this.setState({
+                              //   ascendingSort: this.state.ascendingSort
+                              //     ? false
+                              //     : true,
+                              // });
+                              // let orderType = this.state.ascendingSort
+                              //   ? 'asc'
+                              //   : 'desc';
+                              // let filterProducts = orderBy(
+                              //   this.state.allProducts,
+                              //   'price',
+                              //   orderType,
+                              // );
+                              // this.setState({allProducts: filterProducts});
                             }}>
                             <Image
                               style={{
@@ -664,6 +708,40 @@ class Shop extends React.Component {
                 return <View style={styles.footerView} />;
               }}
             />
+            {this.state.showCreditCardUI ? (
+              <SavedCardsView
+                showSheet={true}
+                data={[
+                  {name: '5757 5757 5757 5757', description: '14 / 22'},
+                  {name: '5000 0000 0000 0018', description: '25 / 25 '},
+                  {name: '4000 0000 0000 0002', description: '12 / 22'},
+                ]}
+                showAuthenticationFlow={true}
+                payNow={this.payNow}
+                checkBoxColor={'#E7E9F1'}
+                checkBoxSelectionColor={'green'}
+                themeColor={'green'}
+                nameFontSize={15}
+                nameFontWeight={'600'}
+                subNameFontSize={12}
+                subNameFontWeight={'300'}
+                imageWidth={35}
+                imageHeight={35}
+                imageResizeMode={'contain'}
+                checkBoxHeight={25}
+                containerHorizontalPadding={15}
+                containerVerticalPadding={15}
+                headerTitle={'Saved Cards'}
+                headerTitleFont={20}
+                headerTitleWeight={'500'}
+                headerImageWidth={50}
+                headerImageHeight={50}
+                headerImageResizeMode={'contain'}
+                selectedItem={item => {
+                  console.log(item);
+                }}
+              />
+            ) : null}
             <View style={styles.buyNowContainerView}>
               <TouchableOpacity
                 style={[
@@ -704,29 +782,33 @@ class Shop extends React.Component {
                   onCancelPressed={() => {
                     let config = this.getDefaultConfig();
 
+                    let data = {...config, environment: ENVIRONMENT};
                     let jwtToken = JWTToken;
-                    this.checkout.current.openCheckoutUI(config, jwtToken);
+                    this.checkout.current.openCheckoutUI(data, jwtToken);
 
                     this.onClose();
                   }}
                   onConfirmPressed={() => {
                     this.props.navigation.navigate('Checkout', {
-                      price: '2345',
                       selectedProducts: this.state.selectedProducts,
+                      themeColor: 'green',
+                      navigation: this.props.navigation,
                     });
                     this.onClose();
                   }}
                 />
               ) : null}
-              <Checkout
-                ref={this.checkout}
-                env={'dev'}
-                callbackFunction={this.afterCheckout}
-                redirectUrl={'chaipay://checkout'}
-                secretKey={SECRET_KEY}
-                chaipayKey={CHAIPAY_KEY}
-              />
             </View>
+            <Checkout
+              ref={this.checkout}
+              env={'dev'}
+              currency={'VND'}
+              callbackFunction={this.afterCheckout}
+              redirectUrl={'chaipay://checkout'}
+              secretKey={SECRET_KEY}
+              chaipayKey={CHAIPAY_KEY}
+              environment={ENVIRONMENT}
+            />
           </>
         )}
       </View>
