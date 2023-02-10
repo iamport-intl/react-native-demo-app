@@ -5,7 +5,6 @@ import {APP_THEME_COLOR, TRANSPARENT} from '../constants';
 
 class CheckboxView extends Component {
   render() {
-    console.log(this.props.item);
     return (
       <TouchableOpacity
         style={{

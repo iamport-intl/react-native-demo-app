@@ -26,7 +26,7 @@ class PayNowButton extends Component {
       <TouchableOpacity
         style={style.nextViewContainerStyle}
         onPress={async () => {
-          this.checkout.current.startPaymentwithWallets(this.props.payload);
+          this.checkout.current.startPaymentWithWallets(this.props.payload);
         }}>
         <Text style={style.btnText}>{this.props.text || 'Pay Now'}</Text>
       </TouchableOpacity>

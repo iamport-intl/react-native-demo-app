@@ -17,18 +17,50 @@ import {
   WHITE_COLOR,
   TRANSPARENT,
 } from '../../constants';
-import 'intl';
-import 'intl/locale-data/jsonp/id';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('window');
 const gutter = 15;
 
 class Product extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      selectedLanguage: 'en',
+      currency: props.currency || 'VND',
+      languageCode: props.languageCode || 'id-ID',
+    };
+  }
+
   formatNumber = number => {
-    let formattedNumber = new Intl.NumberFormat('id-ID', {
+    let languageCode = 'th-TH';
+
+    let currencyCode = this.props.currency || 'THB';
+
+    if (currencyCode === 'USD') {
+      languageCode = languageCode;
+    } else if (currencyCode === 'VND') {
+      languageCode = 'vi';
+    } else if (currencyCode === 'IDR') {
+      languageCode = 'id';
+    } else if (currencyCode === 'THB') {
+      languageCode = 'th';
+    } else if (currencyCode === 'SGD') {
+      languageCode = 'sg';
+    } else if (currencyCode === 'PHP') {
+      languageCode = 'ph';
+    } else {
+      languageCode = 'en-US';
+    }
+    let formattedNumber = new Intl.NumberFormat(languageCode, {
       style: 'currency',
-      currency: 'VND',
-    }).format(number);
+      currency: currencyCode,
+      currencyDisplay: 'symbol',
+    })
+      .format(number)
+      .replace('THB', '฿')
+      .replace('IDR', 'Rp')
+      .replace('SGD', 'S$');
     return formattedNumber;
   };
 

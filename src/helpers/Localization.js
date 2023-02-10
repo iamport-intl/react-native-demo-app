@@ -1,5 +1,3 @@
-import * as RNLocalize from 'react-native-localize';
-
 import {find, get, isEmpty, memoize, toUpper} from 'lodash';
 
 import {I18nManager} from 'react-native';
@@ -27,13 +25,15 @@ const translate = memoize(
 
 const getLanguagePref = async () => {
   const data = await AsyncStorage.getItem('selectedLanguage');
-  return data;
+  return JSON.parse(data)?.code;
 };
 // "chaipay-sdk": "file:paymentSDK",
 
 const setI18nConfig = async () => {
   const languagePref = await getLanguagePref();
   console.log('211111');
+  console.log('211111', languagePref);
+
   if (languagePref) {
     strings.setLanguage(languagePref);
   }
@@ -56,20 +56,10 @@ const handleLocalizationChange = () => {
   setI18nConfig();
 };
 
-const addLanguageChangeEventListener = () => {
-  RNLocalize.addEventListener('change', handleLocalizationChange);
-};
-
-const removeLanguageChangeEventListener = () => {
-  RNLocalize.addEventListener('change', handleLocalizationChange);
-};
-
 export default {
   setI18nConfig,
 
   getLanguagePref,
 
-  addLanguageChangeEventListener,
-  removeLanguageChangeEventListener,
   translate,
 };

@@ -12,10 +12,8 @@ import {
 } from 'lodash';
 import React from 'react';
 import {Dimensions, PermissionsAndroid} from 'react-native';
-import Logo from '../../../assets/mobile.svg';
+
 import AwesomeAlert from 'react-native-awesome-alerts';
-import 'intl';
-import 'intl/locale-data/jsonp/id';
 
 import {
   View,
@@ -77,8 +75,6 @@ import {
 } from '@iamport-intl/chaipay-sdk';
 
 import SmsListener from 'react-native-android-sms-listener';
-// import CheckoutUI from '../CheckoutUI';
-//import CheckoutUI2 from '../CheckoutUI2';
 
 const {width, height} = Dimensions.get('screen');
 const deliveryAmount = 0;
@@ -291,7 +287,7 @@ class Checkout1 extends React.Component {
       orderDetails: undefined,
       hashKey: '',
       mobileNumber: '',
-      formattedText: '',
+      formattedText: '+919913379694',
       shouldShowOTP: false,
       OTP: '',
       shouldShowOrderDetails: false,
@@ -447,7 +443,7 @@ class Checkout1 extends React.Component {
   };
 
   handleTextChange = text => {
-    console.warn(text);
+    console.warn('there', text);
     this.setState({OTP: text});
   };
 
@@ -884,7 +880,7 @@ class Checkout1 extends React.Component {
       billingAddress: {
         billing_name: 'Test mark',
         billing_email: 'markweins@gmail.com',
-        billing_phone: this.state.formattedText || '9998878788',
+        billing_phone: '+84332234567',
         billing_address: {
           city: 'VND',
           country_code: 'VN',
@@ -898,7 +894,7 @@ class Checkout1 extends React.Component {
       shippingAddress: {
         shipping_name: 'xyz',
         shipping_email: 'xyz@gmail.com',
-        shipping_phone: '1234567890',
+        shipping_phone: '+84332234567',
         shipping_address: {
           city: 'abc',
           country_code: 'VNH',
@@ -917,9 +913,9 @@ class Checkout1 extends React.Component {
           quantity: 1,
         },
       ],
-      successUrl: 'chaipay://checkout',
-      failureUrl: 'chaipay://checkout',
-      redirectUrl: 'chaipay://checkout',
+      successUrl: 'chaiport://checkout',
+      failureUrl: 'chaiport://checkout',
+      redirectUrl: 'chaiport://checkout',
     };
   };
 
@@ -935,28 +931,26 @@ class Checkout1 extends React.Component {
 
     let response;
     if (fromSavedcards) {
-      response = await this.checkout.current.startPaymentWithSavedCard(
-        savedCard,
-        data,
-      );
+      response = await Checkout.startPaymentWithSavedCard(savedCard, data);
     } else {
-      console.log('this.checkout.current', this.checkout);
-      console.log('this.checkout.current', this.checkout.current);
-      response = await this.checkout.current.startPaymentWithNewCard(
-        savedCard,
-        data,
-      );
+      console.log('this.checkout.current', savedCard);
+
+      response = await Checkout.startPaymentWithNewCard(savedCard, data);
     }
 
     this.setState({showLoader: false});
 
-    if (response.val.status === 200 || response.val.status === 201) {
-      this.setState({orderDetails: response.val.data});
+    console.log('responses', response);
+    console.log('responses.val', response?.val);
+    console.log('responses');
+
+    if (response?.val.status === 200 || response?.val.status === 201) {
+      this.setState({orderDetails: response?.val.data});
     } else {
-      this.setState({orderDetails: response.val});
+      this.setState({orderDetails: response?.val});
     }
     // AsyncStorage.setItem('USER_DATA', JSON.stringify(response.data));
-    this.setState({userData: response.data});
+    this.setState({userData: response?.data});
   };
 
   PaymentOptionsView = () => {
@@ -990,7 +984,9 @@ class Checkout1 extends React.Component {
       return item?.sub_type === 'ATM_CARD';
     });
     const showATMCardFlow = filteredCards.length > 0;
-
+    const formattedText = '+919913379694';
+    console.log('showCardForm', showCardForm);
+    console.log('formattedText', this.state.formattedText);
     return (
       <View style={{width: width, marginTop: 5}}>
         {showCardForm ? (
@@ -1024,7 +1020,7 @@ class Checkout1 extends React.Component {
                     ) {
                       console.log('entered');
                       let value = await helpers.fetchSavedCards(
-                        this.state.formattedText,
+                        formattedText,
                         this.state.OTP,
                         this.state.savedCardsData?.token,
                       );
@@ -1050,24 +1046,24 @@ class Checkout1 extends React.Component {
                         );
                         this.setState({savedCards: {}});
 
-                        let val = await helpers.getOTP(
-                          this.state.formattedText,
-                        );
+                        let val = await helpers.getOTP(formattedText);
                         if (val.status === 200 || val.status === 201) {
                           this.setState({shouldShowOTP: true});
                         }
                       }
                     } else {
+                      console.log('entered 123');
+
                       if (!this.state.showSavedCards) {
+                        console.log('entered 12345');
+
                         AsyncStorage.setItem(
                           'SavedCardsData',
                           JSON.stringify({}),
                         );
                         this.setState({savedCards: {}});
 
-                        let val = await helpers.getOTP(
-                          this.state.formattedText,
-                        );
+                        let val = await helpers.getOTP(formattedText);
                         if (val.status === 200 || val.status === 201) {
                           this.setState({shouldShowOTP: true});
                         }
@@ -1111,7 +1107,7 @@ class Checkout1 extends React.Component {
                               fontSize: 16,
                               textAlign: shouldShowOTP ? 'center' : 'left',
                             }}>
-                            {`${strings.otp_has_been_sent} ${this.state.mobileNumber}`}
+                            {`${strings.otp_has_been_sent} ${formattedText}`}
                           </Text>
                           <View style={{marginVertical: 15}}>
                             <OTPTextInput
@@ -1149,7 +1145,7 @@ class Checkout1 extends React.Component {
                             onPress={async () => {
                               if (this.state.shouldShowOTP) {
                                 let value = await helpers.fetchSavedCards(
-                                  this.state.formattedText,
+                                  formattedText,
                                   this.state.OTP,
                                 );
 
@@ -1188,9 +1184,7 @@ class Checkout1 extends React.Component {
                                   );
                                   this.setState({savedCards: {}});
 
-                                  let val = await helpers.getOTP(
-                                    this.state.formattedText,
-                                  );
+                                  let val = await helpers.getOTP(formattedText);
                                   if (
                                     val.status === 200 ||
                                     val.status === 201
@@ -1664,7 +1658,7 @@ class Checkout1 extends React.Component {
   };
 
   PayNowView = ({image, totalAmount}) => {
-    const deepLinkURL = 'chaipay://checkout';
+    const deepLinkURL = 'chaiport://checkout';
 
     var payload = this.getData();
     let formattedNumber = new Intl.NumberFormat('id-ID', {
@@ -1672,6 +1666,7 @@ class Checkout1 extends React.Component {
       currency: 'VND',
     }).format(totalAmount + deliveryAmount);
 
+    console.log('SelectedItem', this.state.selectedItem);
     return (
       <View style={{width: width, backgroundColor: WHITE_COLOR}}>
         <View style={styles.payNowContainerView}>
@@ -1735,7 +1730,7 @@ class Checkout1 extends React.Component {
               if (this.state.creditCardClicked && !showCardForm) {
                 let newPayload = {...payload};
                 let selectedItem = first(this.state.paymentCardType);
-
+                console.log('1735', selectedItem);
                 newPayload.merchantOrderId = 'MERCHANT' + new Date().getTime();
                 newPayload.paymentChannel = selectedItem?.payment_channel_key;
                 newPayload.paymentMethod = selectedItem?.payment_method_key;
@@ -1743,8 +1738,7 @@ class Checkout1 extends React.Component {
                 newPayload.amount = totalAmount;
                 newPayload.secretKey = SECRET_KEY;
 
-                var response =
-                  this.checkout.current.startPaymentwithWallets(newPayload);
+                var response = Checkout.startPaymentWithWallets(newPayload);
                 this.setState({showLoader: false});
 
                 this.afterCheckout(response);
@@ -1762,12 +1756,12 @@ class Checkout1 extends React.Component {
                 newPayload.amount = totalAmount;
                 newPayload.secretKey = SECRET_KEY;
 
-                var response =
-                  this.checkout.current.startPaymentwithWallets(newPayload);
+                var response = Checkout.startPaymentWithWallets(newPayload);
                 this.setState({showLoader: false});
 
                 this.afterCheckout(response);
               } else {
+                console.log('1766', this.state.selectedItem);
                 if (
                   isEmpty(this.state.newCardData) &&
                   isEmpty(this.state.selectedItem)
@@ -1775,6 +1769,8 @@ class Checkout1 extends React.Component {
                   this.setState({showLoader: false});
                   alert('Please select any payment method to proceed further');
                 } else if (!isEmpty(this.state.newCardData)) {
+                  console.log('1774', this.state.selectedItem);
+
                   let cardData = this.state.newCardData;
 
                   this.confirmCardPayment({
@@ -1785,12 +1781,16 @@ class Checkout1 extends React.Component {
                     expiry_year: cardData.expiration.slice(3, 7),
                   });
                 } else if (this.state.callingfromSavedCards) {
+                  console.log('1786', this.state.selectedItem);
+
                   this.confirmCardPayment(
                     first(values(this.state.selectedItem)),
                     true,
                   );
                 } else {
                   let newPayload = {...payload};
+                  console.log('1794', this.state.selectedItem);
+
                   let selectedItem = first(values(this.state.selectedItem));
 
                   newPayload.merchantOrderId =
@@ -1803,8 +1803,7 @@ class Checkout1 extends React.Component {
 
                   newPayload.amount = totalAmount + deliveryAmount;
                   newPayload.secretKey = SECRET_KEY;
-                  var response =
-                    this.checkout.current.startPaymentwithWallets(newPayload);
+                  var response = Checkout.startPaymentWithWallets(newPayload);
                   this.setState({showLoader: false});
 
                   this.afterCheckout(response);
@@ -1837,22 +1836,10 @@ class Checkout1 extends React.Component {
 
     return (
       <>
-        {true ? (
-          <>
-            <CheckoutUI2
-              selectedProducts={this.props.route.params.selectedProducts}
-              themeColor={'red'}
-              onClose={() => {
-                console.log('this,props', this.props.route.params);
-                this.props?.navigation?.goBack();
-              }}
-            />
-          </>
-        ) : (
-          <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
-            {orderDetails !== undefined ? (
-              <>
-                {/* <View
+        <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
+          {orderDetails !== undefined ? (
+            <>
+              {/* <View
               style={[
                 styles.headerView,
                 {
@@ -1876,74 +1863,73 @@ class Checkout1 extends React.Component {
                 Checkout{' '}
               </Text>
             </View> */}
-                <ScrollView>
-                  <this.ResponseView orderDetails={orderDetails} />
-                </ScrollView>
-                <TouchableOpacity
-                  style={[
-                    styles.payNowView,
-                    {
-                      marginTop: 10,
-                      marginBottom: 15,
-                      width: width - 60,
-                      backgroundColor:
-                        orderDetails?.status_reason === 'SUCCESS' ||
-                        orderDetails.is_success === true
-                          ? SUCCESS_COLOR
-                          : APP_THEME_COLOR,
-                      shadowColor: '#000000',
-                      shadowOffset: {
-                        width: 1,
-                        height: 3,
-                      },
-                      shadowRadius: 5,
-                      shadowOpacity: 0.2,
-                      elevation: 6,
-                    },
-                  ]}
-                  disabled={false}
-                  onPress={() => {
-                    if (
+              <ScrollView>
+                <this.ResponseView orderDetails={orderDetails} />
+              </ScrollView>
+              <TouchableOpacity
+                style={[
+                  styles.payNowView,
+                  {
+                    marginTop: 10,
+                    marginBottom: 15,
+                    width: width - 60,
+                    backgroundColor:
                       orderDetails?.status_reason === 'SUCCESS' ||
                       orderDetails.is_success === true
-                    ) {
-                      this.props?.navigation.goBack();
-                    } else {
-                      this.setState({orderDetails: undefined});
-                    }
-                  }}>
-                  <Text style={styles.payNowTextView}>Go Back</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
+                        ? SUCCESS_COLOR
+                        : APP_THEME_COLOR,
+                    shadowColor: '#000000',
+                    shadowOffset: {
+                      width: 1,
+                      height: 3,
+                    },
+                    shadowRadius: 5,
+                    shadowOpacity: 0.2,
+                    elevation: 6,
+                  },
+                ]}
+                disabled={false}
+                onPress={() => {
+                  if (
+                    orderDetails?.status_reason === 'SUCCESS' ||
+                    orderDetails.is_success === true
+                  ) {
+                    this.props?.navigation.goBack();
+                  } else {
+                    this.setState({orderDetails: undefined});
+                  }
+                }}>
+                <Text style={styles.payNowTextView}>Go Back</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <View style={[styles.headerView]}>
+                <Text style={styles.featuredText}>{strings.checkout} </Text>
+              </View>
               <>
-                <View style={[styles.headerView]}>
-                  <Text style={styles.featuredText}>{strings.checkout} </Text>
+                <KeyboardAvoidingView
+                  behavior="padding"
+                  style={{flex: 1, marginBottom: 15}}>
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.contentContainerStyle}
+                    style={styles.container}>
+                    <this.ListOfItemsView />
+                    <this.PaymentOptionsView />
+                  </ScrollView>
+                </KeyboardAvoidingView>
+                <View>
+                  {this.state.shouldShowOrderDetails ? (
+                    <this.OrderDetailsView totalAmount={totalAmount} />
+                  ) : null}
+                  <this.SafeAndsecureView />
+                  <this.PayNowView image={image} totalAmount={totalAmount} />
                 </View>
-                <>
-                  <KeyboardAvoidingView
-                    behavior="padding"
-                    style={{flex: 1, marginBottom: 15}}>
-                    <ScrollView
-                      showsVerticalScrollIndicator={false}
-                      contentContainerStyle={styles.contentContainerStyle}
-                      style={styles.container}>
-                      <this.ListOfItemsView />
-                      <this.PaymentOptionsView />
-                    </ScrollView>
-                  </KeyboardAvoidingView>
-                  <View>
-                    {this.state.shouldShowOrderDetails ? (
-                      <this.OrderDetailsView totalAmount={totalAmount} />
-                    ) : null}
-                    <this.SafeAndsecureView />
-                    <this.PayNowView image={image} totalAmount={totalAmount} />
-                  </View>
-                </>
               </>
-            )}
-          </View>
-        )}
+            </>
+          )}
+        </View>
       </>
     );
   }

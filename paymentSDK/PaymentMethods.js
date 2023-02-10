@@ -446,7 +446,7 @@ class PaymentMethods extends Component {
             selectedData={this.selectedData}
             env={this.props?.env}
             currency={this.props?.currency}
-            redirectUrl={this.props?.redirectUrl || 'chaipay://checkout'}
+            redirectUrl={this.props?.redirectUrl || 'chaiport://checkout'}
             secretKey={this.props?.secretKey}
             chaipayKey={this.props?.chaipayKey}
             environment={this.props?.environment}

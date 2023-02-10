@@ -278,7 +278,7 @@ class Checkout extends React.Component {
           },
         };
         console.warn(
-          `url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
+          `CHECK : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
             requestConfig,
           )}`,
         );
@@ -466,7 +466,7 @@ class Checkout extends React.Component {
     return this.props.env || 'prod';
   };
 
-  startPaymentwithWallets = data => {
+  startPaymentWithWallets = data => {
     this.setState({data: data});
     let {callbackFunction} = this.props;
     try {
@@ -521,7 +521,7 @@ class Checkout extends React.Component {
       headers: {
         Authorization: `Bearer ${JWTToken}`,
         Accept: '*/*',
-        'X-Chaipay-Client-Key': data.chaipay_key,
+        'X-Chaipay-Client-Key': data?.chaipay_key,
         'Content-Type': 'application/json',
       },
     };

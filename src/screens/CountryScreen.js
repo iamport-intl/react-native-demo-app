@@ -30,12 +30,6 @@ const gutter = 15;
 
 let languageData = [
   {
-    name: 'English',
-    code: 'en-EN',
-    languageCode: 'en',
-    currency: 'VND',
-  },
-  {
     name: 'Thai',
     code: 'th-TH',
     languageCode: 'th',
@@ -47,8 +41,20 @@ let languageData = [
     languageCode: 'vn',
     currency: 'VND',
   },
+  {
+    name: 'Singapore',
+    code: 'en-US',
+    languageCode: 'en',
+    currency: 'SGD',
+  },
+  {
+    name: 'Indonesia',
+    code: 'id-ID',
+    languageCode: 'id',
+    currency: 'IDR',
+  },
 ];
-class Language extends React.Component {
+class Country extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -65,25 +71,26 @@ class Language extends React.Component {
 
   onClickPaymentSelected = data => {
     AsyncStorage.setItem('selectedLanguage', JSON.stringify(data));
-    strings.setLanguage(data.code);
-    this.setState({selectedLanguage: data.code}, () => {
-      EventRegister.emit('ChangeLanguage', data.code);
-      // Alert.alert(
-      //   '',
-      //   'Please restart the application to see the language changes',
-      //   [
-      //     {
-      //       text: 'Cancel',
-      //       onPress: () => console.log('OK Pressed'),
-      //       style: 'cancel',
-      //     },
-      //     {
-      //       text: 'Restart',
-      //       onPress: () => RNExitApp.exitApp(),
-      //     },
-      //   ],
-      // );
-    });
+    strings.setLanguage('en-US');
+    EventRegister.emit('ChangeCurrencies', data);
+    this.setState({selectedLanguage: data.code});
+    // this.setState({selectedLanguage: data.code}, () => {
+    //   Alert.alert(
+    //     '',
+    //     'Please restart the application to see the language changes',
+    //     [
+    //       {
+    //         text: 'Cancel',
+    //         onPress: () => console.log('OK Pressed'),
+    //         style: 'cancel',
+    //       },
+    //       {
+    //         text: 'Restart',
+    //         onPress: () => RNExitApp.exitApp(),
+    //       },
+    //     ],
+    //   );
+    // });
   };
   save = () => {};
   render() {
@@ -95,7 +102,7 @@ class Language extends React.Component {
               styles.featuredText,
               Platform.OS === 'ios' ? {marginTop: 5} : {marginTop: 30},
             ]}>
-            Change Language
+            Change Currency
           </Text>
         </View>
         <FlatList
@@ -193,4 +200,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Language;
+export default Country;

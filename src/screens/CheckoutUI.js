@@ -13,9 +13,6 @@ import {
 import React from 'react';
 import {Dimensions, PermissionsAndroid, LayoutAnimation} from 'react-native';
 
-import 'intl';
-import 'intl/locale-data/jsonp/id';
-
 import {
   View,
   ScrollView,
@@ -431,7 +428,7 @@ class CheckoutUI extends React.Component {
   };
 
   afterCheckout = transactionDetails => {
-    chec.close();
+    Checkout.close();
     console.log('DEtails', transactionDetails);
     if (transactionDetails) {
       this.setState({orderDetails: transactionDetails});
@@ -565,7 +562,7 @@ class CheckoutUI extends React.Component {
       billingAddress: {
         billing_name: 'Test mark',
         billing_email: 'markweins@gmail.com',
-        billing_phone: this.state.formattedText || '9998878788',
+        billing_phone: '+84332234567',
         billing_address: {
           city: 'TH',
           country_code: 'TH',
@@ -579,7 +576,7 @@ class CheckoutUI extends React.Component {
       shippingAddress: {
         shipping_name: 'xyz',
         shipping_email: 'xyz@gmail.com',
-        shipping_phone: '1234567890',
+        shipping_phone: '84332234567',
         shipping_address: {
           city: 'abc',
           country_code: 'VNH',
@@ -598,10 +595,10 @@ class CheckoutUI extends React.Component {
           quantity: 1,
         },
       ],
-      successUrl: 'chaipay://checkout',
-      failureUrl: 'chaipay://checkout',
-      redirectUrl: 'chaipay://checkout/PAYPAL',
-      mobileRedirectUrl: 'chaipay://checkout',
+      successUrl: 'chaiport://checkout',
+      failureUrl: 'chaiport://checkout',
+      redirectUrl: 'chaiport://checkout/PAYPAL',
+      mobileRedirectUrl: 'chaiport://checkout',
     };
   };
 
@@ -662,7 +659,7 @@ class CheckoutUI extends React.Component {
       newPayload.amount = totalAmount;
       newPayload.secretKey = SECRET_KEY;
 
-      var response = await Checkout.getInstance().startPaymentwithWallets(
+      var response = await Checkout.getInstance().startPaymentWithWallets(
         newPayload,
       );
       this.setState({showLoader: false});
@@ -720,7 +717,7 @@ class CheckoutUI extends React.Component {
           customHandle={false}
           env={'dev'}
           callbackFunction={this.afterCheckout}
-          redirectUrl={'chaipay://checkout'}
+          redirectUrl={'chaiport://checkout'}
           secretKey={SECRET_KEY}
           chaipayKey={CHAIPAY_KEY}
           environment={ENVIRONMENT}
@@ -805,7 +802,7 @@ class CheckoutUI extends React.Component {
   };
 
   PayNowView = ({image, totalAmount}) => {
-    const deepLinkURL = 'chaipay://checkout';
+    const deepLinkURL = 'chaiport://checkout';
 
     var payload = this.getData();
     let formattedNumber = new Intl.NumberFormat('id-ID', {
@@ -879,7 +876,7 @@ class CheckoutUI extends React.Component {
             env={'dev'}
             currency={'VND'}
             afterCheckout={this.afterCheckout}
-            redirectUrl={'chaipay://checkout'}
+            redirectUrl={'chaiport://checkout'}
             secretKey={SECRET_KEY}
             chaipayKey={CHAIPAY_KEY}
             environment={ENVIRONMENT}
@@ -979,7 +976,7 @@ class CheckoutUI extends React.Component {
           env={'dev'}
           currency={'VND'}
           callbackFunction={this.afterCheckout}
-          redirectUrl={'chaipay://checkout'}
+          redirectUrl={'chaiport://checkout'}
           secretKey={SECRET_KEY}
           chaipayKey={CHAIPAY_KEY}
           environment={ENVIRONMENT}

@@ -38,7 +38,7 @@ const getChaipayKey = async () => {
 const axiosMethods = {
   _callGetMethod: async (url, requestConfig) => {
     return new Promise((resolve, reject) => {
-      console.warn(`url : ${url}`);
+      console.warn(`WHAT : ${url}`);
       axios
         .get(url, requestConfig)
         .then(response => {
@@ -61,7 +61,7 @@ const axiosMethods = {
       let body = JSON.stringify(bodyPart);
       let requestConfig = config;
       console.warn(
-        `url : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
+        `FRMALE : ${url}====body: ${body}===== requestConfig : ${JSON.stringify(
           requestConfig,
         )}`,
       );
@@ -112,6 +112,9 @@ const hashes = {
 const _prepareRequestBody = async props => {
   let body = {};
   props = {...props};
+  console.log('Entered');
+  console.log('Entered 123', props);
+
   props.signatureHash = await helpers._fetchHash({...props});
   console.warn('Signature hash value : ', props.signatureHash);
   let missingParams = requiredParams.filter(item => {

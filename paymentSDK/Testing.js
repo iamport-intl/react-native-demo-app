@@ -56,7 +56,7 @@ class Testing extends Component {
             console.log('Custom Hnadke', this.props.payload);
 
             var response =
-              this.checkout.current.startPaymentwithWallets(newPayload);
+              this.checkout.current.startPaymentWithWallets(newPayload);
             this.setState({showLoader: false});
 
             this.props.afterCheckout(response);
@@ -72,17 +72,6 @@ class Testing extends Component {
             </Text>
           </View>
         </TouchableOpacity>
-
-        <Checkout
-          ref={this.checkout}
-          env={this.props.env}
-          currency={this.props.currency}
-          callbackFunction={this.props.afterCheckout}
-          redirectUrl={this.props.redirectUrl}
-          secretKey={this.props.signatureHash}
-          chaipayKey={this.props.chaipayKey}
-          environment={this.props.environment}
-        />
       </View>
     );
   }

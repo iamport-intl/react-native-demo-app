@@ -15,7 +15,7 @@ Also include the DEFAULT category. This allows your app to respond to implicit i
 ```
 
 
-To accept the URIs that begin with “chaipay://checkout“
+To accept the URIs that begin with “chaiport://checkout“
 
 ```Java
 <data android:scheme="chaipay"
@@ -65,7 +65,7 @@ To add the url schemes to the app.
         paymentChannel={channel}
         paymentMethod={method}
         callbackFunction={_afterCheckout}
-        redirectUrl = {"chaipay://checkout"}
+        redirectUrl = {"chaiport://checkout"}
   />
   ```
 
@@ -80,7 +80,7 @@ To add the url schemes to the app.
  |orderDetails|   Order Details includes quantity,id,name,price are mandatory|
 |paymentChannel|Name of the payment channel|
 |paymentMethod|Payment Method to be used.
-|redirectUrl|redirect url to get response from gateway (eg: momo://pay, chaipay://checkout,.)|
+|redirectUrl|redirect url to get response from gateway (eg: momo://pay, chaiport://checkout,.)|
 |callbackFunction|returns the message, can be used when required.|
 
 

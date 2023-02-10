@@ -13,9 +13,6 @@ target 'ReactNativeDemoShoppingApp' do
   )
 
   pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
-
-
-
   pod 'RNInAppBrowser', :path => '../node_modules/react-native-inappbrowser-reborn'
 
   target 'ReactNativeDemoShoppingAppTests' do

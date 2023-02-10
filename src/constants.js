@@ -2,7 +2,7 @@ import LocalizedStrings from 'react-native-localization';
 
 //colors
 export const WHITE_COLOR = 'white';
-export const APP_THEME_COLOR = '#FF2A2A';
+export const APP_THEME_COLOR = '#000';
 export const OLD_APP_THEME_COLOR = '#3D3D3D';
 export const IMAGE_BACKGROUND_COLOR = '#F5F5F5';
 export const TRANSPARENT = 'transparent';
@@ -43,8 +43,20 @@ export const BOLD = 'bold';
 
 //Currency
 export const currency = '₫';
-export const ENVIRONMENT = 'live';
+export const CURRENCY = 'THB';
+export const ENVIRONMENT = 'sandbox';
 // DEV //
+//paypal
+// export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';
+// export const SECRET_KEY =
+//   'd2a387a4bf3f10eb0704af93493248e6e435a64d006fb69b1463a588ec447b1e';
+
+// SIRI CHAIPORT PROD sandbox
+// export const CHAIPAY_KEY = 'ItjQocRdyfaAFflr';
+// export const SECRET_KEY =
+//   '08531c197630fb6882235a569aecd8dbe0a62e3ebc17857e70f13fe1e11a87c1';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoiSXRqUW9jUmR5ZmFBRmZsciIsImlhdCI6MTY1MjM1MTE5NywiZXhwIjoyNjUyMzUyMTk3fQ.YimKIzY7uH-uFnUfQNm293iZgGvZP1_Azp6hEt7BE9A';
 
 // SIRI dev
 export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
@@ -52,6 +64,13 @@ export const SECRET_KEY =
   '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
 export const JWTToken =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
+
+// Aditya dev
+// export const CHAIPAY_KEY = 'ccbwQTkOwNHlfxeg';
+// export const SECRET_KEY =
+//   'b2997bda1d873416e5375b641d0c87169d8e22216ec31e73b6a9d2c5743ad1af';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Dev Aagam
 // export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
@@ -97,8 +116,14 @@ export const JWTToken =
 // export const SECRET_KEY =
 //   '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
 
+//PROD Nikhil
+// export const CHAIPAY_KEY = 'NPSkZZYefGyKvBxi';
+// export const SECRET_KEY =
+//   '6c8d964e7d472076eae7beb0a1f5b2b81c0afbb479307a211029ace597656957';
+
 export let strings = new LocalizedStrings({
   'en-US': {
+    order_details: 'Order Details',
     app_name: 'Shoe Cart',
     action_settings: 'Settings',
     arrival: 'Arrival',
@@ -149,7 +174,7 @@ export let strings = new LocalizedStrings({
     no_saved_cards: 'No Saved Cards',
     get_otp: 'Get Otp',
     web_checkout: 'Web Checkout',
-    custom_checkout: 'Custom Checkout',
+    custom_checkout: 'Chaiport Checkout',
     please_enter_valid_mobile_no: 'Please enter valid mobile no',
     please_enter_valid_otp: 'Please enter valid OTP',
     payout: 'Payout',
@@ -184,6 +209,7 @@ export let strings = new LocalizedStrings({
     shipping_address: 'Shipping Address',
   },
   'th-TH': {
+    order_details: 'Order Details',
     app_name: 'รถเข็นรองเท้า',
     action_settings: 'การตั้งค่า',
     next: 'ต่อไป',
@@ -267,6 +293,7 @@ export let strings = new LocalizedStrings({
     shipping_address: 'ที่อยู่จัดส่ง',
   },
   'vn-VN': {
+    order_details: 'Chi tiết đơn hàng',
     app_name: 'Xe giày',
     checkout: 'Thủ tục thanh toán',
     action_settings: 'Cài đặt',

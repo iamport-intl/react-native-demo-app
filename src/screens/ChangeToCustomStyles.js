@@ -6,6 +6,7 @@ import {
   Button,
   Dimensions,
   Platform,
+  AsyncStorage,
 } from 'react-native';
 import {
   APP_THEME_COLOR,
@@ -18,8 +19,7 @@ import {
   IMAGE_BACKGROUND_COLOR,
   strings,
 } from '../constants.js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {EventRegister} from 'react-native-event-listeners';
 import {findIndex, Int} from 'lodash';
 
 import SwitchSelector from 'react-native-switch-selector';
@@ -42,6 +42,21 @@ let fontSizeOptions = [
   },
 ];
 
+let layoutOptions = [
+  {
+    label: 'One',
+    value: 0,
+  },
+  {
+    label: 'Two',
+    value: 1,
+  },
+  {
+    label: 'Three',
+    value: 2,
+  },
+];
+
 let fontWeightOptions = [
   {
     label: 'Light',
@@ -60,15 +75,15 @@ let fontWeightOptions = [
 let colorOptions = [
   {
     label: 'Red',
-    value: 'red',
+    value: '#FF2229',
   },
   {
     label: 'Black',
-    value: 'black',
+    value: '#000000',
   },
   {
     label: 'Green',
-    value: 'green',
+    value: '#0000FF',
   },
 ];
 
@@ -125,7 +140,6 @@ class ChangeToCustomStyles extends React.Component {
 
       this.setState({fontSize: value});
 
-      console.log('Value', value);
       if (value !== undefined) {
         let val = findIndex(fontSizeOptions, item => {
           return item.value === value;
@@ -170,6 +184,22 @@ class ChangeToCustomStyles extends React.Component {
         this.setState({borderRadiusIndex: 0});
       }
     });
+    AsyncStorage.getItem('layout').then(data => {
+      let value = JSON.parse(data);
+      this.setState({layout: value});
+
+      if (value !== undefined) {
+        let val = findIndex(layoutOptions, item => {
+          return item.value === value;
+        });
+        console.log(val);
+
+        val = val < 0 ? 0 : val;
+        this.setState({layoutIndex: val});
+      } else {
+        this.setState({layoutIndex: 0});
+      }
+    });
   }
 
   initialColor = () => {
@@ -203,23 +233,32 @@ class ChangeToCustomStyles extends React.Component {
   onPressFontSize = value => {
     console.log('onPressFontSize', value);
     AsyncStorage.setItem('fontSize', JSON.stringify(value));
+    EventRegister.emit('fontSize', {value: value});
   };
 
   onPressFontWeight = value => {
     console.log('OnPressFontWeight', value);
     AsyncStorage.setItem('fontWeight', value);
+    EventRegister.emit('fontWeight', {value: value});
   };
 
   onPressColor = value => {
     console.log('onPressColor', value);
     AsyncStorage.setItem('color', value);
+    EventRegister.emit('color', {value: value});
   };
 
   onPressBorderRadius = value => {
     console.log('onPressBorderRadius', value);
     AsyncStorage.setItem('borderRadius', JSON.stringify(value));
+    EventRegister.emit('borderRadius', {value: value});
   };
 
+  onPressLayout = value => {
+    console.log('onPressLayout', value);
+    AsyncStorage.setItem('layout', JSON.stringify(value));
+    EventRegister.emit('layout', {value: value});
+  };
   render() {
     return (
       <View style={{backgroundColor: IMAGE_BACKGROUND_COLOR, flex: 1}}>
@@ -258,6 +297,12 @@ class ChangeToCustomStyles extends React.Component {
             options={buttonCornerRadius}
             onPress={this.onPressBorderRadius}
             initialValue={this.state.borderRadiusIndex}
+          />
+          <this.SwitcherView
+            headerText={'Layout'}
+            options={layoutOptions}
+            onPress={this.onPressLayout}
+            initialValue={this.state.layoutIndex}
           />
         </View>
       </View>

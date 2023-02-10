@@ -16,6 +16,7 @@ import HomeScreen from './src/screens/Home';
 import ShopScreen from './src/screens/Shop';
 import PaymentScreen from './src/screens/Payment';
 import LanguageScreen from './src/screens/LanguageScreen';
+import CountryScreen from './src/screens/CountryScreen';
 import ChangeToCustomStyles from './src/screens/ChangeToCustomStyles';
 
 import Profile from './src/screens/Profile';
@@ -41,11 +42,9 @@ const Tab = createMaterialBottomTabNavigator();
 
 const HomeTabs = () => {
   AsyncStorage.getItem('selectedLanguage').then(data => {
-    console.log('123', data);
     if (data) {
-      console.log('1234', data);
-
-      strings.setLanguage(data);
+      let parsedData = JSON.parse(data);
+      //strings.setLanguage(parsedData.code);
     }
   });
 
@@ -156,7 +155,7 @@ const App = () => {
           options={({route, navigation}) => ({
             title: '',
             headerStyle: {
-              backgroundColor: WHITE_COLOR,
+              backgroundColor: 'white',
               shadowRadius: 0,
               shadowOffset: {
                 height: 0,
@@ -167,7 +166,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/close.png')}
                     style={{
@@ -202,7 +207,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/leftArrow.png')}
                     style={{
@@ -222,7 +233,7 @@ const App = () => {
 
         <RootStack.Screen
           name="Checkout UI 2"
-          component={CheckoutUI2Screen}
+          component={CheckoutUIScreen}
           options={({route, navigation}) => ({
             title: 'Chaiport Checkout',
             headerStyle: {
@@ -237,7 +248,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/leftArrow.png')}
                     style={{
@@ -271,7 +288,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/leftArrow.png')}
                     style={{
@@ -305,7 +328,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/leftArrow.png')}
                     style={{
@@ -322,7 +351,46 @@ const App = () => {
             ),
           })}
         />
-
+        <RootStack.Screen
+          name="CountryScreen"
+          component={CountryScreen}
+          options={({route, navigation}) => ({
+            title: '',
+            headerStyle: {
+              backgroundColor: WHITE_COLOR,
+              shadowRadius: 0,
+              shadowOffset: {
+                height: 0,
+              },
+            },
+            headerLeft: () => (
+              <>
+                <TouchableOpacity
+                  style={{marginLeft: 5, alignItems: 'center'}}
+                  activeOpacity={0.5}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
+                  <Image
+                    source={require('./assets/leftArrow.png')}
+                    style={{
+                      alignSelf: 'center',
+                      width: 25,
+                      height: 25,
+                      resizeMode: 'stretch',
+                      marginTop: 0,
+                      marginLeft: 10,
+                    }}
+                  />
+                </TouchableOpacity>
+              </>
+            ),
+          })}
+        />
         <RootStack.Screen
           name="ChangeToCustomStyles"
           component={ChangeToCustomStyles}
@@ -340,7 +408,13 @@ const App = () => {
                 <TouchableOpacity
                   style={{marginLeft: 5, alignItems: 'center'}}
                   activeOpacity={0.5}
-                  onPress={() => navigation.goBack()}>
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      navigation?.pop();
+                    } else {
+                      navigation?.goBack();
+                    }
+                  }}>
                   <Image
                     source={require('./assets/leftArrow.png')}
                     style={{

@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   modalDismissText: {fontSize: 15, alignSelf: 'center'},
 });
 
-const deepLinkURL = 'chaipay://checkout';
+const deepLinkURL = 'chaiport://checkout';
 
 const Payment = ({route}) => {
   const {price, method, channel, orderId} = route.params;
@@ -98,8 +98,8 @@ const Payment = ({route}) => {
         quantity: 1,
       },
     ],
-    success_url: 'chaipay://',
-    failure_url: 'chaipay://',
+    success_url: 'chaiport://',
+    failure_url: 'chaiport://',
   };
 
   const [pageLoading, setPageLoading] = useState(false);
