@@ -47,6 +47,7 @@ import {
   SUCCESS_COLOR,
   TRANSPARENT,
   WHITE_COLOR,
+  CURRENCY,
 } from '../../constants';
 import CheckboxView from '../../helpers/CheckboxView';
 import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
@@ -353,8 +354,6 @@ class Checkout1 extends React.Component {
   }
 
   componentDidMount() {
-    console.log('this,props', this.props.route);
-
     AsyncStorage.getItem('formattedMobileNumber').then(value => {
       this.setState({formattedText: value});
     });
@@ -389,8 +388,9 @@ class Checkout1 extends React.Component {
     });
 
     helpers
-      .fetchAvailablePaymentGateway()
+      .fetchAvailablePaymentGateway(CHAIPAY_KEY, CURRENCY)
       .then(data => {
+        console.log('data.data', data.data);
         this.setState({totalListOfPayments: data.data});
         let filteredWalletList = filter(data.data.WALLET, item => {
           return item.is_enabled;
@@ -985,8 +985,7 @@ class Checkout1 extends React.Component {
     });
     const showATMCardFlow = filteredCards.length > 0;
     const formattedText = '+919913379694';
-    console.log('showCardForm', showCardForm);
-    console.log('formattedText', this.state.formattedText);
+
     return (
       <View style={{width: width, marginTop: 5}}>
         {showCardForm ? (
@@ -1666,7 +1665,6 @@ class Checkout1 extends React.Component {
       currency: 'VND',
     }).format(totalAmount + deliveryAmount);
 
-    console.log('SelectedItem', this.state.selectedItem);
     return (
       <View style={{width: width, backgroundColor: WHITE_COLOR}}>
         <View style={styles.payNowContainerView}>
@@ -1839,30 +1837,6 @@ class Checkout1 extends React.Component {
         <View style={{backgroundColor: WHITE_COLOR, flex: 1}}>
           {orderDetails !== undefined ? (
             <>
-              {/* <View
-              style={[
-                styles.headerView,
-                {
-                  backgroundColor: WHITE_COLOR,
-                  paddingBottom: 0,
-                  borderBottomWidth: 0,
-                  marginTop: -5,
-                },
-              ]}>
-              <Text
-                style={[
-                  styles.featuredText,
-                  {
-                    textAlign: 'center',
-                    color: 'black',
-                    fontSize: 25,
-                    fontWeight: BOLD,
-                    marginHorizontal: 20,
-                  },
-                ]}>
-                Checkout{' '}
-              </Text>
-            </View> */}
               <ScrollView>
                 <this.ResponseView orderDetails={orderDetails} />
               </ScrollView>

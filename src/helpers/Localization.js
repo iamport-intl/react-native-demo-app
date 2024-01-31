@@ -2,7 +2,7 @@ import {find, get, isEmpty, memoize, toUpper} from 'lodash';
 
 import {I18nManager} from 'react-native';
 
-import i18n from 'i18n-js';
+// import i18n from 'i18n-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {strings} from '../constants';
 
@@ -16,7 +16,8 @@ const translationGetters = {
 
 const translate = memoize(
   (key, config) => {
-    return i18n.t(key, config);
+    //return i18n.t(key, config);
+    return key;
   },
   (key, config) => {
     return config ? key + JSON.stringify(config) : key;

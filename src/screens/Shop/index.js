@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
+import example from '../ScrollableNavigation';
 import {
   APP_THEME_COLOR,
   DARKGRAY,
@@ -33,6 +34,8 @@ import {
   IMAGE_BACKGROUND_COLOR,
   strings,
   ENVIRONMENT,
+  toBase64,
+  fromBase64,
 } from '../../constants';
 import Product from '../Product';
 import {
@@ -54,10 +57,10 @@ import {
   WalletView,
   CreditCardForm,
   SavedCardsView,
-  CheckoutUI,
   TransactionStatusView,
   CartDetails,
   CheckoutInstance,
+  CheckoutUI,
   BasicCheckoutUI,
 } from '@iamport-intl/chaipay-sdk';
 import AwesomeAlert from 'react-native-awesome-alerts';
@@ -65,50 +68,57 @@ import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
 import ScheduledProductCell from '../SelectedProductCell';
 import {EventRegister} from 'react-native-event-listeners';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const {width, height} = Dimensions.get('screen');
-const appColor = 'yellow';
+
 const products = [
   {
     key: 1,
     name: 'Bella Toes',
     description: 'Premium quality',
+    quantity: 1,
     price: 10000,
-    img: 'https://demo.chaiport.io/images/bella-toes.jpg',
+    img: 'https://demo.portone.cloud/images/bella-toes.jpg',
   },
   {
     key: 2,
     name: 'Chikku Loafers',
     description: 'Special design',
+    quantity: 1,
     price: 190000,
-    img: 'https://demo.chaiport.io/images/chikku-loafers.jpg',
+    img: 'https://demo.portone.cloud/images/chikku-loafers.jpg',
   },
   {
     key: 3,
     name: '(SRV) Sneakers',
     description: 'White sneakers',
     price: 185600,
-    img: 'https://demo.chaiport.io/images/banner2.jpg',
+    quantity: 1,
+    img: 'https://demo.portone.cloud/images/banner2.jpg',
   },
   {
     key: 4,
     name: 'Shuberry Heels',
     description: 'Comfortable heels',
     price: 321000,
-    img: 'https://demo.chaiport.io/images/ab.jpg',
+    quantity: 1,
+    img: 'https://demo.portone.cloud/images/ab.jpg',
   },
   {
     key: 5,
     name: 'Red Bellies',
     description: 'Premium quality',
     price: 256000,
-    img: 'https://demo.chaiport.io/images/red-bellies.jpg',
+    quantity: 1,
+    img: 'https://demo.portone.cloud/images/red-bellies.jpg',
   },
   {
     key: 6,
     name: 'Catwalk Flats',
     description: 'Premium quality',
     price: 191500,
-    img: 'https://demo.chaiport.io/images/catwalk-flats.jpg',
+    quantity: 1,
+    img: 'https://demo.portone.cloud/images/catwalk-flats.jpg',
   },
 ];
 
@@ -124,9 +134,9 @@ class Shop extends React.Component {
       walletPaymentChannels: [],
       hideWalletUI: true,
       selectedLanguage: {
-        name: 'Thai',
-        code: 'th-TH',
-        languageCode: 'th',
+        name: 'English',
+        code: 'en-EN',
+        languageCode: 'en',
         currency: 'THB',
       },
     };
@@ -137,7 +147,7 @@ class Shop extends React.Component {
 
     AsyncStorage.getItem('selectedLanguage').then(value => {
       let lang = JSON.parse(value);
-      console.log('lang', lang);
+
       if (lang) {
         strings.setLanguage(lang.code);
         this.setState({selectedLanguage: lang});
@@ -285,6 +295,19 @@ class Shop extends React.Component {
     console.log('DATA', data);
   };
 
+  getTotalAmount = orderDetails => {
+    let totalAmount = 0;
+    map(values(this.state.selectedProducts), item => {
+      totalAmount = totalAmount + item.price;
+      orderDetails.push({
+        id: `${item.key}`,
+        price: item.price,
+        name: item.name,
+        quantity: 2,
+        image: item.img,
+      });
+    });
+  };
   generateJWTToken = () => {
     var payload = {
       iss: 'CHAIPAY',
@@ -336,18 +359,20 @@ class Shop extends React.Component {
     let successURL = 'https://dev-checkout.chaiport.io/success.html';
 
     map(values(this.state.selectedProducts), item => {
-      totalAmount = totalAmount + item.price;
+      let x = item.price * item.quantity;
+      totalAmount = totalAmount + x;
       orderDetails.push({
         id: `${item.key}`,
         price: item.price,
         name: item.name,
-        quantity: 1,
+        quantity: 2,
         image: item.img,
       });
     });
 
     //chaipayKey: 'lzrYFPfyMLROallZ',
     let payload = {
+      portOneKey: CHAIPAY_KEY,
       chaipayKey: CHAIPAY_KEY,
       key: CHAIPAY_KEY,
       merchantDetails: {
@@ -378,7 +403,7 @@ class Shop extends React.Component {
         billing_phone: '+660956425564',
         // billing_phone: '+840830443596',
         billing_address: {
-          city: 'VND',
+          city: 'THB',
           country_code: 'VN',
           locale: 'en',
           line_1: 'address',
@@ -394,11 +419,11 @@ class Shop extends React.Component {
         shipping_phone: '+66 900002001',
         // shipping_phone: '+848959893980',
         shipping_address: {
-          city: 'abc',
+          city: 'testing abc',
           country_code: 'VN',
           locale: 'en',
-          line_1: 'address_1',
-          line_2: 'address_2',
+          line_1: 'Testing address_1',
+          line_2: 'Testing address_2',
           postal_code: '400202',
           state: 'Mah',
         },
@@ -407,8 +432,8 @@ class Shop extends React.Component {
       orderDetails: orderDetails,
       successUrl: successURL,
       failureUrl: failureURL,
-      mobileRedirectUrl: 'chaiport://checkout',
-      redirectUrl: 'chaiport://checkout',
+      mobileRedirectUrl: 'portone://checkout',
+      redirectUrl: 'portone://checkout',
       expiryHours: 2,
       source: 'mobile',
       description: 'test RN',
@@ -427,7 +452,9 @@ class Shop extends React.Component {
     let merchantOrderId = 'MERCHANT' + new Date().getTime();
     let failureURL = 'https://dev-checkout.chaiport.io/failure.html';
     let successURL = 'https://dev-checkout.chaiport.io/success.html';
-    console.log('this.state.selectedLanguage', this.state.selectedLanguage);
+    const promoDiscount = 100;
+    const shipping = 400;
+
     map(values(this.state.selectedProducts), item => {
       totalAmount = totalAmount + item.price;
       orderDetails.push({
@@ -438,18 +465,21 @@ class Shop extends React.Component {
         image: item.img,
       });
     });
+
+    totalAmount = totalAmount + shipping - promoDiscount;
     // Todo: Have to modify the structure for selectedproducts
     //chaipayKey: 'lzrYFPfyMLROallZ',
     let payload = {
+      portOneKey: CHAIPAY_KEY,
       chaipayKey: CHAIPAY_KEY,
       key: CHAIPAY_KEY,
       merchantDetails: {
-        name: 'Chaipay',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
+        name: 'Chaipay Cart',
+        logo: 'https://demo.portone.cloud/images/chikku-loafers.jpg',
         back_url: 'https://demo.chaipay.io/checkout.html',
         promo_code: 'Downy350',
-        promo_discount: 0,
-        shipping_charges: 0.0,
+        promo_discount: promoDiscount,
+        shipping_charges: shipping,
       },
       merchantOrderId: merchantOrderId,
       signatureHash: this.createHash(
@@ -482,15 +512,15 @@ class Shop extends React.Component {
         },
       },
       shippingDetails: {
-        shipping_name: 'xyz',
+        shipping_name: 'xyz-Testing',
         shipping_email: 'xyz@gmail.com',
         shipping_phone: '+910830443596',
         shipping_address: {
-          city: 'abc',
+          city: 'testing city',
           country_code: 'VN',
           locale: 'en',
-          line_1: 'address_1',
-          line_2: 'address_2',
+          line_1: 'Testing line 1',
+          line_2: 'Testing line 2',
           postal_code: '400202',
           state: 'Mah',
         },
@@ -500,7 +530,7 @@ class Shop extends React.Component {
       successUrl: successURL,
       failureUrl: failureURL,
 
-      redirectUrl: 'chaiport://checkout',
+      redirectUrl: 'portone://checkout',
       expiryHours: 2,
       source: 'mobile',
       description: 'test RN',
@@ -556,7 +586,7 @@ class Shop extends React.Component {
   };
 
   getAvailablePaymentChannels = async () => {
-    let x = await helpers.fetchAvailablePaymentGateway();
+    let x = await helpers.fetchAvailablePaymentGateway(CHAIPAY_KEY, CURRENCY);
 
     return x.data.WALLET;
   };
@@ -738,7 +768,6 @@ class Shop extends React.Component {
               }}
             />
           ) : null}
-
           <View style={styles.buyNowContainerView}>
             <TouchableOpacity
               style={[
@@ -753,8 +782,11 @@ class Shop extends React.Component {
               ]}
               disabled={isEmpty(this.state.selectedProducts)}
               onPress={() => {
-                this.setState({showUIPopUp: true});
-
+                // this.setState({showUIPopUp: true});
+                let payload = this.getDefaultConfig();
+                payload.paymentChannel = 'OMISE';
+                payload.paymentMethod = 'OMISE_ALIPAY';
+                Checkout.startPaymentWithWallets(payload);
                 // let config = this.getWebDefaultConfig();
 
                 // let data = {...config, environment: ENVIRONMENT};
@@ -806,31 +838,74 @@ class Shop extends React.Component {
                   // });
                 }}
                 onConfirmPressed={() => {
+                  // v3
                   // this.props.navigation.navigate('Checkout', {
                   //   selectedProducts: this.state.selectedProducts,
                   //   themeColor: 'red',
                   //   navigation: this.props.navigation,
                   // });
                   // this.onClose();
-                  this.setState(
-                    {showUIPopUp: false, showV4Checkout: true},
-                    () => {
-                      console.log(
-                        'SHOW v4 elements',
-                        this.state.showV4Checkout,
-                      );
-                    },
-                  );
+
+                  // v2
+
+                  // this.props.navigation.navigate('Checkout UI 2', {
+                  //   selectedProducts: this.state.selectedProducts,
+                  //   themeColor: '#FFFFFF',
+                  //   navigation: this.props.navigation,
+                  //   payload: this.getDefaultConfig(),
+                  //   JWTToken: JWTToken,
+                  //   callbackFunction: this.afterCheckout,
+                  // });
+                  // this.onClose();
+
+                  // this.setState(
+                  //   {showUIPopUp: false, showV4Checkout: true},
+                  //   () => {
+                  //     console.log(
+                  //       'SHOW v4 elements',
+                  //       this.state.showV4Checkout,
+                  //     );
+                  //   },
+                  // );
+                  let payload = this.getDefaultConfig();
+                  payload.paymentChannel = 'OMISE';
+                  payload.paymentMethod = 'OMISE_ALIPAY';
+                  Checkout.startPaymentWithWallets(payload);
                 }}
               />
             ) : null}
           </View>
+          {/* {this.state.selectedLanguage !== undefined &&
+          this.state.showV4Checkout ? (
+            <CreditCardForm
+              handleSDK={true}
+              containerHeight={'85%'}
+              onClose={() => {
+                this.setState({showV4Checkout: false});
+              }}
+              showSaveForLater={true}
+              newCardData={this.newCardData}
+              headerTitle={12000}
+              payNowButtonText={
+                this.props.cardStyles?.payNowButtonText || strings.payNow
+              }
+              payNowButtonCornerRadius={
+                this.props.cardStyles?.buttonBorderRadius
+              }
+              payload={{
+                ...this.getDefaultConfig(),
+                paymentChannel: 'APPOTAPAY',
+                paymentMethod: 'APPOTAPAY_ATM_CARD',
+              }}
+              jwtToken={this.props.jwtToken}
+            />
+          ) : null} */}
           {this.state.selectedLanguage !== undefined &&
           this.state.showV4Checkout ? (
             <>
               <BasicCheckoutUI
                 selectedProducts={this.state.selectedProducts}
-                layout={5}
+                layout={4}
                 payload={this.getDefaultConfig()}
                 JWTToken={JWTToken}
                 customOptions={{
@@ -841,7 +916,7 @@ class Shop extends React.Component {
                   headerFontSize: 16,
                   buttonBorderRadius: this.state.borderRadius,
                 }}
-                themeColor={'#FC6B2D' || APP_THEME_COLOR} // #FC6B2D #00FF00 #0000FF #006400 #FF0000 #FFC0CB #FFB6C1 #FF1493
+                themeColor={'#FC6B2D' || APP_THEME_COLOR} // #727C3B #FC0053 #FC6B2D #00FF00 #0000FF #006400 #FF0000 #FFC0CB #FFB6C1 #FF1493
                 onClose={() => {
                   this.setState({showV4Checkout: false});
 
@@ -855,13 +930,8 @@ class Shop extends React.Component {
         {this.state.selectedLanguage !== undefined ? (
           <Checkout
             env={'dev'}
-            currency={this.state.selectedLanguage?.currency}
-            languageCode={this.state.selectedLanguage}
             callbackFunction={this.afterCheckout}
-            redirectUrl={'chaiport://checkout'}
-            secretKey={SECRET_KEY}
-            chaipayKey={CHAIPAY_KEY}
-            environment={ENVIRONMENT}
+            redirectUrl={'portone://checkout'}
           />
         ) : null}
       </View>

@@ -17,9 +17,13 @@ import {
   TRANSPARENT,
   WHITE_COLOR,
   IMAGE_BACKGROUND_COLOR,
+  CHAIPAY_KEY,
+  CURRENCY,
 } from '../src/constants.js';
 
-import {helpers, WalletView, CreditCardForm} from '../index';
+import {CreditCardForm} from '../src/Layouts/CreditCardForm';
+import {WalletView} from '../src/Layouts/WalletView';
+import {helpers} from '@iamport-intl/chaipay-sdk';
 //import TextField from "../helpers/TextField";
 const {width, height} = Dimensions.get('screen');
 class PaymentMethods extends Component {
@@ -30,7 +34,7 @@ class PaymentMethods extends Component {
 
   componentDidMount() {
     helpers
-      .fetchAvailablePaymentGateway()
+      .fetchAvailablePaymentGateway(CHAIPAY_KEY, CURRENCY)
       .then(data => {
         this.setState({totalListOfPayments: data.data});
         let filteredWalletList = filter(data.data.WALLET, item => {

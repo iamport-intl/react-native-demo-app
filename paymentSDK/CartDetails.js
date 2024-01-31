@@ -94,9 +94,10 @@ class CartDetails extends Component {
               marginTop: 4,
             }}>
             <View style={{marginHorizontal: 15}}>
-              {map(selectedItems, product => {
+              {map(selectedItems, (product, index) => {
                 return (
                   <ScheduledProductCell
+                    key={index}
                     product={product}
                     nameColor={this.props.nameColor}
                     nameFontSize={this.props.nameFontSize}

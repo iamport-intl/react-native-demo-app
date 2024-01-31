@@ -1,4 +1,5 @@
 import LocalizedStrings from 'react-native-localization';
+import {Buffer} from 'buffer';
 
 //colors
 export const WHITE_COLOR = 'white';
@@ -45,6 +46,7 @@ export const BOLD = 'bold';
 export const currency = '₫';
 export const CURRENCY = 'THB';
 export const ENVIRONMENT = 'sandbox';
+
 // DEV //
 //paypal
 // export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';
@@ -58,12 +60,20 @@ export const ENVIRONMENT = 'sandbox';
 // export const JWTToken =
 //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoiSXRqUW9jUmR5ZmFBRmZsciIsImlhdCI6MTY1MjM1MTE5NywiZXhwIjoyNjUyMzUyMTk3fQ.YimKIzY7uH-uFnUfQNm293iZgGvZP1_Azp6hEt7BE9A';
 
+//TRUEMONEY TESTING PROD
+
+// export const CHAIPAY_KEY = 'zuedLEsfafUWdxoQ';
+// export const SECRET_KEY =
+//   'fd03377a3a4cfee24f4d6d01e8a307ed523f7661bdb2760d42ddf1f650a2e353';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoienVlZExFc2ZhZlVXZHhvUSIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.TD7YeBc_YPoZjVrbZ0V4AGrcx4Hd5Q5PUUeAB-3h9J4';
+
 // SIRI dev
-export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
-export const SECRET_KEY =
-  '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
-export const JWTToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
+// export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
+// export const SECRET_KEY =
+//   '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Aditya dev
 // export const CHAIPAY_KEY = 'ccbwQTkOwNHlfxeg';
@@ -73,11 +83,11 @@ export const JWTToken =
 //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Dev Aagam
-// export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
-// export const SECRET_KEY =
-//   '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
-// export const JWTToken =
-//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYWlIS2FmS0lic2RVSkRPYiIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.B1Xz5Lny1TJvDsO9YzMdve4Uidp5f0bcNmh9NqWqFuI';
+export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
+export const SECRET_KEY =
+  '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
+export const JWTToken =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYWlIS2FmS0lic2RVSkRPYiIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.B1Xz5Lny1TJvDsO9YzMdve4Uidp5f0bcNmh9NqWqFuI';
 
 // Dev Payalsandbox
 // export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';
@@ -115,11 +125,23 @@ export const JWTToken =
 // export const CHAIPAY_KEY = 'vzJeunCkacgDYxMk';
 // export const SECRET_KEY =
 //   '31c98102ce7b8fa920a77a08090f9daeaf53ffb44a7704a0a2c7364311738a11';
+// staging Testmerchnat
+// export const CHAIPAY_KEY = 'xFgseojiprOhkgPa';
+// export const SECRET_KEY =
+//   '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
 
 //PROD Nikhil
 // export const CHAIPAY_KEY = 'NPSkZZYefGyKvBxi';
 // export const SECRET_KEY =
 //   '6c8d964e7d472076eae7beb0a1f5b2b81c0afbb479307a211029ace597656957';
+
+export function toBase64(input) {
+  return Buffer.from(input, 'utf-8').toString('base64');
+}
+
+export function fromBase64(encoded) {
+  return Buffer.from(encoded, 'base64').toString('utf8');
+}
 
 export let strings = new LocalizedStrings({
   'en-US': {

@@ -51,13 +51,41 @@ const HomeTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        unmountOnBlur: true,
+        tabBarScrollEnabled: true,
+        tabBarIndicator: () => null,
+        tabBarStyle: {
+          backgroundColor: '#000',
+        },
+        tabBarItemStyle: {
+          width: 'auto',
+          alignItems: 'flex-start',
+        },
+        tabBarLabelStyle: {
+          fontSize: 30,
+          color: '#fff',
+          textTransform: 'capitalize',
+        },
+        height: 50,
       }}>
       <Tab.Screen
         name="Home"
         component={ShopScreen}
+        screenOptions={{
+          backgroundColor: 'red',
+          tabBarScrollEnabled: true,
+          tabBarIndicatorStyle: {
+            backgroundColor: 'blue',
+            height: 8,
+          },
+        }}
+        sceneContainerStyle={{backgroundColor: 'green'}}
         options={() => {
           return {
+            tabBarScrollEnabled: true,
+            tabBarIndicatorStyle: {
+              backgroundColor: 'blue',
+              height: 8,
+            },
             tabBarLabel: strings.home,
             tabBarIcon: ({color, size}) => (
               <Image
@@ -209,13 +237,14 @@ const App = () => {
                   activeOpacity={0.5}
                   onPress={() => {
                     if (Platform.OS === 'ios') {
+                      console.log('pressed');
                       navigation?.pop();
                     } else {
                       navigation?.goBack();
                     }
                   }}>
                   <Image
-                    source={require('./assets/leftArrow.png')}
+                    source={require('./assets/close.png')}
                     style={{
                       alignSelf: 'center',
                       width: 25,
@@ -233,7 +262,7 @@ const App = () => {
 
         <RootStack.Screen
           name="Checkout UI 2"
-          component={CheckoutUIScreen}
+          component={CheckoutUI2Screen}
           options={({route, navigation}) => ({
             title: 'Chaiport Checkout',
             headerStyle: {

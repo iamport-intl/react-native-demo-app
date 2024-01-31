@@ -44,7 +44,8 @@ android:exported="true"
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
 
-                <data android:scheme="chaipay" android:host="checkout" />
+                <data android:scheme="portone" android:host="checkout" />
+                <data android:scheme="chaiport" android:host="checkout" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
 

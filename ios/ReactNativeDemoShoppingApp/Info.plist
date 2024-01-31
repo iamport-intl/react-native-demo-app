@@ -31,57 +31,7 @@
 			<string>checkout</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>chaipay</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>ZaloPaycheckout</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>zalo</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>MomoPayCheckout</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>momo</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>momocheckout</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>momopay</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>mo12moCheckout</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>momo12</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string></string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>chaiport</string>
+				<string>portone</string>
 			</array>
 		</dict>
 	</array>
@@ -89,19 +39,19 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>chaiport</string>
 		<string>toppay</string>
 		<string>itms-appss</string>
 		<string>momo</string>
 		<string>zalopay</string>
 		<string>momopay</string>
-		<string>chaipay</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>

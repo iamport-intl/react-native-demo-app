@@ -12,3 +12,16 @@ export const logErrorWithMessage = (message, errorSource) => {
     console.log(message, errorSource);
   }
 };
+
+export const formatNumber = (number, currency) => {
+  let formattedNumber = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: currency || 'VND',
+    minimumFractionDigits: 2,
+  })
+    .format(number)
+    .replace('THB', '฿')
+    .replace('IDR', 'Rp')
+    .replace('SGD', 'S$');
+  return formattedNumber;
+};

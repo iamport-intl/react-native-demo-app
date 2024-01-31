@@ -1,7 +1,7 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '11.0'
+platform :ios, min_ios_version_supported
 
 target 'ReactNativeDemoShoppingApp' do
   config = use_native_modules!
@@ -12,8 +12,6 @@ target 'ReactNativeDemoShoppingApp' do
     :hermes_enabled => false
   )
 
-  pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
-  pod 'RNInAppBrowser', :path => '../node_modules/react-native-inappbrowser-reborn'
 
   target 'ReactNativeDemoShoppingAppTests' do
     inherit! :complete
