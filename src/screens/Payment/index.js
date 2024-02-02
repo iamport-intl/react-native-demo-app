@@ -4,7 +4,7 @@ import {View, Text, ScrollView, StyleSheet} from 'react-native';
 // import ChaiPayScreen from 'chaipay/ChaiPayScreen';
 // import Checkout from 'chaipay-sdk';
 //const client = require('chaipay')
-import axios from 'axios';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {strings} from '../../constants';
 

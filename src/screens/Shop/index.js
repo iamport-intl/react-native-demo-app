@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
-  SafeAreaView,
   Platform,
 } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
@@ -62,7 +61,7 @@ import {
   CheckoutInstance,
   CheckoutUI,
   BasicCheckoutUI,
-} from '@iamport-intl/chaipay-sdk';
+} from '@iamport-intl/portone-sdk';
 import AwesomeAlert from 'react-native-awesome-alerts';
 import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
 import ScheduledProductCell from '../SelectedProductCell';
@@ -782,25 +781,7 @@ class Shop extends React.Component {
               ]}
               disabled={isEmpty(this.state.selectedProducts)}
               onPress={() => {
-                // this.setState({showUIPopUp: true});
-                let payload = this.getDefaultConfig();
-                payload.paymentChannel = 'OMISE';
-                payload.paymentMethod = 'OMISE_ALIPAY';
-                Checkout.startPaymentWithWallets(payload);
-                // let config = this.getWebDefaultConfig();
-
-                // let data = {...config, environment: ENVIRONMENT};
-                // let jwtToken = JWTToken;
-                // Checkout.openWebCheckoutUI(data, jwtToken);
-
-                // this.onClose();
-
-                // this.setState(
-                //   {showUIPopUp: false, showV4Checkout: true},
-                //   () => {
-                //     console.log('SHOW v4 elements', this.state.showV4Checkout);
-                //   },
-                // );
+                this.setState({showUIPopUp: true});
               }}>
               <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
                 {strings.buy_now}
@@ -858,19 +839,15 @@ class Shop extends React.Component {
                   // });
                   // this.onClose();
 
-                  // this.setState(
-                  //   {showUIPopUp: false, showV4Checkout: true},
-                  //   () => {
-                  //     console.log(
-                  //       'SHOW v4 elements',
-                  //       this.state.showV4Checkout,
-                  //     );
-                  //   },
-                  // );
-                  let payload = this.getDefaultConfig();
-                  payload.paymentChannel = 'OMISE';
-                  payload.paymentMethod = 'OMISE_ALIPAY';
-                  Checkout.startPaymentWithWallets(payload);
+                  this.setState(
+                    {showUIPopUp: false, showV4Checkout: true},
+                    () => {
+                      console.log(
+                        'SHOW v4 elements',
+                        this.state.showV4Checkout,
+                      );
+                    },
+                  );
                 }}
               />
             ) : null}
@@ -932,6 +909,7 @@ class Shop extends React.Component {
             env={'dev'}
             callbackFunction={this.afterCheckout}
             redirectUrl={'portone://checkout'}
+            environment={'sandbox'}
           />
         ) : null}
       </View>
