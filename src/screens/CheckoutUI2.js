@@ -56,7 +56,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Checkout from './Checkout';
 
-import {helpers} from '@iamport-intl/chaipay-sdk';
+import {helpers} from '@iamport-intl/portone-sdk';
 import PayNowButton from '../../paymentSDK/PayNowButton';
 import PaymentMethods from '../../paymentSDK/PaymentMethods';
 import MobileAuthenticationView from '../../paymentSDK/MobileNumberAuthenticationView';

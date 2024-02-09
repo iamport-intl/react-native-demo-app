@@ -12,8 +12,8 @@ import {
   Modal,
   Platform,
 } from 'react-native';
+
 import SplashScreen from 'react-native-splash-screen';
-import example from '../ScrollableNavigation';
 import {
   APP_THEME_COLOR,
   DARKGRAY,
@@ -133,10 +133,10 @@ class Shop extends React.Component {
       walletPaymentChannels: [],
       hideWalletUI: true,
       selectedLanguage: {
-        name: 'English',
+        name: 'Vietnamese',
         code: 'en-EN',
-        languageCode: 'en',
-        currency: 'THB',
+        languageCode: 'vn',
+        currency: 'VND',
       },
     };
   }
@@ -472,27 +472,7 @@ class Shop extends React.Component {
       portOneKey: CHAIPAY_KEY,
       chaipayKey: CHAIPAY_KEY,
       key: CHAIPAY_KEY,
-      merchantDetails: {
-        name: 'Chaipay Cart',
-        logo: 'https://demo.portone.cloud/images/chikku-loafers.jpg',
-        back_url: 'https://demo.chaipay.io/checkout.html',
-        promo_code: 'Downy350',
-        promo_discount: promoDiscount,
-        shipping_charges: shipping,
-      },
-      merchantOrderId: merchantOrderId,
-      signatureHash: this.createHash(
-        CHAIPAY_KEY,
-        totalAmount,
-        this.state.selectedLanguage?.currency || CURRENCY,
-        failureURL,
-        merchantOrderId,
-        successURL,
-        SECRET_KEY,
-      ),
-      amount: totalAmount,
-      currency: this.state.selectedLanguage?.currency || CURRENCY,
-      countryCode: 'VN',
+
       billingDetails: {
         billing_name: 'Test React native',
         billing_email: 'markweins@gmail.com',
@@ -524,6 +504,31 @@ class Shop extends React.Component {
           state: 'Mah',
         },
       },
+      merchantDetails: {
+        name: 'Chaipay Cart',
+        logo: 'https://demo.portone.cloud/images/chikku-loafers.jpg',
+        back_url: 'https://demo.chaipay.io/checkout.html',
+        promo_code: 'Downy350',
+        promo_discount: promoDiscount,
+        shipping_charges: shipping,
+      },
+
+      paymentChannel: 'GBPRIMEPAY',
+      paymentMethod: 'GBPRIMEPAY_CREDIT_CARD',
+      merchantOrderId: merchantOrderId,
+      signatureHash: this.createHash(
+        CHAIPAY_KEY,
+        totalAmount,
+        this.state.selectedLanguage?.currency || CURRENCY,
+        failureURL,
+        merchantOrderId,
+        successURL,
+        SECRET_KEY,
+      ),
+      amount: totalAmount,
+      currency: this.state.selectedLanguage?.currency || CURRENCY,
+      countryCode: 'VN',
+
       environment: ENVIRONMENT,
       orderDetails: orderDetails,
       successUrl: successURL,
@@ -881,6 +886,8 @@ class Shop extends React.Component {
           this.state.showV4Checkout ? (
             <>
               <BasicCheckoutUI
+                showShippingAddressView={true}
+                showSavedCardsView={false}
                 selectedProducts={this.state.selectedProducts}
                 layout={4}
                 payload={this.getDefaultConfig()}
@@ -903,6 +910,24 @@ class Shop extends React.Component {
               />
             </>
           ) : null}
+          {/* {this.state.showV4Checkout ? (
+            <>
+              <CreditCardForm
+                onClose={() => {
+                  console.log('on close');
+                }}
+                JWTToken={JWTToken}
+                handleSDK={true}
+                payload={this.getDefaultConfig()}
+                showSaveForLater={true}
+                themeColor={'black'}
+                newCardData={data => {
+                  console.log('data new card', data);
+                }}
+                payNowButtonText={'strings.payNow'}
+              />
+            </>
+          ) : null} */}
         </>
         {this.state.selectedLanguage !== undefined ? (
           <Checkout

@@ -23,7 +23,7 @@ import {
 
 import {CreditCardForm} from '../src/Layouts/CreditCardForm';
 import {WalletView} from '../src/Layouts/WalletView';
-import {helpers} from '@iamport-intl/chaipay-sdk';
+import {helpers} from '@iamport-intl/portone-sdk';
 //import TextField from "../helpers/TextField";
 const {width, height} = Dimensions.get('screen');
 class PaymentMethods extends Component {

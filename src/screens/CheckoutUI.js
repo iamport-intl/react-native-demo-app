@@ -24,7 +24,7 @@ import {
   CartSummary,
   CheckoutInstance,
   CheckoutUI2,
-} from '@iamport-intl/chaipay-sdk';
+} from '@iamport-intl/portone-sdk';
 
 import {hexToRgb, formatNumber} from '../helpers/helperFunctions';
 

@@ -22,7 +22,7 @@ import {
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import MobileNumberAuthenticationView from '../paymentSDK/MobileNumberAuthenticationView';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {helpers} from '@iamport-intl/chaipay-sdk';
+import {helpers} from '@iamport-intl/portone-sdk';
 
 //import TextField from "../helpers/TextField";
 const {width} = Dimensions.get('screen');

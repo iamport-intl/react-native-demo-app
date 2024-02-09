@@ -44,7 +44,7 @@ export const BOLD = 'bold';
 
 //Currency
 export const currency = '₫';
-export const CURRENCY = 'THB';
+export const CURRENCY = 'VND';
 export const ENVIRONMENT = 'sandbox';
 
 // DEV //
@@ -83,11 +83,11 @@ export const ENVIRONMENT = 'sandbox';
 //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Dev Aagam
-export const CHAIPAY_KEY = 'aiHKafKIbsdUJDOb';
+export const CHAIPAY_KEY = 'dzcylAVbbBkhkSeg';
 export const SECRET_KEY =
-  '2601efeb4409f7027da9cbe856c9b6b8b25f0de2908bc5322b1b352d0b7eb2f5';
+  '00c64e9355137a7813ab50e9b8b5f805e17f9917d77c3f312ce76e58143bacee';
 export const JWTToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYWlIS2FmS0lic2RVSkRPYiIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.B1Xz5Lny1TJvDsO9YzMdve4Uidp5f0bcNmh9NqWqFuI';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkemN5bEFWYmJCa2hrU2VnIiwiaXNzIjoiQ0hBSVBBWSIsImlhdCI6MTcwNjg3Mzg0NywiZXhwIjoxNzA3ODczODQ3fQ.1LIN1G4_z6_HpjCkTLwmGzF8dx_T9Vh19zSFtMdTt8E';
 
 // Dev Payalsandbox
 // export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';

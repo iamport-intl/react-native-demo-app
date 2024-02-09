@@ -23,7 +23,7 @@ import {
   TransactionStatusView,
   CartSummary,
   CheckoutInstance,
-} from '@iamport-intl/chaipay-sdk';
+} from '@iamport-intl/portone-sdk';
 import PhoneInput from 'react-native-phone-number-input';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';

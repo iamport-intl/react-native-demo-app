@@ -11,7 +11,7 @@ import {
 import RBSheet from 'react-native-raw-bottom-sheet';
 import CheckBoxItemView from './CheckBoxItemView';
 import TransactionStatusView from './TransactionStatusView';
-import {CheckoutInstance, Checkout, helpers} from '@iamport-intl/chaipay-sdk';
+import {CheckoutInstance, Checkout, helpers} from '@iamport-intl/portone-sdk';
 
 import {EventRegister} from 'react-native-event-listeners';
 import {strings} from '../constants';

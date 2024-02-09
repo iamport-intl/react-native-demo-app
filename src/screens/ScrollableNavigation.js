@@ -100,7 +100,7 @@
 //   Dimensions,
 //   TouchableOpacity,
 // } from 'react-native';
-// import {Checkout} from '@iamport-intl/chaipay-sdk';
+// import {Checkout} from '@iamport-intl/portone-sdk';
 
 // const {width} = Dimensions.get('screen');
 // class PayNowButton extends Component {

@@ -73,7 +73,7 @@ import {
   CartSummary,
   CheckoutInstance,
   CheckoutUI2,
-} from '@iamport-intl/chaipay-sdk';
+} from '@iamport-intl/portone-sdk';
 
 import SmsListener from 'react-native-android-sms-listener';
 

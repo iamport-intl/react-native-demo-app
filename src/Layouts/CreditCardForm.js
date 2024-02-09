@@ -22,7 +22,7 @@ import {
 var valid = require('card-validator');
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import CheckoutInstance from '@iamport-intl/chaipay-sdk';
+import CheckoutInstance from '@iamport-intl/portone-sdk';
 import MobileNumberFlow from './MobileFlow';
 
 const {width} = Dimensions.get('screen');

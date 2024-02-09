@@ -292,7 +292,7 @@ class More extends React.Component {
               justifyContent: 'center',
               color: APP_THEME_COLOR,
             }}>
-            v{pkg.dependencies['@iamport-intl/chaipay-sdk'].replace('^', '')}
+            v{pkg.dependencies['@iamport-intl/portone-sdk'].replace('^', '')}
           </Text>
           <this.poweredBy />
         </View>
