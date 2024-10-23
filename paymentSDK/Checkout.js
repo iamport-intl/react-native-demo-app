@@ -768,8 +768,8 @@ class Checkout extends React.Component {
           });
         } else {
           callbackFunction({
-            is_success: true,
-            message: 'payment succesful',
+            is_success: false,
+            message: 'Modal Closed',
           });
         }
 
