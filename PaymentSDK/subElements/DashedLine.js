@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, { Component } from "react";
+import { StyleSheet, View } from "react-native";
 
 class DashedLine extends Component {
   constructor(props) {
@@ -16,7 +16,7 @@ class DashedLine extends Component {
   }
 }
 
-const style = props =>
+const style = (props) =>
   StyleSheet.create({
     dashedContainerView: {
       height: 1,
@@ -24,17 +24,17 @@ const style = props =>
       marginVertical: props.marginVertical || 0,
       borderRadius: 1,
       borderWidth: 1,
-      borderColor: props.color || '#D5D5D5',
-      borderStyle: 'dashed',
+      borderColor: props.color || "#D5D5D5",
+      borderStyle: "dashed",
       zIndex: 0,
     },
 
     dashedView: {
-      position: 'absolute',
+      position: "absolute",
 
-      width: '100%',
+      width: "100%",
       height: 5,
-      backgroundColor: 'white',
+      backgroundColor: props.backgroundColor ? props.backgroundColor : "white",
       zIndex: 1,
     },
   });

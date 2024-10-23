@@ -1,34 +1,44 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Dimensions,
   TouchableOpacity,
-} from 'react-native';
-import {Checkout} from '@iamport-intl/portone-sdk';
+} from "react-native";
+import Checkout from "./Checkout";
+import { EventRegister } from "react-native-event-listeners";
 
-const {width} = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 class PayNowButton extends Component {
   constructor(props) {
     super(props);
     this.checkout = React.createRef();
   }
 
-  afterCheckout = data => {
-    console.log(data);
+  afterCheckout = (data) => {
+    Checkout.close();
     this.props.afterCheckout(data);
   };
 
-  NextView = () => {
+  NextView = ({ SubElement }) => {
     let style = stylesWithProps(this.props);
     return (
       <TouchableOpacity
+        disabled={this.props.disabled}
         style={style.nextViewContainerStyle}
-        onPress={async () => {
-          this.checkout.current.startPaymentWithWallets(this.props.payload);
-        }}>
-        <Text style={style.btnText}>{this.props.text || 'Pay Now'}</Text>
+        onPress={() => {
+          Checkout.startPaymentWithWallets(this.props.payload);
+          // EventRegister.emit('myCustomEvent', this.props.payload);
+        }}
+      >
+        {SubElement ? (
+          <View style={style.subElementView}>
+            <SubElement />
+          </View>
+        ) : (
+          <Text style={style.btnText}>{this.props.text || "Pay Now"}</Text>
+        )}
       </TouchableOpacity>
     );
   };
@@ -38,36 +48,33 @@ class PayNowButton extends Component {
     return (
       <View>
         <View style={style.containerStyle}>
-          <this.NextView />
+          <this.NextView SubElement={this.props.SubElement} />
         </View>
-        {/* <Checkout
-          ref={this.checkout}
-          env={this.props.env}
-          currency={this.props.currency}
-          callbackFunction={this.afterCheckout}
-          redirectUrl={this.props.redirectUrl}
-          secretKey={this.props.secretKey}
-          chaipayKey={this.props.chaipayKey}
-          environment={this.props.environment}
-        /> */}
       </View>
     );
   }
 }
 
-const stylesWithProps = props =>
+const stylesWithProps = (props) =>
   StyleSheet.create({
+    subElementView: {
+      padding: 5,
+      height: props.height,
+      alignContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     btnText: {
-      textAlign: 'center',
+      textAlign: "center",
       color: props.textColor,
       fontSize: props.textFontSize || 14,
       fontWeight: props.textFontWeight,
     },
 
     nextViewContainerStyle: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: props.themeColor || 'red',
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: props.disabled ? "lightgray" : props.themeColor || "red",
       paddingVertical: 15,
       borderRadius: props.borderRadius || 8,
       paddingHorizontal: 15,
@@ -75,7 +82,7 @@ const stylesWithProps = props =>
       height: props.height,
     },
     containerStyle: {
-      backgroundColor: 'white',
+      backgroundColor: "white",
       margin: 4,
       borderRadius: 5,
       marginHorizontal: 15,

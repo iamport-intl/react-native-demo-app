@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 
 import {APP_THEME_COLOR, WHITE_COLOR} from './constants.js';
-import {helpers} from '../paymentSDK/helper';
+import {helpers} from './helper';
 import PhoneInput from 'react-native-phone-number-input';
-import OTPTextInput from '../src/helpers/OTPTextView';
+import OTPTextInput from './OTPTextView';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width} = Dimensions.get('screen');
@@ -93,7 +93,10 @@ class MobileNumberAuthenticationView extends Component {
               this.props.savedCardsData({});
             } else {
               if (value?.data.status_code === '2000') {
-                this.setState({shouldShowOTP: false, errorMessage: undefined});
+                this.setState({
+                  shouldShowOTP: false,
+                  errorMessage: undefined,
+                });
 
                 AsyncStorage.setItem(
                   'SavedCardsData',
@@ -120,7 +123,7 @@ class MobileNumberAuthenticationView extends Component {
 
   mobileInputView = () => {
     var shouldShowOTP = this.state.shouldShowOTP;
-
+    let style = stylesWithProps(this.props);
     return (
       <View style={styles.mobileContainerStyle}>
         {shouldShowOTP ? (
@@ -131,29 +134,32 @@ class MobileNumberAuthenticationView extends Component {
             defaultValue={this.state.OTP}
             textContentType="oneTimeCode"
             offTintColor={'lightgray'}
-            tintColor={'red'}
+            tintColor={this.props.themeColor}
             inputCount={6}
             handleTextChange={text => this.handleTextChange(text)}
           />
         ) : (
-          <PhoneInput
-            containerStyle={styles.phoneInputContainerStyle}
-            autoFocus
-            textContainerStyle={styles.textContainerStyle}
-            textInputStyle={styles.textInputStyle}
-            ref={this.phone}
-            defaultValue={this.state.mobileNumber}
-            defaultCode="IN"
-            layout="second"
-            onChangeText={text => {
-              this.setNumber(text);
-            }}
-            onChangeFormattedText={text => {
-              this.setFormattedNumber(text);
-            }}
-            withDarkTheme={false}
-            withShadow={false}
-          />
+          <View
+            style={{backgroundColor: this.props.themeColor, borderRadius: 2}}>
+            <PhoneInput
+              containerStyle={style.phoneInputContainerStyle}
+              autoFocus
+              textContainerStyle={styles.textContainerStyle}
+              textInputStyle={styles.textInputStyle}
+              ref={this.phone}
+              defaultValue={this.state.mobileNumber}
+              defaultCode="IN"
+              layout="second"
+              onChangeText={text => {
+                this.setNumber(text);
+              }}
+              onChangeFormattedText={text => {
+                this.setFormattedNumber(text);
+              }}
+              withDarkTheme={false}
+              withShadow={false}
+            />
+          </View>
         )}
         {this.state.errorMessage ? (
           <Text>{this.state.errorMessage}</Text>
@@ -186,12 +192,7 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: WHITE_COLOR,
   },
-  phoneInputContainerStyle: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: 'red',
-    borderRadius: 8,
-  },
+
   roundedTextInput: {
     borderRadius: 10,
     borderColor: APP_THEME_COLOR,
@@ -217,6 +218,12 @@ const styles = StyleSheet.create({
 });
 const stylesWithProps = props =>
   StyleSheet.create({
+    phoneInputContainerStyle: {
+      width: '100%',
+      borderWidth: 1,
+      borderColor: props.themeColor || 'red',
+      borderRadius: 5,
+    },
     nextViewContainerStyle: {
       alignItems: 'center',
       justifyContent: 'center',

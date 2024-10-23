@@ -11,17 +11,13 @@ import {
   Dimensions,
 } from 'react-native';
 import {sumBy, values, map} from 'lodash';
-import {
-  ORDERTEXT,
-  IMAGE_BACKGROUND_COLOR,
-  WHITE_COLOR,
-} from '../paymentSDK/constants';
+import {ORDERTEXT, IMAGE_BACKGROUND_COLOR, WHITE_COLOR} from './constants';
+import CartSummary from './CartSummary';
 import CartDetails from './CartDetails';
+import DashedLine from './subElements/DashedLine';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import PayNowButton from './PayNowButton';
 const {width, height} = Dimensions.get('screen');
-import {strings} from './constants';
-import LinearGradient from 'react-native-linear-gradient';
 
 class TransactionStatusView extends Component {
   constructor(props) {
@@ -38,6 +34,13 @@ class TransactionStatusView extends Component {
       this.RBSheet.open();
     }
   }
+  formatNumber = number => {
+    let formattedNumber = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(number);
+    return formattedNumber;
+  };
 
   ResponseView = ({orderDetails}) => {
     let totalAmount = sumBy(values(this.props.selectedProducts), 'price');
@@ -53,6 +56,7 @@ class TransactionStatusView extends Component {
       orderDetails?.status_reason === 'SUCCESS' ||
       orderDetails?.is_success === true ||
       orderDetails?.status === 'Success';
+
     let image = successCase
       ? require('../assets/successCase.png')
       : require('../assets/failCase.png');
@@ -60,7 +64,7 @@ class TransactionStatusView extends Component {
       <View
         style={{
           margin: 20,
-          backgroundColor: this.props.backgroundColor || WHITE_COLOR,
+          backgroundColor: WHITE_COLOR,
           borderRadius: 10,
           paddingBottom: 25,
           marginTop: 8,
@@ -76,7 +80,7 @@ class TransactionStatusView extends Component {
               flex: 1,
               fontWeight: '500',
             }}>
-            {strings.paymentConfirmation}
+            Payment Confirmation
           </Text>
 
           <TouchableOpacity
@@ -87,8 +91,8 @@ class TransactionStatusView extends Component {
               alignSelf: 'center',
             }}
             onPress={() => {
-              this.RBSheet?.close();
               this.props.onClose();
+              this.RBSheet?.close();
             }}>
             <Image
               source={require('../assets/cancel.png')}
@@ -124,24 +128,21 @@ class TransactionStatusView extends Component {
                 }}>
                 <Text style={styles.successStyle}>
                   {successCase
-                    ? strings.payment_successful
-                    : strings.payment_failed}
+                    ? 'Payment Successful'
+                    : 'Transaction Not Successful'}
                 </Text>
-                {orderDetails?.message || orderDetails?.status_reason ? (
+                {orderDetails?.message ? (
                   <Text
                     style={[
                       styles.successStyle,
                       {fontWeight: '400', fontSize: 14},
                     ]}>
-                    {`${
-                      orderDetails?.message ||
-                      orderDetails?.status_channel_reason
-                    }`}
+                    {orderDetails?.message}
                   </Text>
                 ) : null}
               </View>
             </>
-            <CartDetails
+            {/* <CartDetails
               themeColor={successCase ? '#006400' : '#FF0000'}
               selectedProducts={this.props.selectedProducts || []}
               nameFontSize={this.props?.cartDetailStyles?.nameFontSize}
@@ -158,7 +159,7 @@ class TransactionStatusView extends Component {
               borderRadius={this.props?.cartDetailStyles?.borderRadius}
               borderWidth={this.props?.cartDetailStyles?.borderWidth}
               removeBorder={this.props?.cartDetailStyles?.removeBorder}
-              headerText={strings.netPayable}
+              headerText={'Net Payable'}
               headerFont={this.props?.cartDetailStyles?.headerFont}
               headerColor={
                 this.props?.cartDetailStyles?.headerColor || successCase
@@ -168,12 +169,10 @@ class TransactionStatusView extends Component {
               headerFontWeight={this.props?.cartDetailStyles?.headerFontWeight}
               removeItem={this.removeItem}
               showNetPayable={true}
-              deliveryAmount={this.props.deliveryAmount}
-              backgroundColor={this.props.backgroundColor}
-            />
+            /> */}
           </View>
         </ScrollView>
-        {false ? (
+        {failedCase ? (
           <View style={{marginBottom: 20, marginTop: 5, flex: 1}}>
             <PayNowButton
               disabled={false}
@@ -205,9 +204,9 @@ class TransactionStatusView extends Component {
           customStyles={{
             container: {
               height: this.props.containerHeight || '80%',
-              backgroundColor: this.props.backgroundColor || 'white',
-              borderTopLeftRadius: 25,
-              borderTopRightRadius: 25,
+              backgroundColor: 'white',
+              borderTopLeftRadius: 15,
+              borderTopRightRadius: 15,
             },
             draggableIcon: {
               backgroundColor: 'transparent',
@@ -221,78 +220,7 @@ class TransactionStatusView extends Component {
             this.RBSheet = ref;
           }}
           openDuration={250}>
-          <LinearGradient
-            start={{x: 0.0, y: 0.15}}
-            end={{x: 0.0, y: 1.0}}
-            locations={[0, 0.15, 0.6]}
-            colors={[
-              'rgba(146, 227, 222, 0.3)',
-              'rgba(255, 255, 255, 1)',
-              'rgba(255, 255, 255, 1)',
-            ]}>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <Image
-                source={require('../assets/SuccessCircle.png')}
-                style={{
-                  alignSelf: 'center',
-                  width: 80,
-                  height: 80,
-                  resizeMode: 'contain',
-                  marginTop: 160,
-                }}
-              />
-              <View style={{height: 50, width: 50}}>
-                <Image
-                  source={require('../assets/whiteTick.png')}
-                  style={{
-                    alignSelf: 'center',
-                    width: 31,
-                    height: 25,
-                    resizeMode: 'contain',
-                    marginTop: -53,
-                  }}
-                />
-              </View>
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontWeight: '700',
-                  fontSize: 20,
-                  marginHorizontal: 100,
-                }}>
-                Order placed Successfully
-              </Text>
-            </View>
-            <View
-              style={{
-                marginHorizontal: 50,
-                borderRadius: 15,
-                marginTop: 150,
-                marginBottom: 20,
-                height: 50,
-                backgroundColor: 'black',
-                alignItems: 'center',
-              }}>
-              <TouchableOpacity
-                style={{
-                  marginHorizontal: 50,
-                  borderRadius: 15,
-                  height: 50,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <Text
-                  style={{
-                    color: 'white',
-                    textAlign: 'center',
-                    fontSize: 20,
-                    fontWeight: '500',
-                  }}>
-                  Ok
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
+          <this.ResponseView orderDetails={this.props.orderDetails} />
         </RBSheet>
       </View>
     );

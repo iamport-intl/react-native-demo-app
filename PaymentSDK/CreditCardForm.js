@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,7 +9,8 @@ import {
   Image,
   TouchableOpacity,
   Platform,
-} from 'react-native';
+  Keyboard,
+} from "react-native";
 
 import {
   APP_THEME_COLOR,
@@ -17,34 +18,36 @@ import {
   strings,
   TRANSPARENT,
   WHITE_COLOR,
-} from './constants.js';
-var valid = require('card-validator');
-import RBSheet from 'react-native-raw-bottom-sheet';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import CreditCardView from '../paymentSDK/CreditCardView';
+} from "./constants";
+var valid = require("card-validator");
+import RBSheet from "react-native-raw-bottom-sheet";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 //import TextField from "../helpers/TextField";
-const {width} = Dimensions.get('screen');
-class CreditCardModalView extends Component {
+const { width } = Dimensions.get("screen");
+class CreditCardForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: '',
-      cardNumber: '',
-      expirationYear: '',
-      expirationMonth: '',
-      cvv: '',
+      name: "",
+      cardNumber: "",
+      expirationYear: "",
+      expirationMonth: "",
+      cvv: "",
+      saveForLater: false,
       isFocused: false,
       cardNumberError: false,
       expiryError: false,
       cardValidation: {},
       autoFocusCardNumber: false,
+      autoFocusCardName: false,
       autoFocusExpiryMonth: false,
       autoFocusExpiryYear: false,
       autoFocusCVV: false,
       containerHeight: props.containerHeight,
     };
     this.cardNumberRef = React.createRef();
+    this.cardNameRef = React.createRef();
     this.monthRef = React.createRef();
     this.expiryYearRef = React.createRef();
     this.expiryMonthRef = React.createRef();
@@ -53,17 +56,18 @@ class CreditCardModalView extends Component {
   }
 
   onSubmit() {
-    console.log('form submitted');
+    console.log("form submitted");
   }
 
   componentDidMount() {
     if (this.props.showSheet) {
       this.RBSheet.open();
+      setTimeout(() => this.cardNumberRef.current.focus(), 150);
     }
   }
 
   handlingCardExpiryYear(text) {
-    if (text.indexOf('.') >= 0 || text.length > 2) {
+    if (text.indexOf(".") >= 0 || text.length > 2) {
       return;
     }
 
@@ -72,7 +76,7 @@ class CreditCardModalView extends Component {
     });
 
     if (text.length === 2) {
-      console.log('Enterd');
+      console.log("Enterd");
       this.cvvRef.current.focus();
       this.setState({
         autoFocusCVV: true,
@@ -84,7 +88,7 @@ class CreditCardModalView extends Component {
   }
 
   handlingCardExpiryMonth(text) {
-    if (text.indexOf('.') >= 0 || text.length > 2) {
+    if (text.indexOf(".") >= 0 || text.length > 2) {
       return;
     }
 
@@ -95,42 +99,57 @@ class CreditCardModalView extends Component {
     if (text.length === 2) {
       this.expiryYearRef.current.focus();
 
-      this.setState({autoFocusCardNumber: false});
-      this.setState({autoFocusExpiryYear: true});
-      this.setState({autoFocusCVV: false});
-      this.setState({autoFocusExpiryMonth: false});
+      this.setState({ autoFocusCardNumber: false });
+      this.setState({ autoFocusExpiryYear: true });
+      this.setState({ autoFocusCVV: false });
+      this.setState({ autoFocusExpiryMonth: false });
     }
   }
 
   handleCardNumber(text) {
-    if (text.indexOf('.') >= 0) {
+    if (text.indexOf(".") >= 0) {
       return;
     }
 
     var numberValidation = valid.number(text);
-    this.setState({cardValidation: numberValidation});
+    this.setState({ cardValidation: numberValidation });
     if (numberValidation.isValid) {
-      this.expiryMonthRef.current.focus();
+      this.cardNameRef.current.focus();
 
-      this.setState({autoFocusCardNumber: false});
-      this.setState({autoFocusExpiryYear: false});
-      this.setState({autoFocusCVV: false});
-      this.setState({autoFocusExpiryMonth: true});
+      this.setState({ autoFocusCardNumber: false });
+      this.setState({ autoFocusExpiryYear: false });
+      this.setState({ autoFocusCVV: false });
+      this.setState({ autoFocusCardName: true });
+      this.setState({ autoFocusExpiryMonth: false });
     }
     if (text.length > 13) {
       if (!numberValidation.isValid) {
-        this.setState({cardNumberError: !numberValidation.isValid});
+        this.setState({ cardNumberError: !numberValidation.isValid });
       } else {
-        this.setState({cardNumberError: false});
+        this.setState({ cardNumberError: false });
       }
     } else {
-      this.setState({cardNumberError: false});
+      this.setState({ cardNumberError: false });
     }
     let formattedText = text
-      .replace(/\s?/g, '')
-      .replace(/(\d{4})/g, '$1 ')
+      .replace(/\s?/g, "")
+      .replace(/(\d{4})/g, "$1 ")
       .trim();
-    this.setState({cardNumber: formattedText});
+    this.setState({ cardNumber: formattedText });
+  }
+
+  handleCardName(text) {
+    if (text.indexOf(".") >= 0) {
+      return;
+    }
+
+    this.setState({ autoFocusCardNumber: false });
+    this.setState({ autoFocusCardName: false });
+    this.setState({ autoFocusExpiryYear: false });
+    this.setState({ autoFocusCVV: false });
+    this.setState({ autoFocusExpiryMonth: false });
+
+    this.setState({ name: text });
   }
 
   onFocusCardNumber = () => {
@@ -139,24 +158,37 @@ class CreditCardModalView extends Component {
       highlightExpiryMonthView: false,
       highlightExpiryYearView: false,
       highlightCardNumView: true,
+      highlightCardNameView: false,
       containerHeight:
         parseInt(this.props.containerHeight.slice(0, -1), 10) < 70
-          ? '70%'
+          ? "70%"
+          : this.props.containerHeight,
+    });
+  };
+  onFocusCardName = () => {
+    this.setState({
+      highlightCVVView: false,
+      highlightExpiryMonthView: false,
+      highlightExpiryYearView: false,
+      highlightCardNumView: false,
+      highlightCardNameView: true,
+      containerHeight:
+        parseInt(this.props.containerHeight.slice(0, -1), 10) < 70
+          ? "70%"
           : this.props.containerHeight,
     });
   };
 
   onFocusExpiryMonth = () => {
-    console.log('sjdbcsjkdcbdsj');
-
     this.setState({
       highlightCVVView: false,
       highlightExpiryMonthView: true,
       highlightExpiryYearView: false,
       highlightCardNumView: false,
+      highlightCardNameView: false,
       containerHeight:
         parseInt(this.props.containerHeight.slice(0, -1), 10) < 70
-          ? '70%'
+          ? "70%"
           : this.props.containerHeight,
     });
   };
@@ -167,9 +199,10 @@ class CreditCardModalView extends Component {
       highlightExpiryMonthView: false,
       highlightExpiryYearView: true,
       highlightCardNumView: false,
+      highlightCardNameView: false,
       containerHeight:
         parseInt(this.props.containerHeight.slice(0, -1), 10) < 70
-          ? '70%'
+          ? "70%"
           : this.props.containerHeight,
     });
   };
@@ -180,9 +213,10 @@ class CreditCardModalView extends Component {
       highlightExpiryMonthView: false,
       highlightExpiryYearView: false,
       highlightCardNumView: false,
+      highlightCardNameView: false,
       containerHeight:
         parseInt(this.props.containerHeight.slice(0, -1), 10) < 70
-          ? '70%'
+          ? "70%"
           : this.props.containerHeight,
     });
   };
@@ -190,6 +224,13 @@ class CreditCardModalView extends Component {
   onBlurCardNumber = () => {
     this.setState({
       highlightCardNumView: false,
+      containerHeight: this.props.containerHeight,
+    });
+  };
+
+  onBlurCardName = () => {
+    this.setState({
+      highlightCardNameView: false,
       containerHeight: this.props.containerHeight,
     });
   };
@@ -215,41 +256,71 @@ class CreditCardModalView extends Component {
     });
   };
 
-  removeWhiteSpaces = text => {
-    return text.replace(/ /g, '');
+  removeWhiteSpaces = (text) => {
+    return text?.replace(/ /g, "") || "";
   };
 
-  containCardNumber = text => {
+  containCardNumber = (text) => {
     return this.removeWhiteSpaces(text).length > 0;
   };
 
-  containExpiryMonth = text => {
+  containExpiryMonth = (text) => {
     return this.removeWhiteSpaces(text).length > 0;
   };
 
-  containExpiryYear = text => {
+  containExpiryYear = (text) => {
     return this.removeWhiteSpaces(text).length > 0;
   };
 
-  containCVV = text => {
+  containCVV = (text) => {
     return this.removeWhiteSpaces(text).length > 0;
   };
 
   headerView = () => {
     let image = this.props.headerImage
-      ? {uri: this.props.headerImage}
-      : require('../assets/card.png');
+      ? { uri: this.props.headerImage }
+      : require("../assets/card.png");
 
     let style = stylesWithProps(this.props);
     return (
       <View style={style.headerContainerView}>
-        <Image source={image} style={style.headerViewImage} />
-        <Text style={style.headerViewText}>{this.props.headerTitle}</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Image source={image} style={style.headerViewImage} />
+          <Text style={style.headerViewText}>
+            {this.props.headerTitle || "Credit / Debit card"}
+          </Text>
+        </View>
+        <>
+          <TouchableOpacity
+            style={{
+              justifyContent: "center",
+              width: 30,
+              height: 30,
+              alignSelf: "center",
+            }}
+            onPress={() => {
+              Keyboard.dismiss();
+              console.log("presses");
+              this.props.onClose();
+            }}
+          >
+            <Image
+              source={require("../assets/cancel.png")}
+              style={{
+                alignSelf: "center",
+                width: 12,
+                height: 12,
+
+                resizeMode: "contain",
+              }}
+            />
+          </TouchableOpacity>
+        </>
       </View>
     );
   };
 
-  CardNumberView = ({autoFocusCardNumber}) => {
+  CardNumberView = ({ autoFocusCardNumber }) => {
     let style = stylesWithPropsAndStates(this.props, this.state);
     return (
       <View style={style.cardNumberContainerView}>
@@ -258,28 +329,55 @@ class CreditCardModalView extends Component {
           <TextInput
             style={[styles.input, style.cardNumberView]}
             autoFocus={autoFocusCardNumber}
-            placeholder={'XXXX XXXX XXXX XXXX'}
-            textAlign={'center'}
-            placeholderTextColor={'#B9C4CA'}
+            placeholder={"XXXX XXXX XXXX XXXX"}
+            placeholderTextColor={"#B9C4CA"}
             ref={this.cardNumberRef}
             value={this.state.cardNumber}
             selectTextOnFocus={true}
             onFocus={this.onFocusCardNumber}
             onBlur={this.onBlurCardNumber}
-            onChangeText={text => {
+            onChangeText={(text) => {
               this.handleCardNumber(text);
             }}
-            keyboardType={'numeric'}
+            keyboardType={"numeric"}
             returnKeyType="done"
           />
           <Image
-            source={require('../assets/card.png')}
+            source={require("../assets/card.png")}
             style={style.cardNumberImage}
           />
         </View>
         {this.state.cardNumberError ? (
-          <Text style={{color: APP_THEME_COLOR}}>Wrong card details</Text>
+          <Text style={{ color: APP_THEME_COLOR, marginTop: 5 }}>
+            Wrong card details
+          </Text>
         ) : null}
+      </View>
+    );
+  };
+
+  CardNameView = ({ autoFocusCardName }) => {
+    let style = stylesWithPropsAndStates(this.props, this.state);
+    return (
+      <View style={style.cardNumberContainerView}>
+        <Text>Card Name</Text>
+        <View style={style.cardNameTextInputView}>
+          <TextInput
+            style={[styles.input, style.cardNumberView]}
+            autoFocus={autoFocusCardName}
+            placeholder={"Enter card name"}
+            placeholderTextColor={"#B9C4CA"}
+            ref={this.cardNameRef}
+            value={this.state.cardName}
+            selectTextOnFocus={true}
+            onFocus={this.onFocusCardName}
+            onBlur={this.onBlurCardName}
+            onChangeText={(text) => {
+              this.handleCardName(text);
+            }}
+            returnKeyType="done"
+          />
+        </View>
       </View>
     );
   };
@@ -299,38 +397,36 @@ class CreditCardModalView extends Component {
               <TextInput
                 style={[styles.input]}
                 autoFocus={autoFocusExpiryMonth}
-                placeholder={'MM'}
-                textAlign={'center'}
-                placeholderTextColor={'#B9C4CA'}
+                placeholder={"MM"}
+                placeholderTextColor={"#B9C4CA"}
                 ref={this.expiryMonthRef}
                 value={this.state.expirationMonth}
                 selectTextOnFocus={true}
                 onFocus={this.onFocusExpiryMonth}
                 onBlur={this.onBlurExpiryMonth}
-                onChangeText={text => {
+                onChangeText={(text) => {
                   this.handlingCardExpiryMonth(text);
                 }}
-                keyboardType={'numeric'}
-                returnKeyType={'done'}
+                keyboardType={"numeric"}
+                returnKeyType={"done"}
               />
             </View>
             <View style={[style.expiryMonthView, style.expiryYearView]}>
               <TextInput
                 autoFocus={autoFocusExpiryYear}
                 style={[styles.input]}
-                placeholder={'YY'}
-                textAlign={'center'}
-                placeholderTextColor={'#B9C4CA'}
+                placeholder={"YY"}
+                placeholderTextColor={"#B9C4CA"}
                 ref={this.expiryYearRef}
                 value={this.state.expirationYear}
                 onBlur={this.onBlurExpiryYear}
                 selectTextOnFocus={true}
                 onFocus={this.onFocusExpiryYear}
-                onChangeText={text => {
+                onChangeText={(text) => {
                   this.handlingCardExpiryYear(text);
                 }}
-                keyboardType={'numeric'}
-                returnKeyType={'done'}
+                keyboardType={"numeric"}
+                returnKeyType={"done"}
               />
             </View>
           </View>
@@ -341,26 +437,25 @@ class CreditCardModalView extends Component {
             <TextInput
               style={[styles.input]}
               autoFocus={autoFocusCVV}
-              placeholder={'XXX'}
-              textAlign={'center'}
-              placeholderTextColor={'#B9C4CA'}
+              placeholder={"CVV"}
+              placeholderTextColor={"#B9C4CA"}
               ref={this.cvvRef}
               value={this.state.cvv}
               selectTextOnFocus={true}
               onFocus={this.onFocusCVV}
               onBlur={this.onBlurCVV}
-              onChangeText={text => {
-                if (text.indexOf('.') >= 0 || text.length > 3) {
+              onChangeText={(text) => {
+                if (text.indexOf(".") >= 0 || text.length > 3) {
                   return;
                 }
 
-                this.setState({cvv: text});
+                this.setState({ cvv: text });
               }}
-              keyboardType={'numeric'}
-              returnKeyType={'done'}
+              keyboardType={"numeric"}
+              returnKeyType={"done"}
             />
             <Image
-              source={require('../assets/card.png')}
+              source={require("../assets/card.png")}
               style={style.cvvImageView}
             />
           </View>
@@ -369,6 +464,24 @@ class CreditCardModalView extends Component {
     );
   };
 
+  SaveForLater = () => {
+    let style = stylesWithPropsAndStates(this.props, this.state);
+    return (
+      <TouchableOpacity
+        style={styles.saveContainerView}
+        onPress={() => {
+          this.setState({ saveForLater: !this.state.saveForLater });
+        }}
+      >
+        <View style={styles.saveView}>
+          <View style={styles.saveForlaterView}>
+            <View style={style.saveForlaterInnerView} />
+          </View>
+          <Text style={styles.saveTextView}>Save for later</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
   PayNowView = () => {
     let style = stylesWithProps(this.props);
     return (
@@ -376,6 +489,7 @@ class CreditCardModalView extends Component {
         style={style.payNowContainerView}
         disabled={
           !this.containCardNumber(this.state.cardNumber) &&
+          !this.containCardNumber(this.state.cardName) &&
           !this.containExpiryMonth(this.state.expirationMonth) &&
           !this.containExpiryYear(this.state.expirationYear) &&
           !this.containCVV(this.state.cvv)
@@ -387,8 +501,10 @@ class CreditCardModalView extends Component {
             expirationYear: this.state.expirationYear,
             expirationMonth: this.state.expirationMonth,
             cvv: this.state.cvv,
+            saveForLater: this.state.saveForLater,
           });
-        }}>
+        }}
+      >
         <View>
           <Text style={styles.payNowTextView}>Pay Now</Text>
         </View>
@@ -399,51 +515,73 @@ class CreditCardModalView extends Component {
   render() {
     return (
       <KeyboardAwareScrollView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={70}
         extraScrollHeight={70}
         enableOnAndroid={false}
         extraHeight={70}
-        style={styles.keyBoardContainerView}>
+        style={styles.keyBoardContainerView}
+      >
         <RBSheet
-          ref={ref => {
+          ref={(ref) => {
             this.RBSheet = ref;
           }}
-          animationType={'slide'}
+          animationType={"slide"}
           closeOnDragDown={true}
           closeOnPressMask={false}
           onClose={this.props.onClose}
           customStyles={{
             container: {
-              height: this.state.containerHeight || '70%',
-              backgroundColor: 'white',
+              height: this.state.containerHeight || "70%",
+              backgroundColor: "white",
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
             },
             draggableIcon: {
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent",
             },
-          }}>
-          <CreditCardView
-            showSheet={this.props.showSheet}
-            containerHeight={'45%'}
-            headerTitle={'Debit / Credit Card'}
-            onClose={this.props.onCloseCardPressed}
-            showSaveForLater={true}
-            themeColor={this.props.themeColor}
-          />
+          }}
+        >
+          <View style={styles.viewContainer}>
+            <this.headerView />
+            <this.CardNumberView
+              autoFocusCardNumber={this.state.autoFocusCardNumber}
+            />
+
+            <this.CardNameView
+              autoFocusCardName={this.state.autoFocusCardName}
+            />
+            <this.ExpirationDateView
+              autoFocusExpiryMonth={this.state.autoFocusExpiryMonth}
+              autoFocusExpiryYear={this.state.autoFocusExpiryYear}
+              autoFocusCVV={this.state.autoFocusCVV}
+            />
+            {this.props.showSaveForLater ? <this.SaveForLater /> : null}
+
+            <this.PayNowView />
+          </View>
         </RBSheet>
       </KeyboardAwareScrollView>
     );
   }
 }
 const styles = StyleSheet.create({
+  saveForlaterView: {
+    height: 20,
+    width: 20,
+    borderColor: "lightgray",
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+
   keyBoardContainerView: {
     flex: 1,
   },
-
+  viewContainer: {
+    marginHorizontal: 5,
+  },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   textField: {
     flex: 1,
@@ -453,42 +591,42 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
     fontSize: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   labelContainer: {
-    position: 'absolute',
+    position: "absolute",
     paddingHorizontal: 8,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   label: {
     fontSize: 16,
-    fontWeight: '400',
-    color: '#333333',
+    fontWeight: "400",
+    color: "#333333",
   },
   error: {
     marginTop: 4,
     marginLeft: 12,
     fontSize: 12,
-    color: '#B00020',
-    fontFamily: 'Avenir-Medium',
+    color: "#B00020",
+    fontFamily: "Avenir-Medium",
   },
   verifyButtonView: {
     height: 50,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 10,
     marginTop: 5,
     borderRadius: 5,
     paddingVertical: 5,
     width: width - 60,
-    alignSelf: 'center',
-    justifyContent: 'center',
+    alignSelf: "center",
+    justifyContent: "center",
     backgroundColor: APP_THEME_COLOR,
     flex: 1,
   },
   verifyTextView: {
-    alignSelf: 'center',
-    textAlign: 'center',
-    alignItems: 'center',
+    alignSelf: "center",
+    textAlign: "center",
+    alignItems: "center",
     color: WHITE_COLOR,
 
     fontWeight: BOLD,
@@ -497,60 +635,93 @@ const styles = StyleSheet.create({
   verifyContainerView: {
     backgroundColor: TRANSPARENT,
     width: width - 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   payNowTextView: {
     paddingHorizontal: 20,
-    textAlign: 'center',
-    color: 'white',
-    fontFamily: 'Avenir-Medium',
+    textAlign: "center",
+    color: "white",
+    fontFamily: "Avenir-Medium",
     fontSize: 20,
   },
+
+  saveTextView: {
+    marginLeft: 10,
+    color: "black",
+    fontFamily: "Avenir-light",
+    fontSize: 12,
+  },
+  saveView: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  saveContainerView: {
+    marginHorizontal: 15,
+    marginVertical: 10,
+  },
 });
-const stylesWithProps = props =>
+const stylesWithProps = (props) =>
   StyleSheet.create({
     payNowContainerView: {
-      backgroundColor: props.themeColor,
+      backgroundColor: props.themeColor || "black",
       height: 50,
       marginTop: 15,
+      marginBottom: 15,
       marginHorizontal: 20,
-      justifyContent: 'center',
-      borderRadius: 25,
+      justifyContent: "center",
+      borderRadius: props.payNowButtonCornerRadius || 25,
     },
 
-    headerContainerView: {flexDirection: 'row', marginBottom: 15},
+    headerContainerView: {
+      flexDirection: "row",
+      marginBottom: 15,
+
+      marginRight: 15,
+      alignContent: "center",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
 
     headerViewImage: {
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 20,
       height: 20,
-      resizeMode: props.headerImageResizeMode,
+      resizeMode: props.headerImageResizeMode || "contain",
       marginLeft: 15,
     },
 
     headerViewText: {
       marginLeft: 15,
       fontSize: props.headerTitleFont || 15,
-      fontWeight: props.headerTitleWeight || '400',
+      fontWeight: props.headerTitleWeight || "400",
     },
   });
 const stylesWithPropsAndStates = (props, state) =>
   StyleSheet.create({
-    headerContainerView: {flexDirection: 'row', marginBottom: 15},
+    saveForlaterInnerView: {
+      height: 16,
+      width: 16,
+      backgroundColor: state.saveForLater ? "lightgray" : "transparent",
+      borderRadius: 8,
+      marginTop: 1,
+      marginLeft: 1,
+    },
+
+    headerContainerView: { flexDirection: "row", marginBottom: 15 },
 
     headerViewImage: {
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 20,
       height: 20,
-      resizeMode: props.headerImageResizeMode,
+      resizeMode: props.headerImageResizeMode || "contain",
       marginLeft: 15,
     },
 
     headerViewText: {
       marginLeft: 15,
       fontSize: props.headerTitleFont || 15,
-      fontWeight: props.headerTitleWeight || '400',
+      fontWeight: props.headerTitleWeight || "400",
     },
 
     cardNumberContainerView: {
@@ -558,20 +729,30 @@ const stylesWithPropsAndStates = (props, state) =>
       marginVertical: 5,
     },
     cardNumberTextInputView: {
-      flexDirection: 'row',
+      flexDirection: "row",
       marginTop: 8,
       borderRadius: 5,
       borderColor: state.highlightCardNumView
-        ? props.themeColor || 'black'
-        : 'lightgray',
+        ? props.themeColor || "black"
+        : "lightgray",
       borderWidth: 1,
-      justifyContent: 'space-between',
+      justifyContent: "space-between",
+    },
+    cardNameTextInputView: {
+      flexDirection: "row",
+      marginTop: 8,
+      borderRadius: 5,
+      borderColor: state.highlightCardNameView
+        ? props.themeColor || "black"
+        : "lightgray",
+      borderWidth: 1,
+      justifyContent: "space-between",
     },
     cardNumberImage: {
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 20,
       height: 20,
-      resizeMode: props.headerImageResizeMode,
+      resizeMode: props.headerImageResizeMode || "contain",
       marginRight: 15,
       marginLeft: -25,
     },
@@ -581,45 +762,50 @@ const stylesWithPropsAndStates = (props, state) =>
     expiryDateContainerView: {
       marginHorizontal: 15,
       marginVertical: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
       marginTop: 15,
     },
     expiryDateView: {
       flex: 0.75,
     },
     textInputContainerView: {
-      flexDirection: 'row',
+      flexDirection: "row",
     },
     expiryMonthView: {
-      alignContent: 'flex-start',
+      alignContent: "flex-start",
       borderRadius: 5,
       borderColor: state.highlightExpiryMonthView
-        ? props.themeColor || 'black'
-        : 'lightgray',
+        ? props.themeColor || "black"
+        : "lightgray",
       borderWidth: 1,
       marginTop: 8,
       width: 55,
     },
-    expiryYearView: {marginLeft: 10},
-    cvvContainerView: {width: '25%'},
+    expiryYearView: {
+      marginLeft: 10,
+      borderColor: state.highlightExpiryYearView
+        ? props.themeColor || "black"
+        : "lightgray",
+    },
+    cvvContainerView: { width: "25%" },
     cvvView: {
-      flexDirection: 'row',
-      alignContent: 'flex-start',
+      flexDirection: "row",
+      alignContent: "flex-start",
       borderRadius: 5,
       borderColor: state.highlightCVVView
-        ? props.themeColor || 'black'
-        : 'lightgray',
+        ? props.themeColor || "black"
+        : "lightgray",
       borderWidth: 1,
       marginTop: 8,
-      justifyContent: 'space-between',
+      justifyContent: "space-between",
     },
     cvvImageView: {
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 20,
       height: 20,
-      resizeMode: props.headerImageResizeMode,
+      resizeMode: props.headerImageResizeMode || "contain",
       marginRight: 15,
     },
   });
-export default CreditCardModalView;
+export default CreditCardForm;

@@ -1,8 +1,10 @@
-import React, {Component} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, { Component } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import "intl";
+import "intl/locale-data/jsonp/en";
 
-import HorizontalTextStackView from '../src/helpers/HorizontalTextStackView';
-import {WHITE_COLOR} from '../src/constants';
+import HorizontalTextStackView from "./subElements/HorizontalStackView";
+import { WHITE_COLOR } from "./constants";
 class CartSummary extends Component {
   constructor(props) {
     super(props);
@@ -11,10 +13,10 @@ class CartSummary extends Component {
     };
   }
 
-  formatNumber = number => {
-    let formattedNumber = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'VND',
+  formatNumber = (number) => {
+    let formattedNumber = new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "VND",
     }).format(number);
     return formattedNumber;
   };
@@ -26,28 +28,8 @@ class CartSummary extends Component {
     let deliveryAmount = this.props.deliveryAmount || 0;
 
     return (
-      <View
-        style={
-          this.props.removeBorder
-            ? {padding: 0}
-            : {
-                borderRadius: 9,
-                padding: 10,
-                borderColor: 'lightgray',
-                borderWidth: 1,
-                marginHorizontal: 10,
-              }
-        }>
-        <View
-          style={{
-            marginHorizontal: 15,
-
-            shadowRadius: 1,
-            shadowOffset: {
-              height: 1,
-            },
-            backgroundColor: WHITE_COLOR,
-          }}>
+      <View style={styles.containerStyle}>
+        <View style={styles.innerViewStyle}>
           {this.props.hideHeaderView ? null : (
             <Text style={styles.paymentText}>{this.props.headerTitle}</Text>
           )}
@@ -84,20 +66,35 @@ class CartSummary extends Component {
   }
 }
 
-const stylesWithProps = props =>
+const stylesWithProps = (props) =>
   StyleSheet.create({
     btnText: {
-      textAlign: 'center',
+      textAlign: "center",
       color: props.textColor,
       fontSize: props.textFontSize || 14,
       fontWeight: props.textFontWeight,
     },
 
-    containerStyle: {
-      backgroundColor: 'white',
-      margin: 4,
-      borderRadius: 5,
+    containerStyle: props.removeBorder
+      ? { padding: 10 }
+      : {
+          borderRadius: 9,
+          padding: 10,
+          borderColor: "lightgray",
+          borderWidth: 1,
+          marginHorizontal: 10,
+        },
+    innerViewStyle: {
       marginHorizontal: 15,
+
+      shadowRadius: 1,
+      shadowOffset: {
+        height: 1,
+      },
+      backgroundColor: props.backgroundColor
+        ? props.backgroundColor
+        : WHITE_COLOR,
+      paddingTop: 10,
     },
     paymentText: {
       fontWeight: props.headerFontWeight,

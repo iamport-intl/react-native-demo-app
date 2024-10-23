@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,31 +10,31 @@ import {
   TouchableOpacity,
   Keyboard,
   LayoutAnimation,
-} from 'react-native';
-import {isEmpty} from 'lodash';
+} from "react-native";
+import { isEmpty } from "lodash";
 import {
   APP_THEME_COLOR,
   BOLD,
   strings,
   TRANSPARENT,
   WHITE_COLOR,
-} from './constants.js';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import MobileNumberAuthenticationView from '../paymentSDK/MobileNumberAuthenticationView';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {helpers} from '@iamport-intl/portone-sdk';
+} from "./constants.js";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import MobileNumberAuthenticationView from "./MobileAuthenticationView";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { helpers } from "./helper";
 
 //import TextField from "../helpers/TextField";
-const {width} = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 class SavedCardsView extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: '',
-      cardNumber: '',
-      expirationYear: '',
-      expirationMonth: '',
-      cvv: '',
+      name: "",
+      cardNumber: "",
+      expirationYear: "",
+      expirationMonth: "",
+      cvv: "",
       isFocused: false,
       cardNumberError: false,
       expiryError: false,
@@ -60,65 +60,60 @@ class SavedCardsView extends Component {
   }
 
   componentDidMount() {
-    console.log(
-      this.props.showAuthenticationFlow !== undefined
-        ? this.props.showAuthenticationFlow
-        : true,
-    );
-    AsyncStorage.getItem('formattedMobileNumber').then(number => {
-      AsyncStorage.getItem('SavedCardsData').then(data => {
+    AsyncStorage.getItem("formattedMobileNumber").then((number) => {
+      AsyncStorage.getItem("SavedCardsData").then((data) => {
         let value = JSON.parse(data);
 
         if (value?.token) {
-          this.setState({savedCardsData: value});
+          this.setState({ savedCardsData: value });
 
-          this.setState({showAuthenticationFlow: false});
+          this.setState({ showAuthenticationFlow: false });
           helpers
             .fetchSavedCards(number, this.state.OTP, value.token)
-            .then(val => {
+            .then((val) => {
               if (
                 val?.status === 200 ||
                 val?.status === 201 ||
-                val?.status_code === '2000'
+                val?.status_code === "2000"
               ) {
-                this.setState({savedCards: value?.data?.content});
+                this.setState({ savedCards: value?.data?.content });
                 this.setState({
                   mobileNumberVerificationDone: true,
                 });
-                this.setState({shouldShowOTP: false});
+                this.setState({ shouldShowOTP: false });
               } else {
                 this.setState({
                   mobileNumberVerificationDone: false,
                   shouldShowOTP: true,
                 });
 
-                AsyncStorage.setItem('SavedCardsData', JSON.stringify({}));
-                this.setState({savedCards: {}});
+                AsyncStorage.setItem("SavedCardsData", JSON.stringify({}));
+                this.setState({ savedCards: {} });
 
-                helpers.getOTP(number).then(val => {
+                helpers.getOTP(number).then((val) => {
                   if (val.status === 200 || val.status === 201) {
-                    this.setState({showAuthenticationFlow: true});
-                    this.setState({shouldShowOTP: true});
+                    this.setState({ showAuthenticationFlow: true });
+                    this.setState({ shouldShowOTP: true });
                   }
                 });
               }
             });
         } else {
-          this.setState({expanded: true});
+          this.setState({ expanded: true });
         }
       });
     });
 
     this._didShowListener = Keyboard.addListener(
-      'keyboardWillShow',
-      this.onKeyboarDidShow.bind(this),
+      "keyboardWillShow",
+      this.onKeyboarDidShow.bind(this)
     );
     this._willHideListener = Keyboard.addListener(
-      'keyboardWillHide',
-      this.onKeyboardWillHide.bind(this),
+      "keyboardWillHide",
+      this.onKeyboardWillHide.bind(this)
     );
     if (this.state.showAuthenticationFlow === false) {
-      this.setState({expanded: true});
+      this.setState({ expanded: true });
     }
   }
 
@@ -129,23 +124,23 @@ class SavedCardsView extends Component {
   onKeyboarDidShow(e) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
 
-    this.setState({keyboardDismissed: false});
+    this.setState({ keyboardDismissed: false });
   }
 
   onKeyboardWillHide(e) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
-    this.setState({keyboardDismissed: true});
+    this.setState({ keyboardDismissed: true });
   }
 
   changeLayout = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    this.setState({expanded: !this.state.expanded});
+    this.setState({ expanded: !this.state.expanded });
   };
 
   headerView = () => {
     let image = this.props.headerImage
-      ? {uri: this.props.headerImage}
-      : require('../assets/card.png');
+      ? { uri: this.props.headerImage }
+      : require("../assets/card.png");
 
     let style = stylesWithProps(this.props);
     return (
@@ -153,7 +148,8 @@ class SavedCardsView extends Component {
         <TouchableOpacity
           style={style.headerContainerView}
           activeOpacity={0.8}
-          onPress={this.changeLayout}>
+          onPress={this.changeLayout}
+        >
           {this.props.headerImage ? (
             <Image source={image} style={style.headerViewImage} />
           ) : null}
@@ -163,8 +159,8 @@ class SavedCardsView extends Component {
             <Image
               source={
                 this.state.expanded
-                  ? require('../assets/expand.png')
-                  : require('../assets/colapse.png')
+                  ? require("../assets/expand.png")
+                  : require("../assets/colapse.png")
               }
               style={style.headerViewImage}
             />
@@ -193,7 +189,8 @@ class SavedCardsView extends Component {
             expirationMonth: this.state.expirationMonth,
             cvv: this.state.cvv,
           });
-        }}>
+        }}
+      >
         <View>
           <Text style={style.payNowTextView}>Pay Now</Text>
         </View>
@@ -201,12 +198,12 @@ class SavedCardsView extends Component {
     );
   };
 
-  didSelected = item => {
-    this.setState({selectedItem: item});
+  didSelected = (item) => {
+    this.setState({ selectedItem: item });
     this.props.selectedItem(item);
   };
 
-  savedCardsData = data => {
+  savedCardsData = (data) => {
     if (isEmpty(data)) {
       this.setState({
         shouldShowOTP: true,
@@ -225,8 +222,8 @@ class SavedCardsView extends Component {
       });
     }
   };
-  renderFlatList = ({data}) => {
-    return data.map(item => {
+  renderFlatList = ({ data }) => {
+    return data.map((item) => {
       const isSelected = item.name === this.state.selectedItem.name;
 
       let product = {
@@ -234,7 +231,9 @@ class SavedCardsView extends Component {
         description: `${item.expiry_month} / ${item.expiry_year}`,
         ...item,
       };
-      let image = item.logo ? {uri: item.logo} : require('../assets/card.png');
+      let image = item.logo
+        ? { uri: item.logo }
+        : require("../assets/card.png");
       let style = stylesWithProps(this.props);
       return (
         <View style={styles.flatListContainerView}>
@@ -242,7 +241,8 @@ class SavedCardsView extends Component {
             style={styles.flatListButtonContainerView}
             onPress={() => {
               this.didSelected(item);
-            }}>
+            }}
+          >
             <View style={styles.flatListButtonView}>
               <View style={style.checkBoxContainerView}>
                 <View
@@ -251,7 +251,7 @@ class SavedCardsView extends Component {
                     {
                       backgroundColor: isSelected
                         ? this.props.checkBoxSelectionColor
-                        : 'transparent',
+                        : "transparent",
                     },
                   ]}
                 />
@@ -271,23 +271,23 @@ class SavedCardsView extends Component {
               <View style={styles.cvvView}>
                 <TextInput
                   autoFocus={false}
-                  placeholder={'XXX'}
-                  textAlign={'center'}
-                  placeholderTextColor={'#B9C4CA'}
+                  placeholder={"XXX"}
+                  textAlign={"center"}
+                  placeholderTextColor={"#B9C4CA"}
                   ref={this.cvvRef}
                   value={this.state.cvv}
                   selectTextOnFocus={true}
                   onFocus={this.onFocusCVV}
                   onBlur={this.onBlurCVV}
-                  onChangeText={text => {
-                    if (text.indexOf('.') >= 0 || text.length > 3) {
+                  onChangeText={(text) => {
+                    if (text.indexOf(".") >= 0 || text.length > 3) {
                       return;
                     }
 
-                    this.setState({cvv: text});
+                    this.setState({ cvv: text });
                   }}
-                  keyboardType={'numeric'}
-                  returnKeyType={'done'}
+                  keyboardType={"numeric"}
+                  returnKeyType={"done"}
                 />
               </View>
               <View style={styles.cvvImageView}>
@@ -303,23 +303,21 @@ class SavedCardsView extends Component {
   render() {
     let style = stylesWithPropsAndState(this.props, this.state);
     let styleWithProps = stylesWithProps(this.props);
-    console.log(
-      'this.state.showAuthenticatonFlow',
-      this.state.showAuthenticationFlow,
-    );
-    console.log('this.state.shouldShowOTP', this.state.shouldShowOTP);
+
     return (
       <View style={[style.mainView, style.mainFlexView]}>
         <KeyboardAwareScrollView
           contentContainerStyle={[styles.keyboardContainerView]}
           enableOnAndroid={true}
-          scrollEnabled={true}>
+          scrollEnabled={true}
+        >
           <View style={styleWithProps.subView}>
             <this.headerView />
             {this.state.showAuthenticationFlow || this.state.shouldShowOTP ? (
               <MobileNumberAuthenticationView
                 savedCardsData={this.savedCardsData}
                 shouldShowOTP={this.state.shouldShowOTP}
+                themeColor={this.props.themeColor}
               />
             ) : this.state.expanded ? (
               <this.renderFlatList
@@ -339,60 +337,60 @@ class SavedCardsView extends Component {
 
 const styles = StyleSheet.create({
   cvvContainerView: {
-    borderColor: '#E7E9F1',
-    width: '25%',
+    borderColor: "#E7E9F1",
+    width: "25%",
     borderWidth: 1,
     borderRadius: 8,
     marginVertical: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
   },
   cvvView: {
-    width: '70%',
-    alignContent: 'center',
-    justifyContent: 'center',
+    width: "70%",
+    alignContent: "center",
+    justifyContent: "center",
   },
   cvvImageView: {
-    width: '30%',
+    width: "30%",
     flex: 1,
   },
   cvvImage: {
     flex: 1,
-    resizeMode: 'contain',
+    resizeMode: "contain",
     margin: 4,
     marginLeft: 0,
   },
-  checkBoxTextView: {marginLeft: 15},
+  checkBoxTextView: { marginLeft: 15 },
   keyboardContainerView: {
     flexGrow: 1,
     marginVertical: 10,
   },
   flatListContainerView: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginHorizontal: 15,
     marginTop: 10,
   },
   flatListButtonContainerView: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 8,
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   flatListButtonView: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 });
 const stylesWithPropsAndState = (props, state) =>
   StyleSheet.create({
-    mainView: {backgroundColor: 'white'},
+    mainView: { backgroundColor: "white" },
     mainFlexView:
       !state.keyboardDismissed && state.showAuthenticationFlow
-        ? {flexGrow: 1}
+        ? { flexGrow: 1 }
         : {},
   });
-const stylesWithProps = props =>
+const stylesWithProps = (props) =>
   StyleSheet.create({
     checkBoxContainerView: {
       borderRadius: props.checkBoxHeight / 2,
@@ -400,8 +398,8 @@ const stylesWithProps = props =>
       width: props.checkBoxHeight,
       borderWidth: 1,
       borderColor: props.checkBoxColor,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     checkBoxView: {
       borderRadius: (props.checkBoxHeight - 6) / 2,
@@ -410,27 +408,27 @@ const stylesWithProps = props =>
     },
     checkBoxText: {
       fontSize: props.nameFontSize || 15,
-      fontWeight: props.nameFontWeight || '300',
+      fontWeight: props.nameFontWeight || "300",
     },
     checkBoxDescriptionText: {
       fontSize: props.subNameFontSize || 12,
-      fontWeight: props.subNameFontWeight || '200',
+      fontWeight: props.subNameFontWeight || "200",
       marginTop: 3,
     },
     mainView: {
-      backgroundColor: 'white',
+      backgroundColor: "white",
       paddingTop: props.containerVerticalPadding,
       paddingBottom: props.containerVerticalPadding,
-      borderColor: 'lightgray',
+      borderColor: "lightgray",
       borderWidth: 2,
       margin: 4,
       borderRadius: 5,
     },
     subView: {
-      backgroundColor: 'white',
+      backgroundColor: "white",
       paddingTop: props.containerVerticalPadding,
       paddingBottom: props.containerVerticalPadding,
-      borderColor: 'lightgray',
+      borderColor: "lightgray",
       borderWidth: 2,
       margin: 4,
       borderRadius: 5,
@@ -441,25 +439,25 @@ const stylesWithProps = props =>
       marginTop: 10,
       borderRadius: 1,
       borderWidth: 1,
-      borderColor: '#D5D5D5',
-      borderStyle: 'dashed',
+      borderColor: "#D5D5D5",
+      borderStyle: "dashed",
       zIndex: 0,
     },
 
     dashedView: {
-      position: 'absolute',
+      position: "absolute",
       left: 0,
       bottom: 0,
-      width: '100%',
+      width: "100%",
       height: 1,
-      backgroundColor: 'white',
+      backgroundColor: "white",
       zIndex: 1,
     },
     payNowTextView: {
       paddingHorizontal: 20,
-      textAlign: 'center',
-      color: 'white',
-      fontFamily: 'Avenir-Medium',
+      textAlign: "center",
+      color: "white",
+      fontFamily: "Avenir-Medium",
       fontSize: 20,
     },
 
@@ -468,21 +466,21 @@ const stylesWithProps = props =>
       height: 50,
       marginTop: 15,
       marginHorizontal: 20,
-      justifyContent: 'center',
+      justifyContent: "center",
       borderRadius: 25,
     },
 
     headerContainerView: {
-      flexDirection: 'row',
+      flexDirection: "row",
 
-      alignItems: 'center',
+      alignItems: "center",
       marginHorizontal: 15,
-      justifyContent: 'space-between',
-      backgroundColor: 'transparent',
+      justifyContent: "space-between",
+      backgroundColor: "transparent",
     },
 
     headerViewImage: {
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 20,
       height: 20,
       resizeMode: props.headerImageResizeMode,
@@ -492,7 +490,7 @@ const stylesWithProps = props =>
     headerViewText: {
       marginLeft: 5,
       fontSize: props.headerTitleFont || 15,
-      fontWeight: props.headerTitleWeight || '400',
+      fontWeight: props.headerTitleWeight || "400",
     },
   });
 

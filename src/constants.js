@@ -44,7 +44,7 @@ export const BOLD = 'bold';
 
 //Currency
 export const currency = '₫';
-export const CURRENCY = 'VND';
+export const CURRENCY = 'THB';
 export const ENVIRONMENT = 'sandbox';
 
 // DEV //
@@ -69,11 +69,21 @@ export const ENVIRONMENT = 'sandbox';
 //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoienVlZExFc2ZhZlVXZHhvUSIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.TD7YeBc_YPoZjVrbZ0V4AGrcx4Hd5Q5PUUeAB-3h9J4';
 
 // SIRI dev
-// export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
+export const CHAIPAY_KEY = 'bCktzybHOqyfTjrp';
+export const SECRET_KEY =
+  '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
+export const JWTToken =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiQ2t0enliSE9xeWZUanJwIiwiaXNzIjoiUE9SVE9ORSIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.dou9ssnNH-Hjb5l68yO21P0NBElTHwBgay349KLumMM';
+
+// SIRI dev master
+
+// export const CHAIPAY_KEY = 'hWtAifRccCIhTLbV';
 // export const SECRET_KEY =
-//   '17fd4b860101361129e5bc3d26b7c8ff80d47f7d514e8eba66e9c95f5321b123';
+//   '80ffe4a8b27e75e8121f1d0ebe05267dae11f07828fe9abd51af9bef40e92cfc';
 // export const JWTToken =
-//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
+//   'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJDSEFJUEFZIiwic3ViIjoiaFd0QWlmUmNjQ0loVExiViIsImlhdCI6MTcwODYwNDE3OCwiZXhwIjoxODA4NjA0Mjc4fQ.nnFOFf0Z4FUGa6EU_StC4PDW1LhEF_thnWeF0mjbXJI';
+// export const CUSTOMERUUID = '0bc3c965-7e6e-498d-9a8d-9f16669cb55e';
+// export const SUBMERCHANTKEY = 'PPClTcaBNqYnfpSO';
 
 // Aditya dev
 // export const CHAIPAY_KEY = 'ccbwQTkOwNHlfxeg';
@@ -83,11 +93,11 @@ export const ENVIRONMENT = 'sandbox';
 //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDSEFJUEFZIiwiaXNzIjoiYkNrdHp5YkhPcXlmVGpycCIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.c9ES3jWcF-K-W-azg4-f3jgi9s35viaPl4_9POzyBXA';
 
 // Dev Aagam
-export const CHAIPAY_KEY = 'dzcylAVbbBkhkSeg';
-export const SECRET_KEY =
-  '00c64e9355137a7813ab50e9b8b5f805e17f9917d77c3f312ce76e58143bacee';
-export const JWTToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkemN5bEFWYmJCa2hrU2VnIiwiaXNzIjoiQ0hBSVBBWSIsImlhdCI6MTcwNjg3Mzg0NywiZXhwIjoxNzA3ODczODQ3fQ.1LIN1G4_z6_HpjCkTLwmGzF8dx_T9Vh19zSFtMdTt8E';
+// export const CHAIPAY_KEY = 'dzcylAVbbBkhkSeg';
+// export const SECRET_KEY =
+//   '00c64e9355137a7813ab50e9b8b5f805e17f9917d77c3f312ce76e58143bacee';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkemN5bEFWYmJCa2hrU2VnIiwiaXNzIjoiQ0hBSVBBWSIsImlhdCI6MTcwNjg3Mzg0NywiZXhwIjoxNzA3ODczODQ3fQ.1LIN1G4_z6_HpjCkTLwmGzF8dx_T9Vh19zSFtMdTt8E';
 
 // Dev Payalsandbox
 // export const CHAIPAY_KEY = 'jiQPbjPtnTbrpPPl';
@@ -130,10 +140,12 @@ export const JWTToken =
 // export const SECRET_KEY =
 //   '6e83347729d702526a7bf0024aa3d6b2430fdbf8bde130f1bb98b4543f5a407c';
 
-//PROD Nikhil
+// PROD Nikhil
 // export const CHAIPAY_KEY = 'NPSkZZYefGyKvBxi';
 // export const SECRET_KEY =
 //   '6c8d964e7d472076eae7beb0a1f5b2b81c0afbb479307a211029ace597656957';
+// export const JWTToken =
+//   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJOUFNrWlpZZWZHeUt2QnhpIiwiaXNzIjoiUE9SVE9ORSIsImlhdCI6MTYzNTM4OTQxNiwiZXhwIjoxODM1Mzg5NDE2fQ.DQWgs8bNWdwGnnnxVJ6FSnhUoGRqx6yFaJc_fYdtuK0';
 
 export function toBase64(input) {
   return Buffer.from(input, 'utf-8').toString('base64');

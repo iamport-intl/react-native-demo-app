@@ -18,7 +18,10 @@ import {
   Platform,
 } from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
-
+import Locale from './constants';
+import UpArrow from '../assets/upArrow.svg';
+import DownArrow from '../assets/downArrow.svg';
+import {hexToRgb, formatNumber} from './helper';
 import {ModalView} from 'react-native-ios-modal';
 import {
   View,
@@ -31,7 +34,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-// import Cancel from '../../assets/cancel.svg';
+import Cancel from '../assets/cancel.svg';
 import {
   APP_THEME_COLOR,
   BOLD,
@@ -52,18 +55,19 @@ import {
   SUCCESS_COLOR,
   TRANSPARENT,
   WHITE_COLOR,
-} from '../constants.js';
+} from './constants.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Checkout from './Checkout';
-
-import {helpers} from '@iamport-intl/portone-sdk';
-import PayNowButton from '../../paymentSDK/PayNowButton';
-import PaymentMethods from '../../paymentSDK/PaymentMethods';
-import MobileAuthenticationView from '../../paymentSDK/MobileNumberAuthenticationView';
-import CartDetails from '../../paymentSDK/CartDetails';
-import TransactionStatusView from '../../paymentSDK/TransactionStatusView';
-import DashedLine from '../subElements/DashedLine';
-import {isTooDark} from '../../paymentSDK/helper';
+import Checkout from './Checkout.js';
+import CheckoutInstance from './CheckoutInstance';
+import {helpers} from './helper';
+import PayNowButton from './PayNowButton';
+import PaymentMethods from './PaymentMethods.js';
+import MobileAuthenticationView from './MobileAuthenticationView.js';
+import CartDetails from './CartDetails.js';
+import TransactionStatusView from './TransactionStatusView.js';
+import CartSummary from './CartSummary.js';
+import DashedLine from './subElements/DashedLine';
+import {isTooDark} from './helper';
 import SmsListener from 'react-native-android-sms-listener';
 import {EventRegister} from 'react-native-event-listeners';
 
@@ -270,6 +274,7 @@ class CheckoutUI2 extends Component {
     super(props);
     this.state = {
       selectedItem: {},
+      selectedItem1: {},
       callThePayment: false,
       data: {},
       url: '',
@@ -299,8 +304,6 @@ class CheckoutUI2 extends Component {
       savedCardsData: undefined,
       enablePayNow: false,
       showShippingAddress: true,
-      payload: props.payload,
-      currency: props.route.params.payload?.currency,
     };
     this.phone = React.createRef();
     this.otpInput = React.createRef();
@@ -345,23 +348,19 @@ class CheckoutUI2 extends Component {
 
   componentDidMount() {
     this.RBSheet.open();
-    console.log('props.payload?.currency', this.props.route.params.payload);
-    console.log('props.payload', this.props.route);
+
     helpers
-      .fetchAvailablePaymentGateway(
-        this.props.route.params.payload?.portOneKey,
-        this.props.route.params.payload?.currency,
-      )
+      .fetchAvailablePaymentGateway()
       .then(data => {
         this.setSelectedProducts();
 
-        this.setState({totalListOfPayments: data?.data});
-        let filteredWalletList = filter(data?.data?.WALLET, item => {
+        this.setState({totalListOfPayments: data.data});
+        let filteredWalletList = filter(data.data.WALLET, item => {
           return item.is_enabled;
         });
 
         this.setState({walletsList: filteredWalletList});
-        let filterCardList = filter(data?.data?.CARD, item => {
+        let filterCardList = filter(data.data.CARD, item => {
           return (
             item.is_default &&
             item.is_enabled &&
@@ -370,7 +369,7 @@ class CheckoutUI2 extends Component {
         });
         this.setState({
           paymentCardType: filterCardList,
-          cardList: data?.data.CARD,
+          cardList: data.data.CARD,
         });
       })
       .catch(error => {
@@ -432,7 +431,7 @@ class CheckoutUI2 extends Component {
   }
 
   setSelectedProducts = () => {
-    let selectedProducts = values(this.props.route.params.selectedProducts);
+    let selectedProducts = values(this.props.selectedProducts);
 
     this.setState({selectedProducts: selectedProducts});
   };
@@ -467,7 +466,7 @@ class CheckoutUI2 extends Component {
   };
 
   handleTextChange = text => {
-    console.warn(text);
+    console.warn('text', text);
     this.setState({OTP: text});
   };
 
@@ -490,7 +489,7 @@ class CheckoutUI2 extends Component {
         orderDetails={orderDetails}
         showSheet={true}
         onClose={this.onCloseTransactionViewPressed}
-        themeColor={this.props.route.params.themeColor}
+        themeColor={this.props.themeColor}
         payload={this.getPayload()}
         extraSpacing={true}
       />
@@ -498,11 +497,9 @@ class CheckoutUI2 extends Component {
   };
 
   formatNumber = number => {
-    console.log('currency', this.props.route.params.payload);
-    console.log('currency 1', this.props.route.params.payload.currency);
     let formattedNumber = new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: this.state.currency,
+      currency: CheckoutInstance.state.currency,
     }).format(number);
     return formattedNumber;
   };
@@ -531,7 +528,7 @@ class CheckoutUI2 extends Component {
           borderWidth={1}
           headerText={strings.netPayable}
           orderSummaryText={strings.order_details}
-          headerTextColor={this.props.route.params.themeColor}
+          headerTextColor={this.props.themeColor}
           headerFont={25}
           headerFontWeight={'500'}
           removeItem={this.removeItem}
@@ -539,9 +536,8 @@ class CheckoutUI2 extends Component {
           borderColor={this.state.color}
           showNetPayable={true}
           showCancel={false}
-          themeColor={this.props.route.params.themeColor}
-          layout={this.props.route.params.layout || 0}
-          fromCheckout={true}
+          themeColor={this.props.themeColor}
+          layout={this.props.layout || 0}
         />
       </>
     );
@@ -550,7 +546,7 @@ class CheckoutUI2 extends Component {
   ShippingView = () => {
     let selectedProducts = this.state.selectedProducts;
     let listCount = selectedProducts?.length;
-    let layout = this.props.route.params.layout || 0;
+    let layout = this.props.layout || 0;
 
     return (
       <View>
@@ -572,14 +568,14 @@ class CheckoutUI2 extends Component {
             }}>
             <Text
               style={{
-                fontSize: this.props.route.params.headerFontSize || 16,
-                fontWeight: this.props.route.params.headerFontWeight || '500',
-                color: this.props.route.params.headerColor,
+                fontSize: this.props.headerFontSize || 16,
+                fontWeight: this.props.headerFontWeight || '500',
+                color: this.props.headerColor,
                 alignContent: 'center',
 
                 justifyContent: 'center',
               }}>
-              {this.props.route.params.headerText || 'Shipping Address'}
+              {this.props.headerText || 'Shipping Address'}
             </Text>
 
             <TouchableOpacity
@@ -595,28 +591,17 @@ class CheckoutUI2 extends Component {
                 });
               }}>
               {!this.state.showShippingAddress ? (
-                <Image
-                  source={require('../../assets/Indicator.png')}
-                  style={{width: 8, height: 12}}
-                />
+                <UpArrow fill={this.props.themeColor} width={10} height={6} />
               ) : (
-                <Image
-                  source={require('../../assets/Indicator.png')}
-                  style={{width: 8, height: 12}}
-                />
+                <DownArrow fill={this.props.themeColor} width={10} height={6} />
               )}
-              {/* {!this.state.showShippingAddress ? (
-                <UpArrow fill={this.props.route.params.themeColor} width={10} height={6} />
-              ) : (
-                <DownArrow fill={this.props.route.params.themeColor} width={10} height={6} />
-              )} */}
             </TouchableOpacity>
           </View>
           {this.state.showShippingAddress ? (
             <>
               <View
                 style={{
-                  backgroundColor: this.props.route.params.themeColor,
+                  backgroundColor: hexToRgb(this.props.themeColor, 0.05),
                   marginHorizontal: layout === 0 ? 15 : 0,
                   borderRadius: 5,
                   marginBottom: layout === 0 ? 10 : 0,
@@ -635,7 +620,7 @@ class CheckoutUI2 extends Component {
                     marginLeft: 15,
                     height: 2,
                     width: 35,
-                    backgroundColor: this.props.route.params.themeColor,
+                    backgroundColor: this.props.themeColor,
                     marginVertical: 7,
                   }}
                 />
@@ -654,7 +639,7 @@ class CheckoutUI2 extends Component {
                       fontWeight: '500',
                       fontSize: 13,
                     }}>
-                    {this.props.route.params.shippingAddress ||
+                    {this.props.shippingAddress ||
                       'MIG I A7, Sujatha Nagar, Pendurthy, Visakhanpatnam, Andhra pradesh, 530051, INDIA'}
                   </Text>
                   <View
@@ -669,7 +654,7 @@ class CheckoutUI2 extends Component {
                         justifyContent: 'center',
                         alignContent: 'center',
                       }}
-                      source={require('../../assets/shipping.png')}
+                      source={require('../assets/shipping.png')}
                     />
                   </View>
                 </View>
@@ -685,7 +670,7 @@ class CheckoutUI2 extends Component {
     );
   };
 
-  SavedCardsView = () => {
+  x = () => {
     let selectedProducts = this.state.selectedProducts;
     let listCount = selectedProducts?.length;
 
@@ -705,7 +690,7 @@ class CheckoutUI2 extends Component {
           borderWidth={1}
           headerText={'Net payable'}
           orderSummaryText={'Order Details'}
-          headerTextColor={this.props.route.params.themeColor}
+          headerTextColor={this.props.themeColor}
           headerFont={25}
           headerFontWeight={'500'}
           removeItem={this.removeItem}
@@ -713,7 +698,7 @@ class CheckoutUI2 extends Component {
           borderColor={this.state.color}
           showNetPayable={true}
           showCancel={true}
-          themeColor={this.props.route.params.themeColor}
+          themeColor={this.props.themeColor}
         />
       </>
     );
@@ -728,7 +713,60 @@ class CheckoutUI2 extends Component {
   };
 
   getData = () => {
-    return this.props.route.params.payload;
+    let totalAmount = sumBy(this.state.selectedProducts, 'price');
+    let selectedItem = first(values(this.state.selectedItem));
+    return {
+      source: 'mobile',
+      environment: CheckoutInstance.state.environment,
+      chaipayKey: CheckoutInstance.state.chaipayKey,
+      secretKey: CheckoutInstance.state.secretKey,
+      paymentChannel: selectedItem?.payment_channel_key,
+      paymentMethod: selectedItem?.payment_method_key,
+      merchantOrderId: 'MERCHANT' + new Date().getTime(),
+      amount: totalAmount + deliveryAmount,
+      currency: CheckoutInstance.state.currency,
+      signature_hash: '123',
+      billingAddress: {
+        billing_name: 'Test mark',
+        billing_email: 'markweins@gmail.com',
+        billing_phone: this.state.formattedText || '84332234567',
+        billing_address: {
+          city: 'VN',
+          country_code: 'VN',
+          locale: 'en',
+          line_1: 'address',
+          line_2: 'address_2',
+          postal_code: '400202',
+          state: 'Mah',
+        },
+      },
+      shippingAddress: {
+        shipping_name: 'xyz',
+        shipping_email: 'xyz@gmail.com',
+        shipping_phone: '+84332234567',
+        shipping_address: {
+          city: 'abc',
+          country_code: 'VN',
+          locale: 'en',
+          line_1: 'address_1',
+          line_2: 'address_2',
+          postal_code: '400202',
+          state: 'Mah',
+        },
+      },
+      orderDetails: [
+        {
+          id: 'knb',
+          name: 'kim nguyen bao',
+          price: 1900,
+          quantity: 1,
+        },
+      ],
+      successUrl: 'portone://checkout',
+      failureUrl: 'portone://checkout',
+      redirectUrl: 'portone://checkout',
+      mobileRedirectUrl: 'chaiport://checkout',
+    };
   };
 
   confirmCardPayment = async (savedCard, fromSavedcards = false) => {
@@ -736,8 +774,8 @@ class CheckoutUI2 extends Component {
 
     let cardType = first(this.state.paymentCardType);
 
-    data.paymentChannel = cardType?.payment_channel_key;
-    data.paymentMethod = cardType?.payment_method_key;
+    data.paymentChannel = cardType.payment_channel_key;
+    data.paymentMethod = cardType.payment_method_key;
     data.merchantOrderId = 'MERCHANT' + new Date().getTime();
 
     let response;
@@ -764,7 +802,6 @@ class CheckoutUI2 extends Component {
     if (enableButton !== undefined) {
       this.setState({enablePayNow: enableButton});
     }
-    console.log('SelectedDsta', data);
     if (data?.fromNewCard) {
       this.confirmCardPayment({
         card_number: data.cardNumber,
@@ -772,9 +809,8 @@ class CheckoutUI2 extends Component {
         cvv: data.cvv,
         expiry_month: data.expirationMonth,
         expiry_year: data.expirationYear,
-        saved_card: data?.saveForLater,
       });
-    } else if (data?.fromATmCard || data?.fromCreditCard) {
+    } else if (data?.fromATmCard) {
       var payload = this.getData();
       var newPayload = {...payload};
       let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
@@ -800,16 +836,6 @@ class CheckoutUI2 extends Component {
 
   creditCardDetails = cardData => {
     this.selectedData({...cardData, fromNewCard: true});
-  };
-  tokenisationCreditCardDetails = (data, enable) => {
-    console.log('data', data);
-    this.setState({
-      enablePayNow: enable,
-      selectedItem: data,
-      fromATMCard: false,
-      fromCreditCard: true,
-      fromNewCard: false,
-    });
   };
   atmCardClicked = (data, enable) => {
     this.setState({
@@ -840,13 +866,14 @@ class CheckoutUI2 extends Component {
     });
 
     let selectedProducts = values(this.state.selectedProducts);
-    let themeColor = this.props.route.params.themeColor;
-    let layout = this.props.route.params.layout;
+    let themeColor = this.props.themeColor;
+    let layout = this.props.layout;
 
     return (
       <View
         style={{
           width: width,
+          marginTop: layout === 0 ? -25 : -20,
         }}>
         <PaymentMethods
           themeColor={themeColor}
@@ -856,16 +883,15 @@ class CheckoutUI2 extends Component {
           fontWeight={this.state.fontWeight}
           headerFontSize={15}
           headerFontWeight={'500'}
+          headerColor={'black'}
           selectedData={this.selectedData}
           customHandle={false}
           selectedProducts={selectedProducts}
           deliveryAmount={deliveryAmount}
           newCardData={this.creditCardDetails}
-          creditCardClicked={this.tokenisationCreditCardDetails}
           atmCardClicked={this.atmCardClicked}
           onClose={this.onCloseTransactionViewPressed}
           removeBorder={true}
-          fromCheckout={true}
           walletStyles={{
             themeColor: themeColor,
             borderRadius: this.state.borderRadius,
@@ -887,7 +913,7 @@ class CheckoutUI2 extends Component {
             nameFontWeight: this.state.fontWeight,
             buttonBorderRadius: layout === 1 || layout === 3 ? 25 : 10,
           }}
-          layout={this.props.route.params.layout || 0}
+          layout={this.props.layout || 0}
         />
       </View>
     );
@@ -903,7 +929,7 @@ class CheckoutUI2 extends Component {
           marginVertical: 7,
         }}>
         <Image
-          source={require('../../assets/protected.png')}
+          source={require('../assets/protected.png')}
           style={{
             alignSelf: 'center',
             width: 15,
@@ -931,7 +957,7 @@ class CheckoutUI2 extends Component {
         }}>
         <Text style={{fontSize: 12}}>{'Powered by '}</Text>
         <Image
-          source={require('../../assets/chaiport.png')}
+          source={require('../assets/chaiport.png')}
           style={{
             alignSelf: 'center',
             width: 15,
@@ -951,26 +977,31 @@ class CheckoutUI2 extends Component {
   };
 
   getPayload = () => {
-    let newPayload = this.getData();
+    let payload = this.getData();
+    let newPayload = {...payload};
 
     let selectedItem = this.state.selectedItem;
 
     let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
 
+    newPayload.merchantOrderId = 'MERCHANT' + new Date().getTime();
     newPayload.paymentChannel = selectedItem?.payment_channel_key;
     newPayload.paymentMethod =
       selectedItem?.payment_channel_key === 'VNPAY'
         ? 'VNPAY_ALL'
         : selectedItem?.payment_method_key;
 
+    newPayload.amount = totalAmount + deliveryAmount;
+
     return newPayload;
   };
 
   PayNowView = ({image, totalAmount}) => {
-    const layout = this.props.route.params.layout;
+    const deepLinkURL = 'chaiport://checkout';
+    const layout = this.props.layout;
     let formattedNumber = new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: this.state.currency,
+      currency: CheckoutInstance.state.currency,
     }).format(totalAmount + deliveryAmount);
 
     return (
@@ -987,7 +1018,7 @@ class CheckoutUI2 extends Component {
           />
           <PayNowButton
             disabled={!this.state.enablePayNow}
-            themeColor={this.props.route.params.themeColor}
+            themeColor={this.props.themeColor}
             textFontSize={16}
             textFontWeight={'800'}
             textColor={'white'}
@@ -1101,8 +1132,8 @@ class CheckoutUI2 extends Component {
                     <Image
                       source={
                         !this.state.showSavedCards
-                          ? require('../../assets/colapse.png')
-                          : require('../../assets/expand.png')
+                          ? require('../assets/colapse.png')
+                          : require('../assets/expand.png')
                       }
                       style={{
                         alignSelf: 'center',
@@ -1257,8 +1288,8 @@ class CheckoutUI2 extends Component {
     let totalAmount = sumBy(values(this.state.selectedProducts), 'price');
 
     let image = !this.state.shouldShowOrderDetails
-      ? require('../../assets/expand.png')
-      : require('../../assets/colapse.png');
+      ? require('../assets/expand.png')
+      : require('../assets/colapse.png');
 
     let orderDetails = this.state.orderDetails;
     const showCardForm = first(
@@ -1278,7 +1309,7 @@ class CheckoutUI2 extends Component {
               customStyles={{
                 container: {
                   height: Platform.OS === 'ios' ? '100%' : '100%',
-                  backgroundColor: this.props.route.params.themeColor,
+                  backgroundColor: this.props.themeColor,
                 },
                 draggableIcon: {
                   backgroundColor: 'transparent',
@@ -1287,7 +1318,7 @@ class CheckoutUI2 extends Component {
               closeOnDragDown={true}
               closeOnPressMask={false}
               animationType={'slide'}
-              onClose={this.props.route.params.onClose}
+              onClose={this.props.onClose}
               ref={ref => {
                 this.RBSheet = ref;
               }}
@@ -1302,7 +1333,7 @@ class CheckoutUI2 extends Component {
                   <View
                     style={{
                       flexDirection: 'row',
-                      backgroundColor: this.props.route.params.themeColor,
+                      backgroundColor: this.props.themeColor,
                       flexDirection: 'row',
                     }}>
                     <TouchableOpacity
@@ -1313,30 +1344,24 @@ class CheckoutUI2 extends Component {
                         alignSelf: 'center',
                         marginLeft: 15,
                       }}
-                      onPress={this.props.route.params.onClose}>
+                      onPress={this.props.onClose}>
                       <View>
-                        <Image
-                          source={require('../../assets/cancel.png')}
-                          style={{width: 10, height: 12}}
-                        />
-                      </View>
-                      {/* <View>
                         <Cancel
                           fill={
-                            !isTooDark(this.props.route.params.themeColor)
-                              ? "white"
-                              : "white"
+                            !isTooDark(this.props.themeColor)
+                              ? 'black'
+                              : 'white'
                           }
                           width={12}
                           height={12}
                         />
-                      </View> */}
+                      </View>
                     </TouchableOpacity>
 
                     <View
                       style={{
                         height: 50,
-                        backgroundColor: this.props.route.params.themeColor,
+                        backgroundColor: this.props.themeColor,
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                         flex: 1,
@@ -1345,7 +1370,9 @@ class CheckoutUI2 extends Component {
                       <Text
                         style={{
                           padding: 5,
-                          color: 'white',
+                          color: !isTooDark(this.props.themeColor)
+                            ? 'black'
+                            : 'white',
                           fontWeight: 'bold',
                           marginLeft: 10,
                           fontSize: 16,
@@ -1374,29 +1401,25 @@ class CheckoutUI2 extends Component {
                         }}>
                         <Text
                           style={{
-                            fontSize:
-                              this.props.route.params.headerFontSize || 16,
-                            fontWeight:
-                              this.props.route.params.headerFontWeight || '500',
-                            color: 'white',
+                            fontSize: this.props.headerFontSize || 16,
+                            fontWeight: this.props.headerFontWeight || '500',
+                            color: !isTooDark(this.props.themeColor)
+                              ? 'black'
+                              : 'white',
                             marginRight: 10,
                           }}>
-                          {!this.state.showLanguageSelection
+                          {this.state.showLanguageSelection
                             ? 'English(EN)'
                             : 'VN'}
                         </Text>
 
                         <View style={{marginRight: 5}}>
-                          <Image
-                            source={require('../../assets/Indicator.png')}
-                            style={{width: 8, height: 15}}
-                          />
-                          {/* {this.state.showLanguageSelection ? (
+                          {this.state.showLanguageSelection ? (
                             <UpArrow
                               fill={
-                                !isTooDark(this.props.route.params.themeColor)
-                                  ? "white"
-                                  : "white"
+                                !isTooDark(this.props.themeColor)
+                                  ? 'black'
+                                  : 'white'
                               }
                               width={10}
                               height={6}
@@ -1404,14 +1427,14 @@ class CheckoutUI2 extends Component {
                           ) : (
                             <DownArrow
                               fill={
-                                !isTooDark(this.props.route.params.themeColor)
-                                  ? "white"
-                                  : "white"
+                                !isTooDark(this.props.themeColor)
+                                  ? 'black'
+                                  : 'white'
                               }
                               width={10}
                               height={6}
                             />
-                          )} */}
+                          )}
                         </View>
                       </TouchableOpacity>
                     </View>
@@ -1422,12 +1445,12 @@ class CheckoutUI2 extends Component {
                       style={{flex: 1, marginBottom: 1}}
                       keyboardVerticalOffset={100}>
                       <ScrollView>
-                        <TouchableOpacity activeOpacity={1}>
+                        <View>
                           <this.ListOfItemsView />
                           <this.ShippingView />
 
                           <this.PaymentOptionsView />
-                        </TouchableOpacity>
+                        </View>
                       </ScrollView>
                     </KeyboardAvoidingView>
 

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "-": "0.0.1",
-    "@iamport-intl/portone-sdk": "^2.8.5",
+    "@iamport-intl/portone-sdk": "file:./PaymentSDK",
     "@react-native-async-storage/async-storage": "^1.17.9",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native/metro-config": "^0.73.4",

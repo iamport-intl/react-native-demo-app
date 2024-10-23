@@ -8,10 +8,14 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {map, values, sumBy} from 'lodash';
-import ScheduledProductCell from '../src/screens/SelectedProductCell';
+import ScheduledProductCell from './subElements/ProductItemCell';
 const {width} = Dimensions.get('screen');
-import {WHITE_COLOR} from '../src/constants';
-import DashedLine from './DashedLine';
+import {WHITE_COLOR} from './constants';
+import DashedLine from './subElements/DashedLine';
+import CartSummary from './CartSummary';
+import UpArrow from '../assets/upArrow.svg';
+import DownArrow from '../assets/downArrow.svg';
+import {hexToRgb, formatNumber} from './helper';
 class CartDetails extends Component {
   constructor(props) {
     super(props);
@@ -23,15 +27,25 @@ class CartDetails extends Component {
   render() {
     var style = stylesWithProps(this.props);
 
+    let layout = this.props.layout || 0;
     let listCount = this.props.selectedProducts.length;
     let selectedItems = this.props.selectedProducts;
     let totalAmount = sumBy(this.props.selectedProducts, 'price');
-
+    let deliveryAmount = 0;
     return (
-      <View style={{flex: 1}}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor:
+            layout === 0 ? hexToRgb(this.props.themeColor, 0.05) : 'white',
+          borderBottomLeftRadius: 15,
+          borderBottomRightRadius: 15,
+        }}>
         <View
           style={{
-            backgroundColor: WHITE_COLOR,
+            backgroundColor: !this.state.showList
+              ? 'transparent'
+              : 'transparent',
           }}>
           <View
             style={{
@@ -39,7 +53,7 @@ class CartDetails extends Component {
               flexDirection: 'row',
 
               justifyContent: 'space-between',
-              backgroundColor: 'WHITE_COLOR',
+              backgroundColor: 'transparent',
               marginHorizontal: 15,
             }}>
             <Text
@@ -48,77 +62,123 @@ class CartDetails extends Component {
                 fontWeight: this.props.headerFontWeight || '500',
                 color: this.props.headerColor,
               }}>
-              {this.props.headerText || 'My cart'} ({listCount}{' '}
-              {listCount === 1 ? 'item' : 'items'})
+              {this.props.headerText || 'My cart'}
+              {this.props.showNetPayable
+                ? ''
+                : `(${listCount} ${listCount === 1 ? ' item' : ' items'})`}
             </Text>
 
-            {this.props.showNetPayable ? (
-              <Text
-                style={{
-                  fontSize: this.props.headerFontSize || 16,
-                  fontWeight: this.props.headerFontWeight || '500',
-                  color: this.props.headerColor,
-                }}>
-                {totalAmount}
-              </Text>
-            ) : (
-              <TouchableOpacity
-                onPress={() => {
-                  this.setState({showList: !this.state.showList});
-                }}>
-                <Image
-                  source={
-                    !this.state.showList
-                      ? require('../assets/colapse.png')
-                      : require('../assets/expand.png')
-                  }
+            <TouchableOpacity
+              style={{flexDirection: 'row', alignItems: 'center'}}
+              onPress={() => {
+                this.setState({showList: !this.state.showList});
+              }}>
+              {this.props.showNetPayable ? (
+                <Text
                   style={{
-                    alignSelf: 'center',
-                    width: 25,
-                    height: 25,
-                    resizeMode: 'contain',
-                    marginRight: 5,
-                  }}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-          <View>
-            <DashedLine color={this.props.dashedColor} />
+                    fontSize: this.props.headerFontSize || 16,
+                    fontWeight: this.props.headerFontWeight || '500',
+                    color: this.props.headerColor || this.props.themeColor,
+                    marginRight: 10,
+                  }}>
+                  {formatNumber(totalAmount)}
+                </Text>
+              ) : null}
+
+              <View style={{marginRight: 5}}>
+                {!this.state.showList ? (
+                  <UpArrow fill={this.props.themeColor} width={10} height={6} />
+                ) : (
+                  <DownArrow
+                    fill={this.props.themeColor}
+                    width={10}
+                    height={6}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
         {this.state.showList ? (
-          <View
-            style={{
-              backgroundColor: WHITE_COLOR,
-              marginTop: 4,
-            }}>
-            <View style={{marginHorizontal: 15}}>
-              {map(selectedItems, (product, index) => {
-                return (
-                  <ScheduledProductCell
-                    key={index}
-                    product={product}
-                    nameColor={this.props.nameColor}
-                    nameFontSize={this.props.nameFontSize}
-                    nameFontWeight={this.props.nameFontWeight}
-                    descriptionColor={this.props.nameColor}
-                    descriptionSize={this.props.descriptionSize}
-                    descriptionFontWeight={this.props.descriptionFontWeight}
-                    amountFontSize={this.props.amountFontSize}
-                    amountFontWeight={this.props.amountFontWeight}
-                    amountColor={this.props.amountColor}
-                    borderColor={this.props.borderColor}
-                    borderRadius={this.props.borderRadius}
-                    borderWidth={this.props.borderWidth}
-                    removeItem={this.props.removeItem}
-                    showCancel={false}
-                    removeBorder={this.props.removeBorder}
-                  />
-                );
-              })}
+          <>
+            <View>
+              <DashedLine
+                color={this.props.dashedColor}
+                backgroundColor={'transparent'}
+              />
             </View>
-          </View>
+            <View
+              style={{
+                backgroundColor: 'transparent',
+              }}>
+              <Text
+                style={{marginHorizontal: 15, color: '#757575', marginTop: 5}}>
+                {this.props.orderSummaryText || 'Order Summary'}
+              </Text>
+              <View style={{marginHorizontal: 15}}>
+                {map(selectedItems, (product, index) => {
+                  return (
+                    <ScheduledProductCell
+                      key={product.key}
+                      product={product}
+                      nameColor={this.props.themeColor}
+                      themeColor={this.props.themeColor}
+                      descriptionColor={this.props.nameColor}
+                      descriptionSize={this.props.descriptionSize}
+                      descriptionFontWeight={this.props.descriptionFontWeight}
+                      amountFontSize={this.props.amountFontSize}
+                      amountFontWeight={this.props.amountFontWeight}
+                      amountColor={this.props.amountColor}
+                      borderColor={this.props.borderColor}
+                      borderRadius={this.props.borderRadius}
+                      borderWidth={this.props.borderWidth}
+                      removeItem={this.props.removeItem}
+                      showCancel={this.props.showCancel}
+                      removeBorder={this.props.removeBorder}
+                      layout={this.props.layout || 1}
+                    />
+                  );
+                })}
+              </View>
+              {this.props.showNetPayable ? (
+                <>
+                  <View style={{marginTop: 5}}>
+                    <DashedLine
+                      color={this.props.dashedColor}
+                      backgroundColor={'transparent'}
+                    />
+                  </View>
+                  <View style={{marginRight: 15}}>
+                    <CartSummary
+                      hideHeaderView={true}
+                      removeBorder={true}
+                      deliveryAmount={deliveryAmount}
+                      totalAmount={totalAmount}
+                      amountTitle={'Taxes'}
+                      amountFont={12}
+                      amountColor={'#010101'}
+                      amountFontWeight={'300'}
+                      deliveryTitle={'Delivery'}
+                      deliveryFont={12}
+                      deliveryColor={'#010101'}
+                      deliveryFontWeight={'300'}
+                      summaryTitle={'Summary'}
+                      summaryFont={14}
+                      summaryColor={
+                        layout === 0
+                          ? '#010101'
+                          : layout === 1
+                          ? this.props.themeColor
+                          : '#010101'
+                      }
+                      summaryFontWeight={'500'}
+                      backgroundColor={'transparent'}
+                    />
+                  </View>
+                </>
+              ) : null}
+            </View>
+          </>
         ) : null}
       </View>
     );
@@ -132,23 +192,6 @@ const stylesWithProps = props =>
       color: props.textColor,
       fontSize: props.textFontSize || 14,
       fontWeight: props.textFontWeight,
-    },
-
-    nextViewContainerStyle: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: props.themeColor || 'red',
-      paddingVertical: 15,
-      borderRadius: props.borderRadius || 8,
-      paddingHorizontal: 15,
-      width: props.width,
-      height: props.height,
-    },
-    containerStyle: {
-      backgroundColor: 'white',
-      margin: 4,
-      borderRadius: 5,
-      marginHorizontal: 15,
     },
   });
 

@@ -35,6 +35,7 @@ import {
   ENVIRONMENT,
   toBase64,
   fromBase64,
+  SUBMERCHANTKEY,
 } from '../../constants';
 import Product from '../Product';
 import {
@@ -67,7 +68,7 @@ import HorizontalTextStackView from '../../helpers/HorizontalTextStackView';
 import ScheduledProductCell from '../SelectedProductCell';
 import {EventRegister} from 'react-native-event-listeners';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+export const CUSTOMERUUID = 'ac8aabfc-ae74-4358-9403-a5d9d0c172eb';
 const {width, height} = Dimensions.get('screen');
 
 const products = [
@@ -136,7 +137,7 @@ class Shop extends React.Component {
         name: 'Vietnamese',
         code: 'en-EN',
         languageCode: 'vn',
-        currency: 'VND',
+        currency: 'THB',
       },
     };
   }
@@ -513,8 +514,8 @@ class Shop extends React.Component {
         shipping_charges: shipping,
       },
 
-      paymentChannel: 'GBPRIMEPAY',
-      paymentMethod: 'GBPRIMEPAY_CREDIT_CARD',
+      paymentChannel: 'OMISE',
+      paymentMethod: 'OMISE_CREDIT_CARD',
       merchantOrderId: merchantOrderId,
       signatureHash: this.createHash(
         CHAIPAY_KEY,
@@ -786,7 +787,34 @@ class Shop extends React.Component {
               ]}
               disabled={isEmpty(this.state.selectedProducts)}
               onPress={() => {
-                this.setState({showUIPopUp: true});
+                let config = this.getDefaultConfig();
+                Checkout.openWebCheckoutUI(
+                  {
+                    ...config,
+                  },
+                  JWTToken,
+                  null,
+                  null,
+                  val => {
+                    console.log('Callback function called', val);
+                  },
+                );
+
+                // this.setState({showUIPopUp: true});
+                // this.setState({showCardUI: true});
+                // let payload = this.getDefaultConfig();
+                // payload.paymentChannel = 'PAYLETTER';
+                // payload.paymentMethod = 'PAYLETTER_CREDIT_CARD';
+
+                // payload.userUUID = CUSTOMERUUID;
+                // payload.autoRefund = true;
+                // Checkout.startPaymentWithNewCard(
+                //   null,
+                //   payload,
+                //   JWTToken,
+                //   payload?.portOneKey,
+                //   CUSTOMERUUID,
+                // );
               }}>
               <Text style={styles.buyNowTextView} adjustsFontSizeToFit>
                 {strings.buy_now}
@@ -844,14 +872,28 @@ class Shop extends React.Component {
                   // });
                   // this.onClose();
 
-                  this.setState(
-                    {showUIPopUp: false, showV4Checkout: true},
-                    () => {
-                      console.log(
-                        'SHOW v4 elements',
-                        this.state.showV4Checkout,
-                      );
-                    },
+                  // this.seState(
+                  //   {showUIPopUp: false, showV4Checkout: true},
+                  //   () => {
+                  //     console.log(
+                  //       'SHOW v4 elements',
+                  //       this.state.showV4Checkout,
+                  //     );
+                  //   },
+                  // );
+
+                  let payload = this.getDefaultConfig();
+                  payload.paymentChannel = 'PAYLETTER';
+                  payload.paymentMethod = 'PAYLETTER_CREDIT_CARD';
+
+                  payload.userUUID = CUSTOMERUUID;
+                  payload.autoRefund = true;
+                  Checkout.startPaymentWithNewCard(
+                    null,
+                    payload,
+                    JWTToken,
+                    payload?.portOneKey,
+                    CUSTOMERUUID,
                   );
                 }}
               />
@@ -910,31 +952,35 @@ class Shop extends React.Component {
               />
             </>
           ) : null}
-          {/* {this.state.showV4Checkout ? (
+          {this.state.showCardUI ? (
             <>
               <CreditCardForm
                 onClose={() => {
                   console.log('on close');
+                  this.setState({showCardUI: false});
                 }}
+                customerUUID={'de23e31b-a7b0-49e8-8f58-7e74bde7ba9a'}
+                subMerchantKey={SUBMERCHANTKEY}
+                containerHeight={'85%'}
                 JWTToken={JWTToken}
                 handleSDK={true}
                 payload={this.getDefaultConfig()}
-                showSaveForLater={true}
                 themeColor={'black'}
+                showSaveForLater={true}
                 newCardData={data => {
                   console.log('data new card', data);
+                  // this.setState({showCardUI: false});
                 }}
-                payNowButtonText={'strings.payNow'}
               />
             </>
-          ) : null} */}
+          ) : null}
         </>
         {this.state.selectedLanguage !== undefined ? (
           <Checkout
-            env={'dev'}
             callbackFunction={this.afterCheckout}
             redirectUrl={'portone://checkout'}
             environment={'sandbox'}
+            env={'dev'}
           />
         ) : null}
       </View>
